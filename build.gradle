@@ -1,0 +1,35 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:2.2.1'
+
+        // NOTE: Do not place your application dependencies here.
+    }
+}
+
+repositories {
+    jcenter()
+}
+
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion "24.0.3"
+
+    defaultConfig {
+        applicationId "com.google.android.mobly.snippet.bundled"
+        minSdkVersion 11
+        targetSdkVersion 24
+        versionCode 1
+        versionName "0.0.1"
+        setProperty("archivesBaseName", "mobly-bundled-snippets")
+    }
+}
+
+dependencies {
+    compile 'com.google.android.mobly:snippetlib:0.0.1'
+    compile 'com.android.support.test:runner:0.5'
+}
