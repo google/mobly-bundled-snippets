@@ -30,6 +30,6 @@ android {
 }
 
 dependencies {
-    compile 'com.google.android.mobly:snippetlib:0.0.1'
+    compile 'com.google.android.mobly:mobly-snippet-lib:1.0.0'
     compile 'com.android.support.test:runner:0.5'
 }
