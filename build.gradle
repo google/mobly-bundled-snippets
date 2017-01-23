@@ -9,6 +9,10 @@ buildscript {
     }
 }
 
+plugins {
+    id "com.github.sherter.google-java-format" version "0.6"
+}
+
 repositories {
     jcenter()
 }
@@ -26,10 +30,22 @@ android {
         versionCode 1
         versionName "0.0.1"
         setProperty("archivesBaseName", "mobly-bundled-snippets")
+        jackOptions {
+            enabled true
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
 dependencies {
     compile 'com.google.android.mobly:mobly-snippet-lib:1.0.0'
     compile 'com.android.support.test:runner:0.5'
+    compile 'com.google.code.gson:gson:2.6.2'
+}
+
+googleJavaFormat {
+    options style: 'AOSP'
 }
