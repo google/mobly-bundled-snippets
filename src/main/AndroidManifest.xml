@@ -5,10 +5,15 @@
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <application>
         <meta-data
             android:name="mobly-snippets"
-            android:value="com.google.android.mobly.snippet.bundled.BluetoothAdapterSnippet" />
+            android:value="com.google.android.mobly.snippet.bundled.BluetoothAdapterSnippet,
+                           com.google.android.mobly.snippet.bundled.WifiManagerSnippet" />
     </application>
 
     <instrumentation
