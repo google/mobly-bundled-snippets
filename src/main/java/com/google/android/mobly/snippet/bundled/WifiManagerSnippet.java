@@ -141,6 +141,18 @@ public class WifiManagerSnippet implements Snippet {
         }
     }
 
+    @Rpc(description = "Disconnect current Wi-Fi connection.")
+    public void wifiDisconnect() throws InterruptedException, WifiManagerSnippetException {
+        if (!mWifiManager.disconnect()) {
+            throw new WifiManagerSnippetException("Failed to initiate disconnecting Wi-Fi.");
+        }
+        Utils.Predicate expectedState =
+                () -> mWifiManager.getConnectionInfo().getSSID().isEmpty();
+        if (!Utils.waitUntil(expectedState, 30)) {
+            throw new WifiManagerSnippetException("Failed to disconnect Wi-Fi after 30s, timeout!");
+        }
+    }
+
     @Rpc(description = "Forget a configured Wi-Fi network by its network ID.")
     public void wifiRemoveNetwork(Integer networkId) throws WifiManagerSnippetException {
         if (!mWifiManager.removeNetwork(networkId)) {
