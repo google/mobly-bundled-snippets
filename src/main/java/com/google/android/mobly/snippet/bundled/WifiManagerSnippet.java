@@ -39,11 +39,11 @@ import org.json.JSONObject;
 /** Snippet class exposing Android APIs in WifiManager. */
 public class WifiManagerSnippet implements Snippet {
     private final Lock mReentrantLock = new ReentrantLock();
-    private final Condition scanResultsAvailable = mReentrantLock.newCondition();
+    private final Condition mScanResultsAvailable = mReentrantLock.newCondition();
     private final WifiManager mWifiManager;
     private final Context mContext;
     private WifiManager.WifiLock mWifiLock;
-    private final String TAG = "WifiManagerSnippet";
+    private static final String TAG = "WifiManagerSnippet";
     private final JsonBuilder mJsonBuilder = new JsonBuilder();
     private boolean mIsScanning = false;
 
@@ -71,7 +71,7 @@ public class WifiManagerSnippet implements Snippet {
             throw new WifiManagerSnippetException("Failed to initiate enabling Wi-Fi.");
         }
         Utils.Predicate waitCondition =
-                () -> mWifiManager.getWifiState() != WifiManager.WIFI_STATE_ENABLED;
+                () -> !(mWifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED);
         if (!Utils.waitAndCheck(waitCondition, 30)) {
             throw new WifiManagerSnippetException("Failed to enable Wi-Fi after 30s, timeout!");
         }
@@ -83,7 +83,7 @@ public class WifiManagerSnippet implements Snippet {
             throw new WifiManagerSnippetException("Failed to initiate disabling Wi-Fi.");
         }
         Utils.Predicate waitCondition =
-                () -> mWifiManager.getWifiState() != WifiManager.WIFI_STATE_DISABLED;
+                () -> !(mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED);
         if (!Utils.waitAndCheck(waitCondition, 30)) {
             throw new WifiManagerSnippetException("Failed to disable Wi-Fi after 30s, timeout!");
         }
@@ -115,7 +115,7 @@ public class WifiManagerSnippet implements Snippet {
         mIsScanning = true;
         boolean isTimeout = false;
         while (mIsScanning) {
-            isTimeout = !scanResultsAvailable.await(2, TimeUnit.MINUTES);
+            isTimeout = !mScanResultsAvailable.await(2, TimeUnit.MINUTES);
         }
         if (isTimeout) {
             throw new WifiManagerSnippetException(
@@ -224,7 +224,7 @@ public class WifiManagerSnippet implements Snippet {
             String action = intent.getAction();
             if (action.equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
                 mIsScanning = false;
-                scanResultsAvailable.signal();
+                mScanResultsAvailable.signal();
             }
         }
     }

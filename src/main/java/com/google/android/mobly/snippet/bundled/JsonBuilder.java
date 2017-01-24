@@ -86,20 +86,7 @@ public class JsonBuilder {
 
     public JSONObject buildWifiConfiguration(WifiConfiguration data) throws JSONException {
         JSONObject result = new JSONObject(mGson.toJson(data));
-        String statusFieldName = "Status";
-        switch (data.status) {
-            case WifiConfiguration.Status.CURRENT:
-                result.put(statusFieldName, "CURRENT");
-                break;
-            case WifiConfiguration.Status.DISABLED:
-                result.put(statusFieldName, "DISABLED");
-                break;
-            case WifiConfiguration.Status.ENABLED:
-                result.put(statusFieldName, "ENABLED");
-                break;
-            default:
-                result.put(statusFieldName, "UNKNOWN");
-        }
+        result.put("Status", WifiConfiguration.Status.strings[data.status]);
         result.put("SSID", trimQuotationMarks(data.SSID));
         return result;
     }
