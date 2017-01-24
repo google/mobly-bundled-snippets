@@ -31,10 +31,6 @@ import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.util.Log;
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -47,13 +43,12 @@ public class WifiManagerSnippet implements Snippet {
         }
     }
 
-    private final Lock mReentrantLock = new ReentrantLock();
-    private final Condition mScanResultsAvailable = mReentrantLock.newCondition();
     private final WifiManager mWifiManager;
     private final Context mContext;
     private static final String TAG = "WifiManagerSnippet";
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
     private volatile boolean mIsScanning = false;
+    private volatile boolean mIsScanResultAvailable = false;
 
     public WifiManagerSnippet() {
         mContext = InstrumentationRegistry.getContext();
@@ -107,12 +102,10 @@ public class WifiManagerSnippet implements Snippet {
                 new WifiScanReceiver(),
                 new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
         wifiStartScan();
+        mIsScanResultAvailable = false;
         mIsScanning = true;
-        boolean isTimeout = false;
-        while (mIsScanning) {
-            isTimeout = !mScanResultsAvailable.await(2, TimeUnit.MINUTES);
-        }
-        if (isTimeout) {
+        Utils.Predicate expectedState = () -> mIsScanResultAvailable;
+        if (!Utils.waitUntil(expectedState, 2 * 60)) {
             throw new WifiManagerSnippetException(
                     "Failed to get scan results after 2min, timeout!");
         }
@@ -184,7 +177,7 @@ public class WifiManagerSnippet implements Snippet {
             String action = intent.getAction();
             if (action.equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
                 mIsScanning = false;
-                mScanResultsAvailable.signal();
+                mIsScanResultAvailable = true;
             }
         }
     }
