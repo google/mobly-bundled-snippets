@@ -45,7 +45,7 @@ public class WifiManagerSnippet implements Snippet {
     private WifiManager.WifiLock mWifiLock;
     private final String TAG = "WifiManagerSnippet";
     private final JsonBuilder mJsonBuilder = new JsonBuilder();
-    private boolean isScanning = false;
+    private boolean mIsScanning = false;
 
     public WifiManagerSnippet() {
         mContext = InstrumentationRegistry.getContext();
@@ -112,9 +112,9 @@ public class WifiManagerSnippet implements Snippet {
                 new WifiScanReceiver(),
                 new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
         wifiStartScan();
-        isScanning = true;
+        mIsScanning = true;
         boolean isTimeout = false;
-        while (isScanning) {
+        while (mIsScanning) {
             isTimeout = !scanResultsAvailable.await(2, TimeUnit.MINUTES);
         }
         if (isTimeout) {
@@ -169,17 +169,17 @@ public class WifiManagerSnippet implements Snippet {
         return networks;
     }
 
-    @Rpc(description = "Acquires the Wi-Fi mReentrantLock in full mode.")
+    @Rpc(description = "Acquires the Wi-Fi lock in full mode.")
     public void wifiLockAcquireFull() {
         acquireWifiLock(WifiManager.WIFI_MODE_FULL);
     }
 
-    @Rpc(description = "Acquires the  Wi-Fi mReentrantLock in scan-only mode.")
+    @Rpc(description = "Acquires the  Wi-Fi lock in scan-only mode.")
     public void wifiLockAcquireScanOnly() {
         acquireWifiLock(WifiManager.WIFI_MODE_SCAN_ONLY);
     }
 
-    @Rpc(description = "Releases the Wi-Fi mReentrantLock.")
+    @Rpc(description = "Releases the Wi-Fi lock.")
     public void wifiLockRelease() {
         if (mWifiLock != null) {
             mWifiLock.release();
@@ -223,7 +223,7 @@ public class WifiManagerSnippet implements Snippet {
         public void onReceive(Context c, Intent intent) {
             String action = intent.getAction();
             if (action.equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
-                isScanning = false;
+                mIsScanning = false;
                 scanResultsAvailable.signal();
             }
         }
