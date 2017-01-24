@@ -29,6 +29,10 @@ import java.net.UnknownHostException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * A collection of methods used to serialize data types that are part of the Android API into JSON
+ * strings.
+ */
 public class JsonBuilder {
     private static Gson mGson;
 
@@ -82,19 +86,19 @@ public class JsonBuilder {
 
     public JSONObject buildWifiConfiguration(WifiConfiguration data) throws JSONException {
         JSONObject result = new JSONObject(mGson.toJson(data));
-        String statueFieldName = "Status";
+        String statusFieldName = "Status";
         switch (data.status) {
             case WifiConfiguration.Status.CURRENT:
-                result.put(statueFieldName, "CURRENT");
+                result.put(statusFieldName, "CURRENT");
                 break;
             case WifiConfiguration.Status.DISABLED:
-                result.put(statueFieldName, "DISABLED");
+                result.put(statusFieldName, "DISABLED");
                 break;
             case WifiConfiguration.Status.ENABLED:
-                result.put(statueFieldName, "ENABLED");
+                result.put(statusFieldName, "ENABLED");
                 break;
             default:
-                result.put(statueFieldName, "UNKNOWN");
+                result.put(statusFieldName, "UNKNOWN");
         }
         result.put("SSID", trimQuotationMarks(data.SSID));
         return result;

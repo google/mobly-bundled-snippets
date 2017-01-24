@@ -16,12 +16,14 @@
 
 package com.google.android.mobly.snippet.bundled;
 
-public class Utils {
+public final class Utils {
+    private Utils() {}
+
     /**
      * Waits for asynchronous operations to finish.
      *
      * @param predicate A lambda function that specifies the condition for waiting. This function
-     *                  should return true when the aysnc operation to wait for is not finished.
+     *     should return true when the aysnc operation to wait for is not finished.
      * @param timeout The number of seconds to wait for before giving up.
      * @return true if the operation finished before timeout, false otherwise.
      * @throws InterruptedException

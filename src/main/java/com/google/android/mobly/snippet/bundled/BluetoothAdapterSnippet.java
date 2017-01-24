@@ -22,10 +22,7 @@ import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
 
-
-/**
- * Snippet class exposing Android APIs in BluetoothAdapter.
- */
+/** Snippet class exposing Android APIs in BluetoothAdapter. */
 public class BluetoothAdapterSnippet implements Snippet {
     private static class BluetoothException extends Exception {
         public BluetoothException(String msg) {

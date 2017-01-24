@@ -36,17 +36,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-/**
- * Snippet class exposing Android APIs in WifiManager.
- */
+/** Snippet class exposing Android APIs in WifiManager. */
 public class WifiManagerSnippet implements Snippet {
-    private final Lock lock = new ReentrantLock();
-    final Condition scanResultsAvailable = lock.newCondition();
-    private WifiManager mWifiManager;
-    private Context mContext;
+    private final Lock mReentrantLock = new ReentrantLock();
+    private final Condition scanResultsAvailable = mReentrantLock.newCondition();
+    private final WifiManager mWifiManager;
+    private final Context mContext;
     private WifiManager.WifiLock mWifiLock;
-    private String TAG = "WifiManagerSnippet";
-    private JsonBuilder mJsonBuilder = new JsonBuilder();
+    private final String TAG = "WifiManagerSnippet";
+    private final JsonBuilder mJsonBuilder = new JsonBuilder();
     private boolean isScanning = false;
 
     public WifiManagerSnippet() {
@@ -70,36 +68,31 @@ public class WifiManagerSnippet implements Snippet {
     @Rpc(description = "Turns on Wi-Fi with a 30s timeout.")
     public void wifiEnable() throws InterruptedException, WifiManagerSnippetException {
         if (!mWifiManager.setWifiEnabled(true)) {
-            throw new WifiManagerSnippetException(
-                    "wifiEnable", "Failed to initiate enabling Wi-Fi.");
+            throw new WifiManagerSnippetException("Failed to initiate enabling Wi-Fi.");
         }
         Utils.Predicate waitCondition =
                 () -> mWifiManager.getWifiState() != WifiManager.WIFI_STATE_ENABLED;
         if (!Utils.waitAndCheck(waitCondition, 30)) {
-            throw new WifiManagerSnippetException(
-                    "wifiEnable", "Failed to enable Wi-Fi after 30s, timeout!");
+            throw new WifiManagerSnippetException("Failed to enable Wi-Fi after 30s, timeout!");
         }
     }
 
     @Rpc(description = "Turns on Wi-Fi with a 30s timeout.")
     public void wifiDisable() throws InterruptedException, WifiManagerSnippetException {
         if (!mWifiManager.setWifiEnabled(false)) {
-            throw new WifiManagerSnippetException(
-                    "wifiDisable", "Failed to initiate disabling Wi-Fi.");
+            throw new WifiManagerSnippetException("Failed to initiate disabling Wi-Fi.");
         }
         Utils.Predicate waitCondition =
                 () -> mWifiManager.getWifiState() != WifiManager.WIFI_STATE_DISABLED;
         if (!Utils.waitAndCheck(waitCondition, 30)) {
-            throw new WifiManagerSnippetException(
-                    "wifiEnable", "Failed to disable Wi-Fi after 30s, timeout!");
+            throw new WifiManagerSnippetException("Failed to disable Wi-Fi after 30s, timeout!");
         }
     }
 
     @Rpc(description = "Trigger Wi-Fi scan.")
     public void wifiStartScan() throws WifiManagerSnippetException {
         if (!mWifiManager.startScan()) {
-            throw new WifiManagerSnippetException(
-                    "wifiStartScan", "Failed to initiate Wi-Fi scan.");
+            throw new WifiManagerSnippetException("Failed to initiate Wi-Fi scan.");
         }
     }
 
@@ -126,7 +119,7 @@ public class WifiManagerSnippet implements Snippet {
         }
         if (isTimeout) {
             throw new WifiManagerSnippetException(
-                    "wifiScanAndGetResults", "Failed to get scan results after 2min, timeout!");
+                    "Failed to get scan results after 2min, timeout!");
         }
         return wifiGetScanResults();
     }
@@ -139,22 +132,21 @@ public class WifiManagerSnippet implements Snippet {
         int networkId = mWifiManager.addNetwork(wifiConfig);
         Log.d("Added network '" + wifiConfig.SSID + "' with ID " + networkId);
         if (networkId < 0) {
-            throw new WifiManagerSnippetException("wifiConnect", "Got negative network Id.");
+            throw new WifiManagerSnippetException("Got negative network Id.");
         }
         mWifiManager.disconnect();
         if (!mWifiManager.enableNetwork(networkId, true)) {
             throw new WifiManagerSnippetException(
-                    "wifiConnect", "Failed to enable Wi-Fi network of ID: " + networkId);
+                    "Failed to enable Wi-Fi network of ID: " + networkId);
         }
         if (!mWifiManager.reconnect()) {
             throw new WifiManagerSnippetException(
-                    "wifiConnect", "Failed to reconnect to Wi-Fi network of ID: " + networkId);
+                    "Failed to reconnect to Wi-Fi network of ID: " + networkId);
         }
         Utils.Predicate waitCondition =
                 () -> !mWifiManager.getConnectionInfo().getSSID().equals(wifiConfig.SSID);
         if (!Utils.waitAndCheck(waitCondition, 90)) {
             throw new WifiManagerSnippetException(
-                    "wifiConnect",
                     "Failed to connect to Wi-Fi network "
                             + wifiNetworkConfig.toString()
                             + ", timeout!");
@@ -164,8 +156,7 @@ public class WifiManagerSnippet implements Snippet {
     @Rpc(description = "Forget a configured Wi-Fi network by its network ID.")
     public void wifiRemoveNetwork(Integer networkId) throws WifiManagerSnippetException {
         if (!mWifiManager.removeNetwork(networkId)) {
-            throw new WifiManagerSnippetException(
-                    "wifiRemoveNetwork", "Failed to remove network of ID: " + networkId);
+            throw new WifiManagerSnippetException("Failed to remove network of ID: " + networkId);
         }
     }
 
@@ -178,17 +169,17 @@ public class WifiManagerSnippet implements Snippet {
         return networks;
     }
 
-    @Rpc(description = "Acquires the Wi-Fi lock in full mode.")
+    @Rpc(description = "Acquires the Wi-Fi mReentrantLock in full mode.")
     public void wifiLockAcquireFull() {
         acquireWifiLock(WifiManager.WIFI_MODE_FULL);
     }
 
-    @Rpc(description = "Acquires the  Wi-Fi lock in scan-only mode.")
+    @Rpc(description = "Acquires the  Wi-Fi mReentrantLock in scan-only mode.")
     public void wifiLockAcquireScanOnly() {
         acquireWifiLock(WifiManager.WIFI_MODE_SCAN_ONLY);
     }
 
-    @Rpc(description = "Releases the Wi-Fi lock.")
+    @Rpc(description = "Releases the Wi-Fi mReentrantLock.")
     public void wifiLockRelease() {
         if (mWifiLock != null) {
             mWifiLock.release();
@@ -220,31 +211,9 @@ public class WifiManagerSnippet implements Snippet {
     }
 
     private static class WifiManagerSnippetException extends Exception {
-        public final String rpcMethod;
 
         public WifiManagerSnippetException(String msg) {
             super(msg);
-            this.rpcMethod = null;
-        }
-
-        public WifiManagerSnippetException(String rpcMethod, String msg) {
-            super(msg);
-            this.rpcMethod = rpcMethod;
-        }
-
-        @Override
-        public String toString() {
-            if (this.rpcMethod != null) {
-                StringBuilder strBuilder = new StringBuilder();
-                strBuilder
-                        .append("Exception in ")
-                        .append(this.rpcMethod)
-                        .append(": ")
-                        .append(this.getMessage());
-                return strBuilder.toString();
-            } else {
-                return super.toString();
-            }
         }
     }
 
