@@ -42,7 +42,6 @@ public class WifiManagerSnippet implements Snippet {
     private final Condition mScanResultsAvailable = mReentrantLock.newCondition();
     private final WifiManager mWifiManager;
     private final Context mContext;
-    private WifiManager.WifiLock mWifiLock;
     private static final String TAG = "WifiManagerSnippet";
     private final JsonBuilder mJsonBuilder = new JsonBuilder();
     private boolean mIsScanning = false;
@@ -169,24 +168,6 @@ public class WifiManagerSnippet implements Snippet {
         return networks;
     }
 
-    @Rpc(description = "Acquires the Wi-Fi lock in full mode.")
-    public void wifiLockAcquireFull() {
-        acquireWifiLock(WifiManager.WIFI_MODE_FULL);
-    }
-
-    @Rpc(description = "Acquires the  Wi-Fi lock in scan-only mode.")
-    public void wifiLockAcquireScanOnly() {
-        acquireWifiLock(WifiManager.WIFI_MODE_SCAN_ONLY);
-    }
-
-    @Rpc(description = "Releases the Wi-Fi lock.")
-    public void wifiLockRelease() {
-        if (mWifiLock != null) {
-            mWifiLock.release();
-            mWifiLock = null;
-        }
-    }
-
     @Rpc(description = "Get the information about the active Wi-Fi connection.")
     public JSONObject wifiGetConnectionInfo() throws JSONException {
         return mJsonBuilder.buildWifiInfo(mWifiManager.getConnectionInfo());
@@ -197,18 +178,8 @@ public class WifiManagerSnippet implements Snippet {
         return mJsonBuilder.buildDhcpInfo(mWifiManager.getDhcpInfo());
     }
 
-    private void acquireWifiLock(int wifiMode) {
-        wifiLockRelease();
-        if (mWifiLock == null) {
-            mWifiLock = mWifiManager.createWifiLock(wifiMode, TAG);
-            mWifiLock.acquire();
-        }
-    }
-
     @Override
-    public void shutdown() {
-        wifiLockRelease();
-    }
+    public void shutdown() {}
 
     private static class WifiManagerSnippetException extends Exception {
 
