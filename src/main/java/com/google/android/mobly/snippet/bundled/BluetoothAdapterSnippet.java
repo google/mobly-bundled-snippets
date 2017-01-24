@@ -20,7 +20,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
-import com.google.android.mobly.snippet.bundled.untils.Utils;
+import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
 
 /** Snippet class exposing Android APIs in BluetoothAdapter. */

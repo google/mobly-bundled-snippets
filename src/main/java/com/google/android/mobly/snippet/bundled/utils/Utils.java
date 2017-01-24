@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.google.android.mobly.snippet.bundled.untils;
+package com.google.android.mobly.snippet.bundled.utils;
 
 public final class Utils {
     private Utils() {}
