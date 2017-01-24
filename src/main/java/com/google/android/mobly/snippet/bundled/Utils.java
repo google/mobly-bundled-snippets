@@ -20,24 +20,27 @@ public final class Utils {
     private Utils() {}
 
     /**
-     * Waits for asynchronous operations to finish.
+     * Waits util a condition is met.
      *
-     * @param predicate A lambda function that specifies the condition for waiting. This function
-     *     should return true when the aysnc operation to wait for is not finished.
+     * <p>This is often used to wait for asynchronous operations to finish and the system to reach a
+     * desired state.
+     *
+     * @param predicate A lambda function that specifies the condition to wait for. This function
+     *     should return true when the desired state has been reached.
      * @param timeout The number of seconds to wait for before giving up.
      * @return true if the operation finished before timeout, false otherwise.
      * @throws InterruptedException
      */
-    public static boolean waitAndCheck(Utils.Predicate predicate, int timeout)
+    public static boolean waitUtil(Utils.Predicate predicate, int timeout)
             throws InterruptedException {
-        while (predicate.waitCondition() && timeout >= 0) {
+        while (!predicate.waitCondition() && timeout >= 0) {
             Thread.sleep(1000);
             timeout -= 1;
         }
         if (predicate.waitCondition()) {
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     /**

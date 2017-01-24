@@ -70,8 +70,8 @@ public class WifiManagerSnippet implements Snippet {
             throw new WifiManagerSnippetException("Failed to initiate enabling Wi-Fi.");
         }
         Utils.Predicate waitCondition =
-                () -> !(mWifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED);
-        if (!Utils.waitAndCheck(waitCondition, 30)) {
+                () -> mWifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED;
+        if (!Utils.waitUtil(waitCondition, 30)) {
             throw new WifiManagerSnippetException("Failed to enable Wi-Fi after 30s, timeout!");
         }
     }
@@ -82,8 +82,8 @@ public class WifiManagerSnippet implements Snippet {
             throw new WifiManagerSnippetException("Failed to initiate disabling Wi-Fi.");
         }
         Utils.Predicate waitCondition =
-                () -> !(mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED);
-        if (!Utils.waitAndCheck(waitCondition, 30)) {
+                () -> mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED;
+        if (!Utils.waitUtil(waitCondition, 30)) {
             throw new WifiManagerSnippetException("Failed to disable Wi-Fi after 30s, timeout!");
         }
     }
@@ -143,8 +143,8 @@ public class WifiManagerSnippet implements Snippet {
                     "Failed to reconnect to Wi-Fi network of ID: " + networkId);
         }
         Utils.Predicate waitCondition =
-                () -> !mWifiManager.getConnectionInfo().getSSID().equals(wifiConfig.SSID);
-        if (!Utils.waitAndCheck(waitCondition, 90)) {
+                () -> mWifiManager.getConnectionInfo().getSSID().equals(wifiConfig.SSID);
+        if (!Utils.waitUtil(waitCondition, 90)) {
             throw new WifiManagerSnippetException(
                     "Failed to connect to Wi-Fi network "
                             + wifiNetworkConfig.toString()
