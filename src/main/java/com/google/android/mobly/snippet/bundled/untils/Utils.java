@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.google.android.mobly.snippet.bundled;
+package com.google.android.mobly.snippet.bundled.untils;
 
 public final class Utils {
     private Utils() {}
@@ -31,7 +31,7 @@ public final class Utils {
      * @return true if the operation finished before timeout, false otherwise.
      * @throws InterruptedException
      */
-    public static boolean waitUtil(Utils.Predicate predicate, int timeout)
+    public static boolean waitUntil(Utils.Predicate predicate, int timeout)
             throws InterruptedException {
         while (!predicate.waitCondition() && timeout >= 0) {
             Thread.sleep(1000);

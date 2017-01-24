@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.google.android.mobly.snippet.bundled;
+package com.google.android.mobly.snippet.bundled.untils;
 
 import android.net.DhcpInfo;
 import android.net.wifi.ScanResult;
@@ -30,13 +30,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * A collection of methods used to serialize data types that are part of the Android API into JSON
- * strings.
+ * A collection of methods used to serialize data types defined in Android API into JSON strings.
  */
-public class JsonBuilder {
+public class JsonSerializer {
     private static Gson mGson;
 
-    public JsonBuilder() {
+    public JsonSerializer() {
         GsonBuilder builder = new GsonBuilder();
         mGson =
                 builder.serializeNulls()
@@ -62,7 +61,20 @@ public class JsonBuilder {
         return result;
     }
 
-    public JSONObject buildDhcpInfo(DhcpInfo data) throws JSONException {
+    public JSONObject toJson(Object object) throws JSONException {
+        if (object instanceof DhcpInfo) {
+            return serializeDhcpInfo((DhcpInfo) object);
+        } else if (object instanceof ScanResult) {
+            return serializeScanResult((ScanResult) object);
+        } else if (object instanceof WifiConfiguration) {
+            return serializeWifiConfiguration((WifiConfiguration) object);
+        } else if (object instanceof WifiInfo) {
+            return serializeWifiInfo((WifiInfo) object);
+        }
+        return new JSONObject(mGson.toJson(object));
+    }
+
+    public JSONObject serializeDhcpInfo(DhcpInfo data) throws JSONException {
         JSONObject result = new JSONObject(mGson.toJson(data));
         int ipAddress = data.ipAddress;
         byte[] addressBytes = {
@@ -80,18 +92,18 @@ public class JsonBuilder {
         return result;
     }
 
-    public JSONObject buildScanResult(ScanResult scanResult) throws JSONException {
+    public JSONObject serializeScanResult(ScanResult scanResult) throws JSONException {
         return new JSONObject(mGson.toJson(scanResult));
     }
 
-    public JSONObject buildWifiConfiguration(WifiConfiguration data) throws JSONException {
+    public JSONObject serializeWifiConfiguration(WifiConfiguration data) throws JSONException {
         JSONObject result = new JSONObject(mGson.toJson(data));
         result.put("Status", WifiConfiguration.Status.strings[data.status]);
         result.put("SSID", trimQuotationMarks(data.SSID));
         return result;
     }
 
-    public JSONObject buildWifiInfo(WifiInfo data) throws JSONException {
+    public JSONObject serializeWifiInfo(WifiInfo data) throws JSONException {
         JSONObject result = new JSONObject(mGson.toJson(data));
         result.put("SSID", trimQuotationMarks(data.getSSID()));
         for (SupplicantState state : SupplicantState.values()) {

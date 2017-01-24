@@ -20,12 +20,13 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
+import com.google.android.mobly.snippet.bundled.untils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
 
 /** Snippet class exposing Android APIs in BluetoothAdapter. */
 public class BluetoothAdapterSnippet implements Snippet {
-    private static class BluetoothException extends Exception {
-        public BluetoothException(String msg) {
+    private static class BluetoothAdapterSnippetException extends Exception {
+        public BluetoothAdapterSnippetException(String msg) {
             super(msg);
         }
     }
@@ -39,32 +40,24 @@ public class BluetoothAdapterSnippet implements Snippet {
     }
 
     @Rpc(description = "Enable bluetooth")
-    public void bluetoothEnable() throws BluetoothException, InterruptedException {
+    public void bluetoothEnable() throws BluetoothAdapterSnippetException, InterruptedException {
         if (!mBluetoothAdapter.enable()) {
-            throw new BluetoothException("Failed to start enabling bluetooth");
+            throw new BluetoothAdapterSnippetException("Failed to start enabling bluetooth");
         }
-        int timeout = 30;
-        while (!mBluetoothAdapter.isEnabled() && timeout >= 0) {
-            Thread.sleep(1000);
-            timeout -= 1;
-        }
-        if (!mBluetoothAdapter.isEnabled()) {
-            throw new BluetoothException("Bluetooth did not turn on before timeout");
+        Utils.Predicate expectedState = () -> mBluetoothAdapter.isEnabled();
+        if (!Utils.waitUntil(expectedState, 30)) {
+            throw new BluetoothAdapterSnippetException("Bluetooth did not turn on within 30s.");
         }
     }
 
     @Rpc(description = "Disable bluetooth")
-    public void bluetoothDisable() throws BluetoothException, InterruptedException {
+    public void bluetoothDisable() throws BluetoothAdapterSnippetException, InterruptedException {
         if (!mBluetoothAdapter.disable()) {
-            throw new BluetoothException("Failed to start disabling bluetooth");
+            throw new BluetoothAdapterSnippetException("Failed to start disabling bluetooth");
         }
-        int timeout = 30;
-        while (mBluetoothAdapter.isEnabled() && timeout >= 0) {
-            Thread.sleep(1000);
-            timeout -= 1;
-        }
-        if (mBluetoothAdapter.isEnabled()) {
-            throw new BluetoothException("Bluetooth did not turn off before timeout");
+        Utils.Predicate expectedState = () -> !mBluetoothAdapter.isEnabled();
+        if (!Utils.waitUntil(expectedState, 30)) {
+            throw new BluetoothAdapterSnippetException("Bluetooth did not turn off within 30s.");
         }
     }
 

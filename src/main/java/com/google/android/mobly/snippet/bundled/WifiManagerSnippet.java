@@ -25,6 +25,9 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
+import com.google.android.mobly.snippet.bundled.untils.JsonDeserializer;
+import com.google.android.mobly.snippet.bundled.untils.JsonSerializer;
+import com.google.android.mobly.snippet.bundled.untils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.util.Log;
 import java.util.ArrayList;
@@ -38,30 +41,23 @@ import org.json.JSONObject;
 
 /** Snippet class exposing Android APIs in WifiManager. */
 public class WifiManagerSnippet implements Snippet {
+    private static class WifiManagerSnippetException extends Exception {
+        public WifiManagerSnippetException(String msg) {
+            super(msg);
+        }
+    }
+
     private final Lock mReentrantLock = new ReentrantLock();
     private final Condition mScanResultsAvailable = mReentrantLock.newCondition();
     private final WifiManager mWifiManager;
     private final Context mContext;
     private static final String TAG = "WifiManagerSnippet";
-    private final JsonBuilder mJsonBuilder = new JsonBuilder();
-    private boolean mIsScanning = false;
+    private final JsonSerializer mJsonSerializer = new JsonSerializer();
+    private volatile boolean mIsScanning = false;
 
     public WifiManagerSnippet() {
         mContext = InstrumentationRegistry.getContext();
         mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-    }
-
-    public static WifiConfiguration jsonToWifiConfig(JSONObject j) throws JSONException {
-        WifiConfiguration config = new WifiConfiguration();
-        config.SSID = "\"" + j.getString("SSID") + "\"";
-        config.hiddenSSID = j.optBoolean("hiddenSSID", false);
-        if (j.has("password")) {
-            config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
-            config.preSharedKey = "\"" + j.getString("password") + "\"";
-        } else {
-            config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
-        }
-        return config;
     }
 
     @Rpc(description = "Turns on Wi-Fi with a 30s timeout.")
@@ -69,9 +65,9 @@ public class WifiManagerSnippet implements Snippet {
         if (!mWifiManager.setWifiEnabled(true)) {
             throw new WifiManagerSnippetException("Failed to initiate enabling Wi-Fi.");
         }
-        Utils.Predicate waitCondition =
+        Utils.Predicate expectedState =
                 () -> mWifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED;
-        if (!Utils.waitUtil(waitCondition, 30)) {
+        if (!Utils.waitUntil(expectedState, 30)) {
             throw new WifiManagerSnippetException("Failed to enable Wi-Fi after 30s, timeout!");
         }
     }
@@ -81,9 +77,9 @@ public class WifiManagerSnippet implements Snippet {
         if (!mWifiManager.setWifiEnabled(false)) {
             throw new WifiManagerSnippetException("Failed to initiate disabling Wi-Fi.");
         }
-        Utils.Predicate waitCondition =
+        Utils.Predicate expectedState =
                 () -> mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED;
-        if (!Utils.waitUtil(waitCondition, 30)) {
+        if (!Utils.waitUntil(expectedState, 30)) {
             throw new WifiManagerSnippetException("Failed to disable Wi-Fi after 30s, timeout!");
         }
     }
@@ -99,7 +95,7 @@ public class WifiManagerSnippet implements Snippet {
     public JSONArray wifiGetScanResults() throws JSONException {
         JSONArray results = new JSONArray();
         for (ScanResult result : mWifiManager.getScanResults()) {
-            results.put(mJsonBuilder.buildScanResult(result));
+            results.put(mJsonSerializer.toJson(result));
         }
         return results;
     }
@@ -127,7 +123,7 @@ public class WifiManagerSnippet implements Snippet {
     public void wifiConnect(JSONObject wifiNetworkConfig)
             throws InterruptedException, JSONException, WifiManagerSnippetException {
         Log.d("Got network config: " + wifiNetworkConfig);
-        WifiConfiguration wifiConfig = jsonToWifiConfig(wifiNetworkConfig);
+        WifiConfiguration wifiConfig = JsonDeserializer.jsonToWifiConfig(wifiNetworkConfig);
         int networkId = mWifiManager.addNetwork(wifiConfig);
         Log.d("Added network '" + wifiConfig.SSID + "' with ID " + networkId);
         if (networkId < 0) {
@@ -142,9 +138,9 @@ public class WifiManagerSnippet implements Snippet {
             throw new WifiManagerSnippetException(
                     "Failed to reconnect to Wi-Fi network of ID: " + networkId);
         }
-        Utils.Predicate waitCondition =
+        Utils.Predicate expectedState =
                 () -> mWifiManager.getConnectionInfo().getSSID().equals(wifiConfig.SSID);
-        if (!Utils.waitUtil(waitCondition, 90)) {
+        if (!Utils.waitUntil(expectedState, 90)) {
             throw new WifiManagerSnippetException(
                     "Failed to connect to Wi-Fi network "
                             + wifiNetworkConfig.toString()
@@ -163,30 +159,23 @@ public class WifiManagerSnippet implements Snippet {
     public ArrayList<JSONObject> wifiGetConfiguredNetworks() throws JSONException {
         ArrayList<JSONObject> networks = new ArrayList<>();
         for (WifiConfiguration config : mWifiManager.getConfiguredNetworks()) {
-            networks.add(mJsonBuilder.buildWifiConfiguration(config));
+            networks.add(mJsonSerializer.toJson(config));
         }
         return networks;
     }
 
     @Rpc(description = "Get the information about the active Wi-Fi connection.")
     public JSONObject wifiGetConnectionInfo() throws JSONException {
-        return mJsonBuilder.buildWifiInfo(mWifiManager.getConnectionInfo());
+        return mJsonSerializer.toJson(mWifiManager.getConnectionInfo());
     }
 
     @Rpc(description = "Get the info from last successful DHCP request.")
     public JSONObject wifiGetDhcpInfo() throws JSONException {
-        return mJsonBuilder.buildDhcpInfo(mWifiManager.getDhcpInfo());
+        return mJsonSerializer.toJson(mWifiManager.getDhcpInfo());
     }
 
     @Override
     public void shutdown() {}
-
-    private static class WifiManagerSnippetException extends Exception {
-
-        public WifiManagerSnippetException(String msg) {
-            super(msg);
-        }
-    }
 
     private class WifiScanReceiver extends BroadcastReceiver {
 
