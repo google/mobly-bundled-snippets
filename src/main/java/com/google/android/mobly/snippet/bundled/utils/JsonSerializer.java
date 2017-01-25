@@ -17,7 +17,6 @@
 package com.google.android.mobly.snippet.bundled.utils;
 
 import android.net.DhcpInfo;
-import android.net.wifi.ScanResult;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
@@ -64,17 +63,26 @@ public class JsonSerializer {
     public JSONObject toJson(Object object) throws JSONException {
         if (object instanceof DhcpInfo) {
             return serializeDhcpInfo((DhcpInfo) object);
-        } else if (object instanceof ScanResult) {
-            return serializeScanResult((ScanResult) object);
         } else if (object instanceof WifiConfiguration) {
             return serializeWifiConfiguration((WifiConfiguration) object);
         } else if (object instanceof WifiInfo) {
             return serializeWifiInfo((WifiInfo) object);
         }
-        return new JSONObject(mGson.toJson(object));
+        return defaultSerialization(object);
     }
 
-    public JSONObject serializeDhcpInfo(DhcpInfo data) throws JSONException {
+    /**
+     * By default, we rely on Gson to do the right job.
+     *
+     * @param data An object to serialize
+     * @return A JSONObject that has the info of the serialized data object.
+     * @throws JSONException
+     */
+    private JSONObject defaultSerialization(Object data) throws JSONException {
+        return new JSONObject(mGson.toJson(data));
+    }
+
+    private JSONObject serializeDhcpInfo(DhcpInfo data) throws JSONException {
         JSONObject result = new JSONObject(mGson.toJson(data));
         int ipAddress = data.ipAddress;
         byte[] addressBytes = {
@@ -92,18 +100,14 @@ public class JsonSerializer {
         return result;
     }
 
-    public JSONObject serializeScanResult(ScanResult scanResult) throws JSONException {
-        return new JSONObject(mGson.toJson(scanResult));
-    }
-
-    public JSONObject serializeWifiConfiguration(WifiConfiguration data) throws JSONException {
+    private JSONObject serializeWifiConfiguration(WifiConfiguration data) throws JSONException {
         JSONObject result = new JSONObject(mGson.toJson(data));
         result.put("Status", WifiConfiguration.Status.strings[data.status]);
         result.put("SSID", trimQuotationMarks(data.SSID));
         return result;
     }
 
-    public JSONObject serializeWifiInfo(WifiInfo data) throws JSONException {
+    private JSONObject serializeWifiInfo(WifiInfo data) throws JSONException {
         JSONObject result = new JSONObject(mGson.toJson(data));
         result.put("SSID", trimQuotationMarks(data.getSSID()));
         for (SupplicantState state : SupplicantState.values()) {

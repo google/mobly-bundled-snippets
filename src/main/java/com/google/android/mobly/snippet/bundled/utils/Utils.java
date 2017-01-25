@@ -33,8 +33,9 @@ public final class Utils {
      */
     public static boolean waitUntil(Utils.Predicate predicate, int timeout)
             throws InterruptedException {
+        timeout *= 10;
         while (!predicate.waitCondition() && timeout >= 0) {
-            Thread.sleep(1000);
+            Thread.sleep(100);
             timeout -= 1;
         }
         if (predicate.waitCondition()) {

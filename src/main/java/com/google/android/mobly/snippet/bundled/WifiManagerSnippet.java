@@ -112,6 +112,16 @@ public class WifiManagerSnippet implements Snippet {
         return wifiGetScanResults();
     }
 
+    /**
+     * Connect to a Wi-Fi network.
+     *
+     * @param wifiNetworkConfig A JSON object that contains the info required to connect to a Wi-Fi
+     *     network. It follows the fields of WifiConfiguration type, e.g. {"SSID": "myWifi",
+     *     "password": "12345678"}.
+     * @throws InterruptedException
+     * @throws JSONException
+     * @throws WifiManagerSnippetException
+     */
     @Rpc(description = "Connects to a Wi-Fi network.")
     public void wifiConnect(JSONObject wifiNetworkConfig)
             throws InterruptedException, JSONException, WifiManagerSnippetException {
@@ -146,8 +156,7 @@ public class WifiManagerSnippet implements Snippet {
         if (!mWifiManager.disconnect()) {
             throw new WifiManagerSnippetException("Failed to initiate disconnecting Wi-Fi.");
         }
-        Utils.Predicate expectedState =
-                () -> mWifiManager.getConnectionInfo().getSSID().isEmpty();
+        Utils.Predicate expectedState = () -> mWifiManager.getConnectionInfo().getSSID().isEmpty();
         if (!Utils.waitUntil(expectedState, 30)) {
             throw new WifiManagerSnippetException("Failed to disconnect Wi-Fi after 30s, timeout!");
         }
