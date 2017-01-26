@@ -23,6 +23,7 @@ import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
+import android.support.annotation.Nullable;
 import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.JsonDeserializer;
@@ -60,9 +61,8 @@ public class WifiManagerSnippet implements Snippet {
         if (!mWifiManager.setWifiEnabled(true)) {
             throw new WifiManagerSnippetException("Failed to initiate enabling Wi-Fi.");
         }
-        Utils.Predicate expectedState =
-                () -> mWifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED;
-        if (!Utils.waitUntil(expectedState, 30)) {
+        if (!Utils.waitUntil(
+                () -> mWifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED, 30)) {
             throw new WifiManagerSnippetException("Failed to enable Wi-Fi after 30s, timeout!");
         }
     }
@@ -72,9 +72,8 @@ public class WifiManagerSnippet implements Snippet {
         if (!mWifiManager.setWifiEnabled(false)) {
             throw new WifiManagerSnippetException("Failed to initiate disabling Wi-Fi.");
         }
-        Utils.Predicate expectedState =
-                () -> mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED;
-        if (!Utils.waitUntil(expectedState, 30)) {
+        if (!Utils.waitUntil(
+                () -> mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED, 30)) {
             throw new WifiManagerSnippetException("Failed to disable Wi-Fi after 30s, timeout!");
         }
     }
@@ -104,12 +103,25 @@ public class WifiManagerSnippet implements Snippet {
         wifiStartScan();
         mIsScanResultAvailable = false;
         mIsScanning = true;
-        Utils.Predicate expectedState = () -> mIsScanResultAvailable;
-        if (!Utils.waitUntil(expectedState, 2 * 60)) {
+        if (!Utils.waitUntil(() -> mIsScanResultAvailable, 2 * 60)) {
             throw new WifiManagerSnippetException(
                     "Failed to get scan results after 2min, timeout!");
         }
         return wifiGetScanResults();
+    }
+
+    @Rpc(
+        description =
+                "Connects to a Wi-Fi network. This covers the common network types like open and WPA2."
+    )
+    public void wifiConnectSimple(String SSID, @Nullable String password)
+            throws InterruptedException, JSONException, WifiManagerSnippetException {
+        JSONObject config = new JSONObject();
+        config.put("SSID", SSID);
+        if (password != null) {
+            config.put("password", password);
+        }
+        wifiConnect(config);
     }
 
     /**
@@ -123,15 +135,11 @@ public class WifiManagerSnippet implements Snippet {
      * @throws WifiManagerSnippetException
      */
     @Rpc(description = "Connects to a Wi-Fi network.")
-    public void wifiConnect(JSONObject wifiNetworkConfig)
+    private void wifiConnect(JSONObject wifiNetworkConfig)
             throws InterruptedException, JSONException, WifiManagerSnippetException {
         Log.d("Got network config: " + wifiNetworkConfig);
         WifiConfiguration wifiConfig = JsonDeserializer.jsonToWifiConfig(wifiNetworkConfig);
         int networkId = mWifiManager.addNetwork(wifiConfig);
-        Log.d("Added network '" + wifiConfig.SSID + "' with ID " + networkId);
-        if (networkId < 0) {
-            throw new WifiManagerSnippetException("Got negative network Id.");
-        }
         mWifiManager.disconnect();
         if (!mWifiManager.enableNetwork(networkId, true)) {
             throw new WifiManagerSnippetException(
@@ -141,14 +149,18 @@ public class WifiManagerSnippet implements Snippet {
             throw new WifiManagerSnippetException(
                     "Failed to reconnect to Wi-Fi network of ID: " + networkId);
         }
-        Utils.Predicate expectedState =
-                () -> mWifiManager.getConnectionInfo().getSSID().equals(wifiConfig.SSID);
-        if (!Utils.waitUntil(expectedState, 90)) {
+        if (!Utils.waitUntil(
+                () -> mWifiManager.getConnectionInfo().getSSID().equals(wifiConfig.SSID), 90)) {
             throw new WifiManagerSnippetException(
                     "Failed to connect to Wi-Fi network "
                             + wifiNetworkConfig.toString()
                             + ", timeout!");
         }
+        Log.d(
+                "Connected to network '"
+                        + wifiConfig.SSID
+                        + "' with ID "
+                        + mWifiManager.getConnectionInfo().getNetworkId());
     }
 
     @Rpc(description = "Disconnect current Wi-Fi connection.")
@@ -156,10 +168,9 @@ public class WifiManagerSnippet implements Snippet {
         if (!mWifiManager.disconnect()) {
             throw new WifiManagerSnippetException("Failed to initiate disconnecting Wi-Fi.");
         }
-        Utils.Predicate expectedState = () -> mWifiManager.getConnectionInfo().getSSID().isEmpty();
-        if (!Utils.waitUntil(expectedState, 30)) {
-            throw new WifiManagerSnippetException("Failed to disconnect Wi-Fi after 30s, timeout!");
-        }
+        // Disconnecting from current network doesn't necessarily mean the end state is no network
+        // connected to, because the device will try to roam to one of the saved networks, possibly
+        // the same one we just disconnected from.
     }
 
     @Rpc(description = "Forget a configured Wi-Fi network by its network ID.")

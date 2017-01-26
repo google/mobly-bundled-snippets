@@ -44,8 +44,7 @@ public class BluetoothAdapterSnippet implements Snippet {
         if (!mBluetoothAdapter.enable()) {
             throw new BluetoothAdapterSnippetException("Failed to start enabling bluetooth");
         }
-        Utils.Predicate expectedState = () -> mBluetoothAdapter.isEnabled();
-        if (!Utils.waitUntil(expectedState, 30)) {
+        if (!Utils.waitUntil(() -> mBluetoothAdapter.isEnabled(), 30)) {
             throw new BluetoothAdapterSnippetException("Bluetooth did not turn on within 30s.");
         }
     }
@@ -55,8 +54,7 @@ public class BluetoothAdapterSnippet implements Snippet {
         if (!mBluetoothAdapter.disable()) {
             throw new BluetoothAdapterSnippetException("Failed to start disabling bluetooth");
         }
-        Utils.Predicate expectedState = () -> !mBluetoothAdapter.isEnabled();
-        if (!Utils.waitUntil(expectedState, 30)) {
+        if (!Utils.waitUntil(() -> !mBluetoothAdapter.isEnabled(), 30)) {
             throw new BluetoothAdapterSnippetException("Bluetooth did not turn off within 30s.");
         }
     }
