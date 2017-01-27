@@ -86,7 +86,7 @@ public class WifiManagerSnippet implements Snippet {
     }
 
     @Rpc(description = "Get Wi-Fi scan results.")
-    public JSONArray wifiGetScanResults() throws JSONException {
+    public JSONArray wifiGetCachedScanResults() throws JSONException {
         JSONArray results = new JSONArray();
         for (ScanResult result : mWifiManager.getScanResults()) {
             results.put(mJsonSerializer.toJson(result));
@@ -107,7 +107,7 @@ public class WifiManagerSnippet implements Snippet {
             throw new WifiManagerSnippetException(
                     "Failed to get scan results after 2min, timeout!");
         }
-        return wifiGetScanResults();
+        return wifiGetCachedScanResults();
     }
 
     @Rpc(
@@ -161,16 +161,6 @@ public class WifiManagerSnippet implements Snippet {
                         + wifiConfig.SSID
                         + "' with ID "
                         + mWifiManager.getConnectionInfo().getNetworkId());
-    }
-
-    @Rpc(description = "Disconnect current Wi-Fi connection.")
-    public void wifiDisconnect() throws InterruptedException, WifiManagerSnippetException {
-        if (!mWifiManager.disconnect()) {
-            throw new WifiManagerSnippetException("Failed to initiate disconnecting Wi-Fi.");
-        }
-        // Disconnecting from current network doesn't necessarily mean the end state is no network
-        // connected to, because the device will try to roam to one of the saved networks, possibly
-        // the same one we just disconnected from.
     }
 
     @Rpc(description = "Forget a configured Wi-Fi network by its network ID.")
