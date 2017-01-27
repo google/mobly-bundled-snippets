@@ -135,7 +135,7 @@ public class WifiManagerSnippet implements Snippet {
      * @throws WifiManagerSnippetException
      */
     @Rpc(description = "Connects to a Wi-Fi network.")
-    private void wifiConnect(JSONObject wifiNetworkConfig)
+    public void wifiConnect(JSONObject wifiNetworkConfig)
             throws InterruptedException, JSONException, WifiManagerSnippetException {
         Log.d("Got network config: " + wifiNetworkConfig);
         WifiConfiguration wifiConfig = JsonDeserializer.jsonToWifiConfig(wifiNetworkConfig);
