@@ -85,7 +85,10 @@ public class WifiManagerSnippet implements Snippet {
         }
     }
 
-    @Rpc(description = "Get Wi-Fi scan results.")
+    @Rpc(
+        description =
+                "Get Wi-Fi scan results, which is a list of serialized WifiScanResult " + "objects."
+    )
     public JSONArray wifiGetCachedScanResults() throws JSONException {
         JSONArray results = new JSONArray();
         for (ScanResult result : mWifiManager.getScanResults()) {
@@ -94,7 +97,11 @@ public class WifiManagerSnippet implements Snippet {
         return results;
     }
 
-    @Rpc(description = "Start scan, wait for scan to complete, and return results.")
+    @Rpc(
+        description =
+                "Start scan, wait for scan to complete, and return results, which is a "
+                        + "list of serialized WifiScanResult objects."
+    )
     public JSONArray wifiScanAndGetResults()
             throws InterruptedException, JSONException, WifiManagerSnippetException {
         mContext.registerReceiver(
@@ -112,7 +119,8 @@ public class WifiManagerSnippet implements Snippet {
 
     @Rpc(
         description =
-                "Connects to a Wi-Fi network. This covers the common network types like open and WPA2."
+                "Connects to a Wi-Fi network. This covers the common network types like "
+                        + "open and WPA2."
     )
     public void wifiConnectSimple(String SSID, @Nullable String password)
             throws InterruptedException, JSONException, WifiManagerSnippetException {
@@ -170,7 +178,11 @@ public class WifiManagerSnippet implements Snippet {
         }
     }
 
-    @Rpc(description = "Return a list of all the configured wifi networks.")
+    @Rpc(
+        description =
+                "Get the list of configured Wi-Fi networks, each is a serialized "
+                        + "WifiConfiguration object."
+    )
     public ArrayList<JSONObject> wifiGetConfiguredNetworks() throws JSONException {
         ArrayList<JSONObject> networks = new ArrayList<>();
         for (WifiConfiguration config : mWifiManager.getConfiguredNetworks()) {
@@ -179,12 +191,20 @@ public class WifiManagerSnippet implements Snippet {
         return networks;
     }
 
-    @Rpc(description = "Get the information about the active Wi-Fi connection.")
+    @Rpc(
+        description =
+                "Get the information about the active Wi-Fi connection, which is a "
+                        + "serialized WifiInfo object."
+    )
     public JSONObject wifiGetConnectionInfo() throws JSONException {
         return mJsonSerializer.toJson(mWifiManager.getConnectionInfo());
     }
 
-    @Rpc(description = "Get the info from last successful DHCP request.")
+    @Rpc(
+        description =
+                "Get the info from last successful DHCP request, which is a serialized "
+                        + "DhcpInfo object."
+    )
     public JSONObject wifiGetDhcpInfo() throws JSONException {
         return mJsonSerializer.toJson(mWifiManager.getDhcpInfo());
     }
