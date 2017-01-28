@@ -11,7 +11,7 @@ Note: this is not an official Google product.
 1.  Compile and install the bundled snippets
 
         ./gradlew assembleDebug
-        adb install -d -r ./build/outputs/apk/mobly-bundled-snippets-debug.apk
+        adb install -d -r -r ./build/outputs/apk/mobly-bundled-snippets-debug.apk
 
 1.  Use the Mobly snippet shell to interact with the bundled snippets
 
@@ -21,15 +21,16 @@ Note: this is not an official Google product.
           bluetoothDisable() returns void  // Enable bluetooth
         ...
 
-1.  To use these snippets within Mobly tests, create a snippet client like so:
+1.  To use these snippets within Mobly tests, load it on your AndroidDevice objects
+    after registering android_device module:
 
     ```python
     def setup_class(self):
       self.ad = self.register_controllers(android_device, min_number=1)[0]
       self.ad.load_snippet('api', 'com.google.android.mobly.snippet.bundled')
 
-    def test_enable_bluetooth(self):
-      self.ad.api.bluetoothEnable()
+    def test_enable_wifi(self):
+      self.ad.api.wifiEnable()
     ```
 
 
