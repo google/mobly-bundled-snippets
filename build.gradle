@@ -40,6 +40,15 @@ android {
     }
 }
 
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'src'
+}
+
+artifacts {
+    archives sourcesJar
+}
+
 dependencies {
     compile 'com.google.android.mobly:mobly-snippet-lib:1.0.0'
     compile 'com.android.support.test:runner:0.5'
