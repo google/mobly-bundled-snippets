@@ -40,6 +40,7 @@ android {
     }
 }
 
+// Produces a jar of source files. Needed for compliance reasons.
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
     classifier = 'src'
