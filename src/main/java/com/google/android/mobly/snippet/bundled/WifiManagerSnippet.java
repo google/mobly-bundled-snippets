@@ -67,7 +67,7 @@ public class WifiManagerSnippet implements Snippet {
         }
     }
 
-    @Rpc(description = "Turns on Wi-Fi with a 30s timeout.")
+    @Rpc(description = "Turns off Wi-Fi with a 30s timeout.")
     public void wifiDisable() throws InterruptedException, WifiManagerSnippetException {
         if (!mWifiManager.setWifiEnabled(false)) {
             throw new WifiManagerSnippetException("Failed to initiate disabling Wi-Fi.");
