@@ -166,7 +166,7 @@ public class WifiManagerSnippet implements Snippet {
         }
         Log.d(
                 "Connected to network '"
-                        + wifiConfig.SSID
+                        + mWifiManager.getConnectionInfo().getSSID()
                         + "' with ID "
                         + mWifiManager.getConnectionInfo().getNetworkId());
     }

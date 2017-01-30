@@ -22,7 +22,7 @@ Note: this is not an official Google product.
         Known methods:
           bluetoothDisable() returns void  // Disable bluetooth with a 30s timeout.
         ...
-          wifiDisable() returns void  // Turns on Wi-Fi with a 30s timeout.
+          wifiDisable() returns void  // Turns off Wi-Fi with a 30s timeout.
           wifiEnable() returns void  // Turns on Wi-Fi with a 30s timeout.
         ...
 
