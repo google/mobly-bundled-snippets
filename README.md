@@ -1,7 +1,9 @@
 Mobly Bundled Snippets is a set of Snippets to allow Mobly tests to control
-Android devices.
+Android devices by exposing a simplified verison of the public Android API
+suitable for testing.
 
-They expose a simplified verison of the public Android API suitable for testing.
+We are adding more APIs as we go. If you have specific needs for certain groups
+of APIs, feel free to file a request in [Issues](https://github.com/google/mobly-bundled-snippets/issues).
 
 Note: this is not an official Google product.
 
@@ -18,7 +20,10 @@ Note: this is not an official Google product.
         snippet_shell.py com.google.android.mobly.snippet.bundled
         >>> print(s.help())
         Known methods:
-          bluetoothDisable() returns void  // Enable bluetooth
+          bluetoothDisable() returns void  // Disable bluetooth with a 30s timeout.
+        ...
+          wifiDisable() returns void  // Turns on Wi-Fi with a 30s timeout.
+          wifiEnable() returns void  // Turns on Wi-Fi with a 30s timeout.
         ...
 
 1.  To use these snippets within Mobly tests, load it on your AndroidDevice objects

@@ -39,7 +39,7 @@ public class BluetoothAdapterSnippet implements Snippet {
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
-    @Rpc(description = "Enable bluetooth")
+    @Rpc(description = "Enable bluetooth with a 30s timeout.")
     public void bluetoothEnable() throws BluetoothAdapterSnippetException, InterruptedException {
         if (!mBluetoothAdapter.enable()) {
             throw new BluetoothAdapterSnippetException("Failed to start enabling bluetooth");
@@ -49,7 +49,7 @@ public class BluetoothAdapterSnippet implements Snippet {
         }
     }
 
-    @Rpc(description = "Disable bluetooth")
+    @Rpc(description = "Disable bluetooth with a 30s timeout.")
     public void bluetoothDisable() throws BluetoothAdapterSnippetException, InterruptedException {
         if (!mBluetoothAdapter.disable()) {
             throw new BluetoothAdapterSnippetException("Failed to start disabling bluetooth");
