@@ -11,14 +11,17 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
-
     <application>
         <meta-data
             android:name="mobly-snippets"
             android:value="com.google.android.mobly.snippet.bundled.AccountSnippet,
+                           com.google.android.mobly.snippet.bundled.AudioSnippet,
                            com.google.android.mobly.snippet.bundled.BluetoothAdapterSnippet,
                            com.google.android.mobly.snippet.bundled.NotificationSnippet,
+                           com.google.android.mobly.snippet.bundled.TelephonySnippet,
                            com.google.android.mobly.snippet.bundled.WifiManagerSnippet" />
     </application>
 
