@@ -19,11 +19,8 @@ package com.google.android.mobly.snippet.bundled;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.media.AudioManager;
-import android.telecom.TelecomManager;
-import android.telephony.TelephonyManager;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
-import com.google.android.mobly.snippet.util.Log;
 
 public class AudioSnippet implements Snippet {
 
