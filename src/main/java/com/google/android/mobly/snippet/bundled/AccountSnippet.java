@@ -67,7 +67,7 @@ public class AccountSnippet implements Snippet {
         mSyncStatusObserverHandles = new LinkedList<>();
     }
 
-    @Rpc(description = "Add a Google account to the device.")
+    @Rpc(description = "Add a Google account to the device, with account data sync disabled.")
     public void addGoogleAccount(String username, String password)
         throws AccountSnippetException, AccountsException, IOException {
         Bundle addAccountOptions = new Bundle();
