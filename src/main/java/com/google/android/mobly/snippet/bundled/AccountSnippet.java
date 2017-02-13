@@ -36,9 +36,18 @@ import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.util.Log;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
-/** Snippet class exposing Android APIs related to creating notification on screen. */
+/**
+ * Snippet class exposing Android APIs related to management of device accounts.
+ *
+ * <p>Android devices can have accounts of any type added and synced. New types can be created by
+ * apps by implementing a {@link android.content.ContentProvider} for a particular account type.
+ *
+ * <p>Google (gmail) accounts are of type "com.google" and their handling is managed by the
+ * operating system. This class allows you to add and remove Google accounts from a device.
+ * */
 public class AccountSnippet implements Snippet {
     private static final String GOOGLE_ACCOUNT_TYPE = "com.google";
     private static final String AUTH_TOKEN_TYPE = "mail";
@@ -50,10 +59,12 @@ public class AccountSnippet implements Snippet {
     }
 
     private final AccountManager mAccountManager;
+    private final List<Object> mSyncStatusObserverHandles;
 
     public AccountSnippet() {
         Context context = InstrumentationRegistry.getContext();
         mAccountManager = AccountManager.get(context);
+        mSyncStatusObserverHandles = new LinkedList<>();
     }
 
     @Rpc(description = "Add a Google account to the device.")
@@ -85,7 +96,7 @@ public class AccountSnippet implements Snippet {
         // NOTE: this listener is NOT unregistered because several sync requests for the new account
         // will come in over time.
         Account account = new Account(username, GOOGLE_ACCOUNT_TYPE);
-        ContentResolver.addStatusChangeListener(
+        Object handle = ContentResolver.addStatusChangeListener(
             ContentResolver.SYNC_OBSERVER_TYPE_ACTIVE | ContentResolver.SYNC_OBSERVER_TYPE_PENDING,
             which -> {
                 Log.i("Attempt to sync account " + username + " detected! Disabling.");
@@ -98,6 +109,7 @@ public class AccountSnippet implements Snippet {
                     ContentResolver.cancelSync(account, adapter.authority);
                 }
             });
+        mSyncStatusObserverHandles.add(handle);
     }
 
     @Rpc(description = "List all Google accounts on the device.")
@@ -111,5 +123,9 @@ public class AccountSnippet implements Snippet {
     }
 
     @Override
-    public void shutdown() {}
+    public void shutdown() {
+        for (Object handle : mSyncStatusObserverHandles) {
+            ContentResolver.removeStatusChangeListener(handle);
+        }
+    }
 }
