@@ -67,6 +67,15 @@ public class AccountSnippet implements Snippet {
         mSyncStatusObserverHandles = new LinkedList<>();
     }
 
+    /**
+     * Adds a Google account to the device.
+     *
+     * <p>TODO(adorokhine): Support adding accounts of other types with an optional 'type' kwarg.
+     * <p>TODO(adorokhine): Allow users to choose whether to enable/disable sync with a kwarg.
+     *
+     * @param username Username of the account to add (including @gmail.com).
+     * @param password Password of the account to add.
+     */
     @Rpc(description =
         "Add a Google (GMail) account to the device, with account data sync disabled.")
     public void addAccount(String username, String password)
@@ -113,6 +122,11 @@ public class AccountSnippet implements Snippet {
         mSyncStatusObserverHandles.add(handle);
     }
 
+    /**
+     * Returns a list of all Google accounts on the device.
+     *
+     * <p>TODO(adorokhine): Support accounts of other types with an optional 'type' kwarg.
+     */
     @Rpc(description = "List all Google (GMail) accounts on the device.")
     public List<String> listAccounts() throws SecurityException {
         Account[] accounts = mAccountManager.getAccountsByType(GOOGLE_ACCOUNT_TYPE);
