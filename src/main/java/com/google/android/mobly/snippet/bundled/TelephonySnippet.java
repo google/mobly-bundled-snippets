@@ -22,7 +22,7 @@ import android.telephony.TelephonyManager;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
 
-/** Snippet class exposing Android APIs in WifiManager. */
+/** Snippet class for telecom/telephony RPCs. */
 public class TelephonySnippet implements Snippet {
 
     private final TelephonyManager telephonyManager;
@@ -38,8 +38,19 @@ public class TelephonySnippet implements Snippet {
         return telephonyManager.getLine1Number();
     }
 
+    @Rpc(description = "Returns the unique subscriber ID, for example, the IMSI for a GSM phone.")
+    public int getSubscriberId() {
+        return telephonyManager.getSubscriberId();
+    }
+
+    @Rpc(description = "Returns all observed cell information from all radios on the device" +
+            " including the primary and neighboring cells.")
+    public int getAllCellInfo() {
+        return telephonyManager.getAllCellInfo();
+    }
+
     @Rpc(description = "Gets the call state for the default subscription.")
-    public int getCallState() {
+    public int getTelephonyCallState() {
         return telephonyManager.getCallState();
     }
 
