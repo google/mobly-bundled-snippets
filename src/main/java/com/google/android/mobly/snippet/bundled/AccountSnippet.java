@@ -67,8 +67,9 @@ public class AccountSnippet implements Snippet {
         mSyncStatusObserverHandles = new LinkedList<>();
     }
 
-    @Rpc(description = "Add a Google account to the device, with account data sync disabled.")
-    public void addGoogleAccount(String username, String password)
+    @Rpc(description =
+        "Add a Google (GMail) account to the device, with account data sync disabled.")
+    public void addAccount(String username, String password)
         throws AccountSnippetException, AccountsException, IOException {
         Bundle addAccountOptions = new Bundle();
         addAccountOptions.putString("username", username);
@@ -112,8 +113,8 @@ public class AccountSnippet implements Snippet {
         mSyncStatusObserverHandles.add(handle);
     }
 
-    @Rpc(description = "List all Google accounts on the device.")
-    public List<String> listGoogleAccounts() throws SecurityException {
+    @Rpc(description = "List all Google (GMail) accounts on the device.")
+    public List<String> listAccounts() throws SecurityException {
         Account[] accounts = mAccountManager.getAccountsByType(GOOGLE_ACCOUNT_TYPE);
         List<String> usernames = new ArrayList<>(accounts.length);
         for (Account account : accounts) {
