@@ -39,13 +39,13 @@ public class TelephonySnippet implements Snippet {
     }
 
     @Rpc(description = "Returns the unique subscriber ID, for example, the IMSI for a GSM phone.")
-    public int getSubscriberId() {
+    public String getSubscriberId() {
         return telephonyManager.getSubscriberId();
     }
 
     @Rpc(description = "Returns all observed cell information from all radios on the device" +
             " including the primary and neighboring cells.")
-    public int getAllCellInfo() {
+    public List<CellInfo> getAllCellInfo() {
         return telephonyManager.getAllCellInfo();
     }
 

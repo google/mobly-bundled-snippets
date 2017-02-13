@@ -33,8 +33,8 @@ public class AudioSnippet implements Snippet {
     }
   
     @Rpc(description = "Gets the media stream volume.")
-    public void getMediaVolume() {
-        audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+    public int getMediaVolume() {
+        return audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
     }
 
     @Rpc(description = "Sets the media stream volume.")
@@ -43,8 +43,8 @@ public class AudioSnippet implements Snippet {
     }
 
     @Rpc(description = "Gets the ringer volume.")
-    public void getRingVolume() {
-        audioManager.getStreamVolume(AudioManager.STREAM_RING);
+    public int getRingVolume() {
+        return audioManager.getStreamVolume(AudioManager.STREAM_RING);
     }
 
     @Rpc(description = "Sets the ringer volume.")
@@ -52,8 +52,8 @@ public class AudioSnippet implements Snippet {
         audioManager.setStreamVolume(AudioManager.STREAM_RING, value, 0);
     }
 
-    @Rpc(description = "Silences both the ringer and media audio.")
-    public void mute() {
+    @Rpc(description = "Silences the ringer and media audio streams.")
+    public void muteAll() {
         muteRing();
         muteMedia();
     }
