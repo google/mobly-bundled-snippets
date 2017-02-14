@@ -54,7 +54,7 @@ public class AudioSnippet implements Snippet {
 
     @Rpc(description = "Silences all audio streams.")
     public void muteAll() {
-        for (int i=0; i<AudioManager.NUM_STREAMS; i++) {
+        for (int i = 0; i < AudioManager.NUM_STREAMS; i++) {
             mAudioManager.setStreamVolume(
                     i /* audio stream */,
                     0 /* value */,
