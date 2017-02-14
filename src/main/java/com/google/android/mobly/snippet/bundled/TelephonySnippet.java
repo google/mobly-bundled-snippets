@@ -45,13 +45,6 @@ public class TelephonySnippet implements Snippet {
         return mTelephonyManager.getSubscriberId();
     }
 
-    @Rpc(description = "Returns all observed cell information from all radios on the device " +
-            "including the primary and neighboring cells as a list of strings, where each " +
-            "string is the result CellInfo.toString().")
-    public List<CellInfo> getAllCellInfo() {
-        return mTelephonyManager.getAllCellInfo();
-    }
-
     @Rpc(description = "Gets the call state for the default subscription. Call state values are" +
             "0: IDLE, 1: RINGING, 2: OFFHOOK")
     public int getTelephonyCallState() {
