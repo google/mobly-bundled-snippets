@@ -36,8 +36,11 @@ import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.util.Log;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Snippet class exposing Android APIs related to management of device accounts.
@@ -55,10 +58,6 @@ public class AccountSnippet implements Snippet {
     private static class AccountSnippetException extends Exception {
         public AccountSnippetException(String msg) {
             super(msg);
-        }
-
-        public AccountSnippetException(String msg, Throwable cause) {
-            super(msg, cause);
         }
     }
 
@@ -84,6 +83,13 @@ public class AccountSnippet implements Snippet {
         "Add a Google (GMail) account to the device, with account data sync disabled.")
     public void addAccount(String username, String password)
         throws AccountSnippetException, AccountsException, IOException {
+        // Check for existing account. If we try to re-add an existing account, Android throws an
+        // exception that says "Account does not exist or not visible. Maybe change pwd?" which is
+        // a little hard to understand.
+        if (listAccounts().contains(username)) {
+            throw new AccountSnippetException(
+                "Account " + username + " alreaady exists on the device");
+        }
         Bundle addAccountOptions = new Bundle();
         addAccountOptions.putString("username", username);
         addAccountOptions.putString("password", password);
@@ -96,17 +102,7 @@ public class AccountSnippet implements Snippet {
                 null /* activity */,
                 null /* authCallback */,
                 null /* handler */);
-        Bundle result;
-        try {
-            result = future.getResult();
-        } catch (AuthenticatorException e) {
-            if (e.getMessage().equals("Account does not exist or not visible. Maybe change pwd?")) {
-                throw new AccountSnippetException(
-                    "Failed to add account " + username + ". Error message suggests it might"
-                    + " already exist on the phone.", e);
-            }
-            throw e;
-        }
+        Bundle result = future.getResult();
         if (result.containsKey(AccountManager.KEY_ERROR_CODE)) {
             throw new AccountSnippetException(
                 String.format("Failed to add account due to code %d: %s",
@@ -142,9 +138,9 @@ public class AccountSnippet implements Snippet {
      * <p>TODO(adorokhine): Support accounts of other types with an optional 'type' kwarg.
      */
     @Rpc(description = "List all Google (GMail) accounts on the device.")
-    public List<String> listAccounts() throws SecurityException {
+    public Set<String> listAccounts() throws SecurityException {
         Account[] accounts = mAccountManager.getAccountsByType(GOOGLE_ACCOUNT_TYPE);
-        List<String> usernames = new ArrayList<>(accounts.length);
+        Set<String> usernames = new TreeSet<>();
         for (Account account : accounts) {
             usernames.add(account.name);
         }
