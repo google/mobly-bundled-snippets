@@ -56,6 +56,10 @@ public class AccountSnippet implements Snippet {
         public AccountSnippetException(String msg) {
             super(msg);
         }
+
+        public AccountSnippetException(String msg, Throwable cause) {
+            super(msg, cause);
+        }
     }
 
     private final AccountManager mAccountManager;
@@ -92,7 +96,17 @@ public class AccountSnippet implements Snippet {
                 null /* activity */,
                 null /* authCallback */,
                 null /* handler */);
-        Bundle result = future.getResult();
+        Bundle result;
+        try {
+            result = future.getResult();
+        } catch (AuthenticatorException e) {
+            if (e.getMessage().equals("Account does not exist or not visible. Maybe change pwd?")) {
+                throw new AccountSnippetException(
+                    "Failed to add account " + username + ". Error message suggests it might"
+                    + " already exist on the phone.", e);
+            }
+            throw e;
+        }
         if (result.containsKey(AccountManager.KEY_ERROR_CODE)) {
             throw new AccountSnippetException(
                 String.format("Failed to add account due to code %d: %s",
