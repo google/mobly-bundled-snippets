@@ -18,13 +18,11 @@ package com.google.android.mobly.snippet.bundled;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
-import android.telephony.CellInfo;
 import android.telephony.TelephonyManager;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
-import java.util.List;
 
-/** Snippet class for telecom/telephony RPCs. */
+/** Snippet class for telephony RPCs. */
 public class TelephonySnippet implements Snippet {
 
     private final TelephonyManager mTelephonyManager;

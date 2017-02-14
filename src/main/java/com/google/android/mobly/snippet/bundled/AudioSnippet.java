@@ -19,7 +19,6 @@ package com.google.android.mobly.snippet.bundled;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.media.AudioManager;
-//import android.media.AudioSystem;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
 
@@ -55,13 +54,11 @@ public class AudioSnippet implements Snippet {
 
     @Rpc(description = "Silences all audio streams.")
     public void muteAll() {
-        // for (int i=0; i<AudioSystem.getNumStreamTypes(); i++) {
-        //    mAudioManager.setStreamVolume(
-        //            i /* Stream type */,
-        //            0 /* value */,
-        //            0 /* flags, 0 = no flags */);
-        //}
-        mAudioManager.setStreamVolume(AudioManager.STREAM_ALARM, 0, 0);
+
+        mAudioManager.setStreamVolume(
+                AudioManager.STREAM_ALARM /* audio stream */,
+                0 /* value */,
+                0 /* flags */);
         mAudioManager.setStreamVolume(AudioManager.STREAM_DTMF, 0, 0);
         muteMusic(); // STREAM_MUSIC
         mAudioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 0, 0);
