@@ -88,7 +88,7 @@ public class AccountSnippet implements Snippet {
         // a little hard to understand.
         if (listAccounts().contains(username)) {
             throw new AccountSnippetException(
-                "Account " + username + " alreaady exists on the device");
+                "Account " + username + " already exists on the device");
         }
         Bundle addAccountOptions = new Bundle();
         addAccountOptions.putString("username", username);
