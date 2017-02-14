@@ -18,43 +18,45 @@ package com.google.android.mobly.snippet.bundled;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
+import android.telephony.CellInfo;
 import android.telephony.TelephonyManager;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
+import java.util.List;
 
 /** Snippet class for telecom/telephony RPCs. */
 public class TelephonySnippet implements Snippet {
 
-    private final TelephonyManager telephonyManager;
+    private final TelephonyManager mTelephonyManager;
 
     public TelephonySnippet() {
         Context context = InstrumentationRegistry.getContext();
-        this.telephonyManager = (TelephonyManager) context.getSystemService(
+        this.mTelephonyManager = (TelephonyManager) context.getSystemService(
                 Context.TELEPHONY_SERVICE);
     }
 
     @Rpc(description = "Gets the line 1 phone number.")
     public String getLine1Number() {
-        return telephonyManager.getLine1Number();
+        return mTelephonyManager.getLine1Number();
     }
 
     @Rpc(description = "Returns the unique subscriber ID, for example, the IMSI for a GSM phone.")
     public String getSubscriberId() {
-        return telephonyManager.getSubscriberId();
+        return mTelephonyManager.getSubscriberId();
     }
 
     @Rpc(description = "Returns all observed cell information from all radios on the device" +
             " including the primary and neighboring cells.")
     public List<CellInfo> getAllCellInfo() {
-        return telephonyManager.getAllCellInfo();
+        return mTelephonyManager.getAllCellInfo();
     }
 
-    @Rpc(description = "Gets the call state for the default subscription.")
+    @Rpc(description = "Gets the call state for the default subscription. Call state values are" +
+            "0: IDLE, 1: RINGING, 2: OFFHOOK")
     public int getTelephonyCallState() {
-        return telephonyManager.getCallState();
+        return mTelephonyManager.getCallState();
     }
 
     @Override
     public void shutdown() {}
-
 }

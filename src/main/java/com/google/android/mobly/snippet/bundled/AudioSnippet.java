@@ -19,48 +19,56 @@ package com.google.android.mobly.snippet.bundled;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.media.AudioManager;
+//import android.media.AudioSystem;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
 
 /* Snippet class to control audio */
 public class AudioSnippet implements Snippet {
 
-    private final AudioManager audioManager;
+    private final AudioManager mAudioManager;
 
     public AudioSnippet() {
         Context context = InstrumentationRegistry.getContext();
-        this.audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-    }
-  
-    @Rpc(description = "Gets the media stream volume.")
-    public int getMediaVolume() {
-        return audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        this.mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
     }
 
-    @Rpc(description = "Sets the media stream volume.")
-    public void setMediaVolume(Integer value) {
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, value, 0);
+    @Rpc(description = "Gets the music stream volume.")
+    public int getMusicVolume() {
+        return mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+    }
+
+    @Rpc(description = "Sets the music stream volume.")
+    public void setMusicVolume(Integer value) {
+        mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, value, 0 /* flags, 0 = no flags */);
     }
 
     @Rpc(description = "Gets the ringer volume.")
     public int getRingVolume() {
-        return audioManager.getStreamVolume(AudioManager.STREAM_RING);
+        return mAudioManager.getStreamVolume(AudioManager.STREAM_RING);
     }
 
     @Rpc(description = "Sets the ringer volume.")
     public void setRingVolume(Integer value) {
-        audioManager.setStreamVolume(AudioManager.STREAM_RING, value, 0);
+        mAudioManager.setStreamVolume(AudioManager.STREAM_RING, value, 0 /* flags, 0 = no flags */);
     }
 
     @Rpc(description = "Silences all audio streams.")
     public void muteAll() {
-        audioManager.setStreamVolume(AudioManager.STREAM_ALARM, value, 0);
-        audioManager.setStreamVolume(AudioManager.STREAM_DTMF, value, 0);
-        muteMedia(); // STREAM_MUSIC
-        audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, value, 0);
+        // for (int i=0; i<AudioSystem.getNumStreamTypes(); i++) {
+        //    mAudioManager.setStreamVolume(
+        //            i /* Stream type */,
+        //            0 /* value */,
+        //            0 /* flags, 0 = no flags */);
+        //}
+        mAudioManager.setStreamVolume(AudioManager.STREAM_ALARM, 0, 0);
+        mAudioManager.setStreamVolume(AudioManager.STREAM_DTMF, 0, 0);
+        muteMusic(); // STREAM_MUSIC
+        mAudioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 0, 0);
         muteRing();  // STREAM_RING
-        audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, value, 0);
-        audioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, value, 0);
+        mAudioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, 0);
+        mAudioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, 0, 0);
+
     }
 
     @Rpc(description = "Puts the ringer volume at the lowest setting, but not set it DO NOT DISTURB.")
@@ -68,11 +76,11 @@ public class AudioSnippet implements Snippet {
         setRingVolume(0);
     }
 
-    @Rpc(description = "Mute media stream.")
-    public void muteMedia() {
-        setMediaVolume(0);
+    @Rpc(description = "Mute music stream.")
+    public void muteMusic() {
+        setMusicVolume(0);
     }
 
     @Override
-      public void shutdown() {}
+    public void shutdown() {}
 }
