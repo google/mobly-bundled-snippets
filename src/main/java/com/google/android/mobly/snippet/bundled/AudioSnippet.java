@@ -52,10 +52,15 @@ public class AudioSnippet implements Snippet {
         audioManager.setStreamVolume(AudioManager.STREAM_RING, value, 0);
     }
 
-    @Rpc(description = "Silences the ringer and media audio streams.")
+    @Rpc(description = "Silences all audio streams.")
     public void muteAll() {
-        muteRing();
-        muteMedia();
+        audioManager.setStreamVolume(AudioManager.STREAM_ALARM, value, 0);
+        audioManager.setStreamVolume(AudioManager.STREAM_DTMF, value, 0);
+        muteMedia(); // STREAM_MUSIC
+        audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, value, 0);
+        muteRing();  // STREAM_RING
+        audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, value, 0);
+        audioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, value, 0);
     }
 
     @Rpc(description = "Puts the ringer volume at the lowest setting, but not set it DO NOT DISTURB.")
