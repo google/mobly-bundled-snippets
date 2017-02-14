@@ -18,25 +18,17 @@ package com.google.android.mobly.snippet.bundled;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
-import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
 import android.accounts.AccountsException;
-import android.accounts.AuthenticatorException;
-import android.accounts.OperationCanceledException;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SyncAdapterType;
-import android.content.SyncStatusObserver;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.test.InstrumentationRegistry;
-import android.widget.Toast;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.util.Log;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -50,7 +42,7 @@ import java.util.TreeSet;
  *
  * <p>Google (gmail) accounts are of type "com.google" and their handling is managed by the
  * operating system. This class allows you to add and remove Google accounts from a device.
- * */
+ */
 public class AccountSnippet implements Snippet {
     private static final String GOOGLE_ACCOUNT_TYPE = "com.google";
     private static final String AUTH_TOKEN_TYPE = "mail";
@@ -74,40 +66,43 @@ public class AccountSnippet implements Snippet {
      * Adds a Google account to the device.
      *
      * <p>TODO(adorokhine): Support adding accounts of other types with an optional 'type' kwarg.
+     *
      * <p>TODO(adorokhine): Allow users to choose whether to enable/disable sync with a kwarg.
      *
      * @param username Username of the account to add (including @gmail.com).
      * @param password Password of the account to add.
      */
-    @Rpc(description =
-        "Add a Google (GMail) account to the device, with account data sync disabled.")
+    @Rpc(
+        description = "Add a Google (GMail) account to the device, with account data sync disabled."
+    )
     public void addAccount(String username, String password)
-        throws AccountSnippetException, AccountsException, IOException {
+            throws AccountSnippetException, AccountsException, IOException {
         // Check for existing account. If we try to re-add an existing account, Android throws an
         // exception that says "Account does not exist or not visible. Maybe change pwd?" which is
         // a little hard to understand.
         if (listAccounts().contains(username)) {
             throw new AccountSnippetException(
-                "Account " + username + " already exists on the device");
+                    "Account " + username + " already exists on the device");
         }
         Bundle addAccountOptions = new Bundle();
         addAccountOptions.putString("username", username);
         addAccountOptions.putString("password", password);
         AccountManagerFuture<Bundle> future =
-            mAccountManager.addAccount(
-                GOOGLE_ACCOUNT_TYPE,
-                AUTH_TOKEN_TYPE,
-                null /* requiredFeatures */,
-                addAccountOptions,
-                null /* activity */,
-                null /* authCallback */,
-                null /* handler */);
+                mAccountManager.addAccount(
+                        GOOGLE_ACCOUNT_TYPE,
+                        AUTH_TOKEN_TYPE,
+                        null /* requiredFeatures */,
+                        addAccountOptions,
+                        null /* activity */,
+                        null /* authCallback */,
+                        null /* handler */);
         Bundle result = future.getResult();
         if (result.containsKey(AccountManager.KEY_ERROR_CODE)) {
             throw new AccountSnippetException(
-                String.format("Failed to add account due to code %d: %s",
-                    result.getInt(AccountManager.KEY_ERROR_CODE),
-                    result.getString(AccountManager.KEY_ERROR_MESSAGE)));
+                    String.format(
+                            "Failed to add account due to code %d: %s",
+                            result.getInt(AccountManager.KEY_ERROR_CODE),
+                            result.getString(AccountManager.KEY_ERROR_MESSAGE)));
         }
 
         // Disable sync to avoid test flakiness as accounts fetch additional data.
@@ -116,19 +111,21 @@ public class AccountSnippet implements Snippet {
         // NOTE: this listener is NOT unregistered because several sync requests for the new account
         // will come in over time.
         Account account = new Account(username, GOOGLE_ACCOUNT_TYPE);
-        Object handle = ContentResolver.addStatusChangeListener(
-            ContentResolver.SYNC_OBSERVER_TYPE_ACTIVE | ContentResolver.SYNC_OBSERVER_TYPE_PENDING,
-            which -> {
-                Log.i("Attempt to sync account " + username + " detected! Disabling.");
-                for (SyncAdapterType adapter : ContentResolver.getSyncAdapterTypes()) {
-                    if (!adapter.accountType.equals(GOOGLE_ACCOUNT_TYPE)) {
-                        continue;
-                    }
-                    ContentResolver
-                        .setSyncAutomatically(account, adapter.authority, false /* sync */);
-                    ContentResolver.cancelSync(account, adapter.authority);
-                }
-            });
+        Object handle =
+                ContentResolver.addStatusChangeListener(
+                        ContentResolver.SYNC_OBSERVER_TYPE_ACTIVE
+                                | ContentResolver.SYNC_OBSERVER_TYPE_PENDING,
+                        which -> {
+                            Log.i("Attempt to sync account " + username + " detected! Disabling.");
+                            for (SyncAdapterType adapter : ContentResolver.getSyncAdapterTypes()) {
+                                if (!adapter.accountType.equals(GOOGLE_ACCOUNT_TYPE)) {
+                                    continue;
+                                }
+                                ContentResolver.setSyncAutomatically(
+                                        account, adapter.authority, false /* sync */);
+                                ContentResolver.cancelSync(account, adapter.authority);
+                            }
+                        });
         mSyncStatusObserverHandles.add(handle);
     }
 

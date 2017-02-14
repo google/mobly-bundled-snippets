@@ -42,8 +42,11 @@ public class TelephonySnippet implements Snippet {
         return mTelephonyManager.getSubscriberId();
     }
 
-    @Rpc(description = "Gets the call state for the default subscription. Call state values are" +
-            "0: IDLE, 1: RINGING, 2: OFFHOOK")
+    @Rpc(
+        description =
+                "Gets the call state for the default subscription. Call state values are"
+                        + "0: IDLE, 1: RINGING, 2: OFFHOOK"
+    )
     public int getTelephonyCallState() {
         return mTelephonyManager.getCallState();
     }

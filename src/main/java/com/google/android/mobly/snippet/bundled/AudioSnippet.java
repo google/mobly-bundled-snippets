@@ -17,8 +17,8 @@
 package com.google.android.mobly.snippet.bundled;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 import android.media.AudioManager;
+import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
 
@@ -39,7 +39,8 @@ public class AudioSnippet implements Snippet {
 
     @Rpc(description = "Sets the music stream volume.")
     public void setMusicVolume(Integer value) {
-        mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, value, 0 /* flags, 0 = no flags */);
+        mAudioManager.setStreamVolume(
+                AudioManager.STREAM_MUSIC, value, 0 /* flags, 0 = no flags */);
     }
 
     @Rpc(description = "Gets the ringer volume.")
@@ -55,15 +56,15 @@ public class AudioSnippet implements Snippet {
     @Rpc(description = "Silences all audio streams.")
     public void muteAll() {
         for (int i = 0; i < AudioManager.NUM_STREAMS; i++) {
-            mAudioManager.setStreamVolume(
-                    i /* audio stream */,
-                    0 /* value */,
-                    0 /* flags */);
+            mAudioManager.setStreamVolume(i /* audio stream */, 0 /* value */, 0 /* flags */);
         }
     }
 
-    @Rpc(description = "Puts the ringer volume at the lowest setting, but does not set it to " +
-            "DO NOT DISTURB; the phone will vibrate when receiving a call.")
+    @Rpc(
+        description =
+                "Puts the ringer volume at the lowest setting, but does not set it to "
+                        + "DO NOT DISTURB; the phone will vibrate when receiving a call."
+    )
     public void muteRing() {
         setRingVolume(0);
     }
