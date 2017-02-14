@@ -29,7 +29,7 @@ public class TelephonySnippet implements Snippet {
 
     public TelephonySnippet() {
         Context context = InstrumentationRegistry.getContext();
-        this.mTelephonyManager = (TelephonyManager) context.getSystemService(
+        mTelephonyManager = (TelephonyManager) context.getSystemService(
                 Context.TELEPHONY_SERVICE);
     }
 

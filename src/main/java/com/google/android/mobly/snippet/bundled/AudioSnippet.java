@@ -29,7 +29,7 @@ public class AudioSnippet implements Snippet {
 
     public AudioSnippet() {
         Context context = InstrumentationRegistry.getContext();
-        this.mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
     }
 
     @Rpc(description = "Gets the music stream volume.")
@@ -54,21 +54,16 @@ public class AudioSnippet implements Snippet {
 
     @Rpc(description = "Silences all audio streams.")
     public void muteAll() {
-
-        mAudioManager.setStreamVolume(
-                AudioManager.STREAM_ALARM /* audio stream */,
-                0 /* value */,
-                0 /* flags */);
-        mAudioManager.setStreamVolume(AudioManager.STREAM_DTMF, 0, 0);
-        muteMusic(); // STREAM_MUSIC
-        mAudioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 0, 0);
-        muteRing();  // STREAM_RING
-        mAudioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, 0);
-        mAudioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, 0, 0);
-
+        for (int i=0; i<AudioManager.NUM_STREAMS; i++) {
+            mAudioManager.setStreamVolume(
+                    i /* audio stream */,
+                    0 /* value */,
+                    0 /* flags */);
+        }
     }
 
-    @Rpc(description = "Puts the ringer volume at the lowest setting, but not set it DO NOT DISTURB.")
+    @Rpc(description = "Puts the ringer volume at the lowest setting, but does not set it to " +
+            "DO NOT DISTURB; the phone will vibrate when receiving a call.")
     public void muteRing() {
         setRingVolume(0);
     }
