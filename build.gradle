@@ -28,7 +28,8 @@ android {
     defaultConfig {
         applicationId "com.google.android.mobly.snippet.bundled"
         minSdkVersion 11
-        targetSdkVersion 24
+        // Set target to 22 to avoid having to deal with runtime permissions.
+        targetSdkVersion 22
         versionCode 1
         versionName "0.0.1"
         setProperty("archivesBaseName", "mobly-bundled-snippets")
