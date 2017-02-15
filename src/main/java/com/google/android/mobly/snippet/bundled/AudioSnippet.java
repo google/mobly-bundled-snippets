@@ -37,7 +37,13 @@ public class AudioSnippet implements Snippet {
         return mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
     }
 
-    @Rpc(description = "Sets the music stream volume.")
+    @Rpc(description = "Gets the maximum music stream volume value.")
+    public int getMusicMaxVolume() {
+        return mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+    }
+
+    @Rpc(description = "Sets the music stream volume. The minimum value is 0. Use getMusicMaxVolume"
+            + "to determine the maximum.")
     public void setMusicVolume(Integer value) {
         mAudioManager.setStreamVolume(
                 AudioManager.STREAM_MUSIC, value, 0 /* flags, 0 = no flags */);
@@ -48,7 +54,13 @@ public class AudioSnippet implements Snippet {
         return mAudioManager.getStreamVolume(AudioManager.STREAM_RING);
     }
 
-    @Rpc(description = "Sets the ringer volume.")
+    @Rpc(description = "Gets the maximum ringer volume value.")
+    public int getRingMaxVolume() {
+        return mAudioManager.getStreamMaxVolume(AudioManager.STREAM_RING);
+    }
+
+    @Rpc(description = "Sets the ringer stream volume. The minimum value is 0. Use getRingMaxVolume"
+            + "to determine the maximum.")
     public void setRingVolume(Integer value) {
         mAudioManager.setStreamVolume(AudioManager.STREAM_RING, value, 0 /* flags, 0 = no flags */);
     }
