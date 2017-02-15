@@ -42,8 +42,11 @@ public class AudioSnippet implements Snippet {
         return mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
     }
 
-    @Rpc(description = "Sets the music stream volume. The minimum value is 0. Use getMusicMaxVolume"
-            + "to determine the maximum.")
+    @Rpc(
+        description =
+                "Sets the music stream volume. The minimum value is 0. Use getMusicMaxVolume"
+                        + "to determine the maximum."
+    )
     public void setMusicVolume(Integer value) {
         mAudioManager.setStreamVolume(
                 AudioManager.STREAM_MUSIC, value, 0 /* flags, 0 = no flags */);
@@ -59,14 +62,18 @@ public class AudioSnippet implements Snippet {
         return mAudioManager.getStreamMaxVolume(AudioManager.STREAM_RING);
     }
 
-    @Rpc(description = "Sets the ringer stream volume. The minimum value is 0. Use getRingMaxVolume"
-            + "to determine the maximum.")
+    @Rpc(
+        description =
+                "Sets the ringer stream volume. The minimum value is 0. Use getRingMaxVolume"
+                        + "to determine the maximum."
+    )
     public void setRingVolume(Integer value) {
         mAudioManager.setStreamVolume(AudioManager.STREAM_RING, value, 0 /* flags, 0 = no flags */);
     }
 
     @Rpc(description = "Silences all audio streams.")
     public void muteAll() {
+        // TODO: NUM_STREAMS is deprecated. Find a different solution.
         for (int i = 0; i < AudioManager.NUM_STREAMS; i++) {
             mAudioManager.setStreamVolume(i /* audio stream */, 0 /* value */, 0 /* flags */);
         }
