@@ -21,15 +21,30 @@ import android.media.AudioManager;
 import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /* Snippet class to control audio */
 public class AudioSnippet implements Snippet {
 
     private final AudioManager mAudioManager;
 
+    private int numStreams;
+
     public AudioSnippet() {
         Context context = InstrumentationRegistry.getContext();
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        // Get numStreams from AudioSystem through reflection. If for some reason this fails, set numStreams to 0 (which means muteAll() will have no effect).
+        try {
+            Class audioSystem = Class.forName("android.media.AudioSystem");
+            Method getNumStreamTypes = audioSystem.getDeclaredMethod("getNumStreamTypes");
+            numStreams = (int) getNumStreamTypes.invoke(null);
+        } catch (ClassNotFoundException
+                | IllegalAccessException
+                | InvocationTargetException
+                | NoSuchMethodException e) {
+            numStreams = 0;
+        }
     }
 
     @Rpc(description = "Gets the music stream volume.")
@@ -74,7 +89,7 @@ public class AudioSnippet implements Snippet {
     @Rpc(description = "Silences all audio streams.")
     public void muteAll() {
         // TODO: NUM_STREAMS is deprecated. Find a different solution.
-        for (int i = 0; i < AudioManager.NUM_STREAMS; i++) {
+        for (int i = 0; i < numStreams; i++) {
             mAudioManager.setStreamVolume(i /* audio stream */, 0 /* value */, 0 /* flags */);
         }
     }
