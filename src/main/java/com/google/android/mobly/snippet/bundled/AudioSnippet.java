@@ -19,6 +19,7 @@ package com.google.android.mobly.snippet.bundled;
 import android.content.Context;
 import android.media.AudioManager;
 import android.support.test.InstrumentationRegistry;
+import android.util.Log;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import java.lang.reflect.InvocationTargetException;
@@ -27,9 +28,11 @@ import java.lang.reflect.Method;
 /* Snippet class to control audio */
 public class AudioSnippet implements Snippet {
 
+    private static final String TAG = "MoblyBundledSnippetAudio";
+    
     private final AudioManager mAudioManager;
 
-    private int numStreams;
+    private final int numStreams;
 
     public AudioSnippet() {
         Context context = InstrumentationRegistry.getContext();
@@ -45,6 +48,7 @@ public class AudioSnippet implements Snippet {
                 | InvocationTargetException
                 | NoSuchMethodException e) {
             numStreams = 0;
+            Log.w(TAG, "Failed to determine number of audio streams.", e);
         }
     }
 
@@ -89,7 +93,6 @@ public class AudioSnippet implements Snippet {
 
     @Rpc(description = "Silences all audio streams.")
     public void muteAll() {
-        // TODO: NUM_STREAMS is deprecated. Find a different solution.
         for (int i = 0; i < numStreams; i++) {
             mAudioManager.setStreamVolume(i /* audio stream */, 0 /* value */, 0 /* flags */);
         }
