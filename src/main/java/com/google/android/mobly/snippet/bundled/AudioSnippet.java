@@ -34,7 +34,8 @@ public class AudioSnippet implements Snippet {
     public AudioSnippet() {
         Context context = InstrumentationRegistry.getContext();
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-        // Get numStreams from AudioSystem through reflection. If for some reason this fails, set numStreams to 0 (which means muteAll() will have no effect).
+        /* Get numStreams from AudioSystem through reflection. If for some reason this fails, set
+           numStreams to 0 (which means muteAll() will have no effect). */
         try {
             Class audioSystem = Class.forName("android.media.AudioSystem");
             Method getNumStreamTypes = audioSystem.getDeclaredMethod("getNumStreamTypes");
