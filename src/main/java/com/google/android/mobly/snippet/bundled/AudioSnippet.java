@@ -19,20 +19,18 @@ package com.google.android.mobly.snippet.bundled;
 import android.content.Context;
 import android.media.AudioManager;
 import android.support.test.InstrumentationRegistry;
-import android.util.Log;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
+import com.google.android.mobly.snippet.util.Log;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /* Snippet class to control audio */
 public class AudioSnippet implements Snippet {
-
-    private static final String TAG = "MoblyBundledSnippetAudio";
     
     private final AudioManager mAudioManager;
 
-    private final int numStreams;
+    private final int mNumStreams;
 
     public AudioSnippet() {
         Context context = InstrumentationRegistry.getContext();
@@ -42,13 +40,13 @@ public class AudioSnippet implements Snippet {
         try {
             Class audioSystem = Class.forName("android.media.AudioSystem");
             Method getNumStreamTypes = audioSystem.getDeclaredMethod("getNumStreamTypes");
-            numStreams = (int) getNumStreamTypes.invoke(null);
+            mNumStreams = (int) getNumStreamTypes.invoke(null);
         } catch (ClassNotFoundException
                 | IllegalAccessException
                 | InvocationTargetException
                 | NoSuchMethodException e) {
-            numStreams = 0;
-            Log.w(TAG, "Failed to determine number of audio streams.", e);
+            mNumStreams = 0;
+            Log.w("Failed to determine number of audio streams.", e);
         }
     }
 
@@ -93,7 +91,7 @@ public class AudioSnippet implements Snippet {
 
     @Rpc(description = "Silences all audio streams.")
     public void muteAll() {
-        for (int i = 0; i < numStreams; i++) {
+        for (int i = 0; i < mNumStreams; i++) {
             mAudioManager.setStreamVolume(i /* audio stream */, 0 /* value */, 0 /* flags */);
         }
     }
