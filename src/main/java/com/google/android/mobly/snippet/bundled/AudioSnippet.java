@@ -21,6 +21,9 @@ import android.media.AudioManager;
 import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
+import com.google.android.mobly.snippet.util.Log;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /* Snippet class to control audio */
 public class AudioSnippet implements Snippet {
@@ -72,9 +75,13 @@ public class AudioSnippet implements Snippet {
     }
 
     @Rpc(description = "Silences all audio streams.")
-    public void muteAll() {
-        // TODO: NUM_STREAMS is deprecated. Find a different solution.
-        for (int i = 0; i < AudioManager.NUM_STREAMS; i++) {
+    public void muteAll() throws Exception {
+        /* Get numStreams from AudioSystem through reflection. If for some reason this fails,
+           calling muteAll will throw. */
+        Class<?> audioSystem = Class.forName("android.media.AudioSystem");
+        Method getNumStreamTypes = audioSystem.getDeclaredMethod("getNumStreamTypes");
+        int numStreams = (int) getNumStreamTypes.invoke(null);
+        for (int i = 0; i < numStreams; i++) {
             mAudioManager.setStreamVolume(i /* audio stream */, 0 /* value */, 0 /* flags */);
         }
     }

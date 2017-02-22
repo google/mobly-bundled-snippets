@@ -21,6 +21,14 @@ repositories {
 apply plugin: 'com.android.application'
 apply plugin: 'me.tatarka.retrolambda'
 
+allprojects {
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:all"
+        }
+    }
+}
+
 android {
     compileSdkVersion 24
     buildToolsVersion "24.0.3"
