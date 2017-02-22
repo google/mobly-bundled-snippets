@@ -78,7 +78,7 @@ public class AudioSnippet implements Snippet {
     public void muteAll() throws Exception {
         /* Get numStreams from AudioSystem through reflection. If for some reason this fails,
            calling muteAll will throw. */
-        Class audioSystem = Class.forName("android.media.AudioSystem");
+        Class<?> audioSystem = Class.forName("android.media.AudioSystem");
         Method getNumStreamTypes = audioSystem.getDeclaredMethod("getNumStreamTypes");
         int numStreams = (int) getNumStreamTypes.invoke(null);
         for (int i = 0; i < numStreams; i++) {
