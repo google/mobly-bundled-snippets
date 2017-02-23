@@ -21,8 +21,6 @@ import android.media.AudioManager;
 import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
-import com.google.android.mobly.snippet.util.Log;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /* Snippet class to control audio */
