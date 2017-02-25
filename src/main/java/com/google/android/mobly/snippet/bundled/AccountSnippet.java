@@ -29,8 +29,12 @@ import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.util.Log;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -56,10 +60,13 @@ public class AccountSnippet implements Snippet {
     private final AccountManager mAccountManager;
     private final List<Object> mSyncStatusObserverHandles;
 
+    private Map<String, Set<String>> mWhitelist;
+
     public AccountSnippet() {
         Context context = InstrumentationRegistry.getContext();
         mAccountManager = AccountManager.get(context);
         mSyncStatusObserverHandles = new LinkedList<>();
+        mWhitelist = new HashMap<String, Set<String>>();
     }
 
     /**
@@ -116,17 +123,117 @@ public class AccountSnippet implements Snippet {
                         ContentResolver.SYNC_OBSERVER_TYPE_ACTIVE
                                 | ContentResolver.SYNC_OBSERVER_TYPE_PENDING,
                         which -> {
-                            Log.i("Attempt to sync account " + username + " detected! Disabling.");
                             for (SyncAdapterType adapter : ContentResolver.getSyncAdapterTypes()) {
+                                // Ignore non-Google account types.
                                 if (!adapter.accountType.equals(GOOGLE_ACCOUNT_TYPE)) {
                                     continue;
                                 }
-                                ContentResolver.setSyncAutomatically(
-                                        account, adapter.authority, false /* sync */);
-                                ContentResolver.cancelSync(account, adapter.authority);
+                                Log.i(
+                                        "Attempt to sync account "
+                                                + username
+                                                + ", adapter "
+                                                + adapter.authority
+                                                + " detected! Disabling.");
+                                // If a content provider was whitelisted, then don't disable it.
+                                if (isAdapterWhitelisted(username, adapter.authority)) {
+                                    continue;
+                                }
+                                updateSync(account, adapter.authority, false /* sync */);
                             }
                         });
         mSyncStatusObserverHandles.add(handle);
+    }
+
+    /**
+     * Checks to see if the SyncAdapter is whitelisted.
+     *
+     * <p>AccountSnippet disables syncing by default when adding an account, except for whitelisted
+     * SyncAdapters. This function checks the whitelist for a specific account-authority pair.
+     *
+     * @param username Username of the account (including @gmail.com).
+     * @param authority The authority of a content provider that should be checked.
+     */
+    private boolean isAdapterWhitelisted(String username, String authority) {
+        if (mWhitelist.containsKey(username)) {
+            Set<String> whitelistedProviders = mWhitelist.get(username);
+            return whitelistedProviders.contains(authority);
+        }
+        return false;
+    }
+
+    /**
+     * Updates ContentResolver sync settings for an Account's specified SyncAdapter.
+     *
+     * <p>Sets an accounts SyncAdapter (selected based on authority) to sync/not-sync automatically
+     * and immediately requests/cancels a sync.
+     *
+     * @param account A Google Account.
+     * @param authority The authority of a content provider that should (not) be synced.
+     * @param sync Whether or not the account's content provider should be synced.
+     */
+    private void updateSync(Account account, String authority, boolean sync) {
+        ContentResolver.setSyncAutomatically(account, authority, sync);
+        if (sync) {
+            ContentResolver.requestSync(account, authority, new Bundle());
+        } else {
+            ContentResolver.cancelSync(account, authority);
+        }
+    }
+
+    /**
+     * Enables syncing of a SyncAdapter for a given content provider.
+     *
+     * <p>Adds the authority to a whitelist, and immediately requests a sync.
+     *
+     * @param username Username of the account (including @gmail.com).
+     * @param authority The authority of a content provider that should be synced.
+     */
+    @Rpc(description = "Enables syncing of a SyncAdapter for a content provider.")
+    public void startSync(String username, String authority) {
+        // Add to the whitelist
+        if (mWhitelist.containsKey(username)) {
+            mWhitelist.get(username).add(authority);
+        } else {
+            mWhitelist.put(username, new HashSet<String>(Arrays.asList(authority)));
+        }
+        // Update the Sync settings
+        for (SyncAdapterType adapter : ContentResolver.getSyncAdapterTypes()) {
+            // Find the Google account content provider.
+            if (adapter.accountType.equals(GOOGLE_ACCOUNT_TYPE)
+                    && adapter.authority.equals(authority)) {
+                Account account = new Account(username, GOOGLE_ACCOUNT_TYPE);
+                updateSync(account, authority, true);
+            }
+        }
+    }
+
+    /**
+     * Disables syncing of a SyncAdapter for a given content provider.
+     *
+     * <p>Removes the content provider authority from a whitelist.
+     *
+     * @param username Username of the account (including @gmail.com).
+     * @param authority The authority of a content provider that should not be synced.
+     */
+    @Rpc(description = "Disables syncing of a SyncAdapter for a content provider.")
+    public void stopSync(String username, String authority) {
+        // Remove from whitelist
+        if (mWhitelist.containsKey(username)) {
+            Set<String> whitelistedProviders = mWhitelist.get(username);
+            whitelistedProviders.remove(authority);
+            if (whitelistedProviders.isEmpty()) {
+                mWhitelist.remove(username);
+            }
+        }
+        // Update the Sync settings
+        for (SyncAdapterType adapter : ContentResolver.getSyncAdapterTypes()) {
+            // Find the Google account content provider.
+            if (adapter.accountType.equals(GOOGLE_ACCOUNT_TYPE)
+                    && adapter.authority.equals(authority)) {
+                Account account = new Account(username, GOOGLE_ACCOUNT_TYPE);
+                updateSync(account, authority, false);
+            }
+        }
     }
 
     /**

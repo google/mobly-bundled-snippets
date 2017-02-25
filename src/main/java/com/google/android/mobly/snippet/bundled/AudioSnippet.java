@@ -75,7 +75,7 @@ public class AudioSnippet implements Snippet {
     @Rpc(description = "Silences all audio streams.")
     public void muteAll() throws Exception {
         /* Get numStreams from AudioSystem through reflection. If for some reason this fails,
-           calling muteAll will throw. */
+        calling muteAll will throw. */
         Class<?> audioSystem = Class.forName("android.media.AudioSystem");
         Method getNumStreamTypes = audioSystem.getDeclaredMethod("getNumStreamTypes");
         int numStreams = (int) getNumStreamTypes.invoke(null);
