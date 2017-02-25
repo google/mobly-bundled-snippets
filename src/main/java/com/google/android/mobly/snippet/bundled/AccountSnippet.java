@@ -190,6 +190,10 @@ public class AccountSnippet implements Snippet {
      */
     @Rpc(description = "Enables syncing of a SyncAdapter for a content provider.")
     public void startSync(String username, String authority) {
+        if (!listAccounts().contains(username)) {
+            throw new AccountSnippetException(
+                    "Account " + username + " is not on the device");
+        }
         // Add to the whitelist
         if (mWhitelist.containsKey(username)) {
             mWhitelist.get(username).add(authority);
@@ -217,6 +221,10 @@ public class AccountSnippet implements Snippet {
      */
     @Rpc(description = "Disables syncing of a SyncAdapter for a content provider.")
     public void stopSync(String username, String authority) {
+        if (!listAccounts().contains(username)) {
+            throw new AccountSnippetException(
+                    "Account " + username + " is not on the device");
+        }
         // Remove from whitelist
         if (mWhitelist.containsKey(username)) {
             Set<String> whitelistedProviders = mWhitelist.get(username);
