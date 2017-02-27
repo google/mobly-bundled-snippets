@@ -30,6 +30,7 @@ import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.util.Log;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -60,13 +61,13 @@ public class AccountSnippet implements Snippet {
     private final AccountManager mAccountManager;
     private final List<Object> mSyncStatusObserverHandles;
 
-    private Map<String, Set<String>> mWhitelist;
+    private Map<String, Set<String>> mSyncWhitelist;
 
     public AccountSnippet() {
         Context context = InstrumentationRegistry.getContext();
         mAccountManager = AccountManager.get(context);
         mSyncStatusObserverHandles = new LinkedList<>();
-        mWhitelist = new HashMap<String, Set<String>>();
+        mSyncWhitelist = Collections.synchronizedMap(new HashMap<String, Set<String>>());
     }
 
     /**
@@ -128,16 +129,16 @@ public class AccountSnippet implements Snippet {
                                 if (!adapter.accountType.equals(GOOGLE_ACCOUNT_TYPE)) {
                                     continue;
                                 }
+                                // If a content provider was whitelisted, then don't disable it.
+                                if (isAdapterWhitelisted(username, adapter.authority)) {
+                                    continue;
+                                }
                                 Log.i(
                                         "Attempt to sync account "
                                                 + username
                                                 + ", adapter "
                                                 + adapter.authority
                                                 + " detected! Disabling.");
-                                // If a content provider was whitelisted, then don't disable it.
-                                if (isAdapterWhitelisted(username, adapter.authority)) {
-                                    continue;
-                                }
                                 updateSync(account, adapter.authority, false /* sync */);
                             }
                         });
@@ -154,8 +155,8 @@ public class AccountSnippet implements Snippet {
      * @param authority The authority of a content provider that should be checked.
      */
     private boolean isAdapterWhitelisted(String username, String authority) {
-        if (mWhitelist.containsKey(username)) {
-            Set<String> whitelistedProviders = mWhitelist.get(username);
+        Set<String> whitelistedProviders = mSyncWhitelist.get(username);
+        if (whitelistedProviders != null) {
             return whitelistedProviders.contains(authority);
         }
         return false;
@@ -189,16 +190,18 @@ public class AccountSnippet implements Snippet {
      * @param authority The authority of a content provider that should be synced.
      */
     @Rpc(description = "Enables syncing of a SyncAdapter for a content provider.")
-    public void startSync(String username, String authority) {
+    public void startSync(String username, String authority) throws AccountSnippetException {
         if (!listAccounts().contains(username)) {
-            throw new AccountSnippetException(
-                    "Account " + username + " is not on the device");
+            throw new AccountSnippetException("Account " + username + " is not on the device");
         }
         // Add to the whitelist
-        if (mWhitelist.containsKey(username)) {
-            mWhitelist.get(username).add(authority);
-        } else {
-            mWhitelist.put(username, new HashSet<String>(Arrays.asList(authority)));
+        synchronized (mSyncWhitelist)
+        {
+            if (mSyncWhitelist.containsKey(username)) {
+                mSyncWhitelist.get(username).add(authority);
+            } else {
+                mSyncWhitelist.put(username, new HashSet<String>(Arrays.asList(authority)));
+            }
         }
         // Update the Sync settings
         for (SyncAdapterType adapter : ContentResolver.getSyncAdapterTypes()) {
@@ -220,17 +223,18 @@ public class AccountSnippet implements Snippet {
      * @param authority The authority of a content provider that should not be synced.
      */
     @Rpc(description = "Disables syncing of a SyncAdapter for a content provider.")
-    public void stopSync(String username, String authority) {
+    public void stopSync(String username, String authority) throws AccountSnippetException {
         if (!listAccounts().contains(username)) {
-            throw new AccountSnippetException(
-                    "Account " + username + " is not on the device");
+            throw new AccountSnippetException("Account " + username + " is not on the device");
         }
         // Remove from whitelist
-        if (mWhitelist.containsKey(username)) {
-            Set<String> whitelistedProviders = mWhitelist.get(username);
-            whitelistedProviders.remove(authority);
-            if (whitelistedProviders.isEmpty()) {
-                mWhitelist.remove(username);
+        synchronized (mSyncWhitelist) {
+            if (mSyncWhitelist.containsKey(username)) {
+                Set<String> whitelistedProviders = mSyncWhitelist.get(username);
+                whitelistedProviders.remove(authority);
+                if (whitelistedProviders.isEmpty()) {
+                    mSyncWhitelist.remove(username);
+                }
             }
         }
         // Update the Sync settings
