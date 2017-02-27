@@ -195,8 +195,7 @@ public class AccountSnippet implements Snippet {
             throw new AccountSnippetException("Account " + username + " is not on the device");
         }
         // Add to the whitelist
-        synchronized (mSyncWhitelist)
-        {
+        synchronized (mSyncWhitelist) {
             if (mSyncWhitelist.containsKey(username)) {
                 mSyncWhitelist.get(username).add(authority);
             } else {
