@@ -30,7 +30,6 @@ import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.util.Log;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -38,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Snippet class exposing Android APIs related to management of device accounts.
@@ -61,13 +61,15 @@ public class AccountSnippet implements Snippet {
     private final AccountManager mAccountManager;
     private final List<Object> mSyncStatusObserverHandles;
 
-    private Map<String, Set<String>> mSyncWhitelist;
+    private final Map<String, Set<String>> mSyncWhitelist;
+    private final ReentrantReadWriteLock mLock;
 
     public AccountSnippet() {
         Context context = InstrumentationRegistry.getContext();
         mAccountManager = AccountManager.get(context);
         mSyncStatusObserverHandles = new LinkedList<>();
-        mSyncWhitelist = Collections.synchronizedMap(new HashMap<String, Set<String>>());
+        mSyncWhitelist = new HashMap<String, Set<String>>();
+        mLock = new ReentrantReadWriteLock();
     }
 
     /**
@@ -155,11 +157,14 @@ public class AccountSnippet implements Snippet {
      * @param authority The authority of a content provider that should be checked.
      */
     private boolean isAdapterWhitelisted(String username, String authority) {
+        boolean result = false;
+        mLock.readLock().lock();
         Set<String> whitelistedProviders = mSyncWhitelist.get(username);
         if (whitelistedProviders != null) {
-            return whitelistedProviders.contains(authority);
+            result = whitelistedProviders.contains(authority);
         }
-        return false;
+        mLock.readLock().unlock();
+        return result;
     }
 
     /**
@@ -195,12 +200,11 @@ public class AccountSnippet implements Snippet {
             throw new AccountSnippetException("Account " + username + " is not on the device");
         }
         // Add to the whitelist
-        synchronized (mSyncWhitelist) {
-            if (mSyncWhitelist.containsKey(username)) {
-                mSyncWhitelist.get(username).add(authority);
-            } else {
-                mSyncWhitelist.put(username, new HashSet<String>(Arrays.asList(authority)));
-            }
+        mLock.writeLock().lock();
+        if (mSyncWhitelist.containsKey(username)) {
+            mSyncWhitelist.get(username).add(authority);
+        } else {
+            mSyncWhitelist.put(username, new HashSet<String>(Arrays.asList(authority)));
         }
         // Update the Sync settings
         for (SyncAdapterType adapter : ContentResolver.getSyncAdapterTypes()) {
@@ -211,6 +215,7 @@ public class AccountSnippet implements Snippet {
                 updateSync(account, authority, true);
             }
         }
+        mLock.writeLock().unlock();
     }
 
     /**
@@ -227,13 +232,12 @@ public class AccountSnippet implements Snippet {
             throw new AccountSnippetException("Account " + username + " is not on the device");
         }
         // Remove from whitelist
-        synchronized (mSyncWhitelist) {
-            if (mSyncWhitelist.containsKey(username)) {
-                Set<String> whitelistedProviders = mSyncWhitelist.get(username);
-                whitelistedProviders.remove(authority);
-                if (whitelistedProviders.isEmpty()) {
-                    mSyncWhitelist.remove(username);
-                }
+        mLock.writeLock().lock();
+        if (mSyncWhitelist.containsKey(username)) {
+            Set<String> whitelistedProviders = mSyncWhitelist.get(username);
+            whitelistedProviders.remove(authority);
+            if (whitelistedProviders.isEmpty()) {
+                mSyncWhitelist.remove(username);
             }
         }
         // Update the Sync settings
@@ -245,6 +249,7 @@ public class AccountSnippet implements Snippet {
                 updateSync(account, authority, false);
             }
         }
+        mLock.writeLock().unlock();
     }
 
     /**
