@@ -135,12 +135,6 @@ public class AccountSnippet implements Snippet {
                                 if (isAdapterWhitelisted(username, adapter.authority)) {
                                     continue;
                                 }
-                                Log.i(
-                                        "Attempt to sync account "
-                                                + username
-                                                + ", adapter "
-                                                + adapter.authority
-                                                + " detected! Disabling.");
                                 updateSync(account, adapter.authority, false /* sync */);
                             }
                         });
@@ -178,11 +172,21 @@ public class AccountSnippet implements Snippet {
      * @param sync Whether or not the account's content provider should be synced.
      */
     private void updateSync(Account account, String authority, boolean sync) {
-        ContentResolver.setSyncAutomatically(account, authority, sync);
-        if (sync) {
-            ContentResolver.requestSync(account, authority, new Bundle());
-        } else {
-            ContentResolver.cancelSync(account, authority);
+        if (ContentResolver.getSyncAutomatically(account, authority) != sync) {
+            ContentResolver.setSyncAutomatically(account, authority, sync);
+            if (sync) {
+                ContentResolver.requestSync(account, authority, new Bundle());
+            } else {
+                ContentResolver.cancelSync(account, authority);
+            }
+            Log.i(
+                    "Set sync to "
+                            + sync
+                            + " for account "
+                            + account
+                            + ", adapter "
+                            + authority
+                            + ".");
         }
     }
 
