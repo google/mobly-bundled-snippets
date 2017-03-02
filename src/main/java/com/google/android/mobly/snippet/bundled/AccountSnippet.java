@@ -152,8 +152,8 @@ public class AccountSnippet implements Snippet {
      */
     private boolean isAdapterWhitelisted(String username, String authority) {
         boolean result = false;
+        mLock.readLock().lock();
         try {
-            mLock.readLock().lock();
             Set<String> whitelistedProviders = mSyncWhitelist.get(username);
             if (whitelistedProviders != null) {
                 result = whitelistedProviders.contains(authority);
@@ -207,8 +207,8 @@ public class AccountSnippet implements Snippet {
             throw new AccountSnippetException("Account " + username + " is not on the device");
         }
         // Add to the whitelist
+        mLock.writeLock().lock();
         try {
-            mLock.writeLock().lock();
             if (mSyncWhitelist.containsKey(username)) {
                 mSyncWhitelist.get(username).add(authority);
             } else {
@@ -242,8 +242,8 @@ public class AccountSnippet implements Snippet {
             throw new AccountSnippetException("Account " + username + " is not on the device");
         }
         // Remove from whitelist
+        mLock.writeLock().lock();
         try {
-            mLock.writeLock().lock();
             if (mSyncWhitelist.containsKey(username)) {
                 Set<String> whitelistedProviders = mSyncWhitelist.get(username);
                 whitelistedProviders.remove(authority);
