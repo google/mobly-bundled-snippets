@@ -152,12 +152,15 @@ public class AccountSnippet implements Snippet {
      */
     private boolean isAdapterWhitelisted(String username, String authority) {
         boolean result = false;
-        mLock.readLock().lock();
-        Set<String> whitelistedProviders = mSyncWhitelist.get(username);
-        if (whitelistedProviders != null) {
-            result = whitelistedProviders.contains(authority);
+        try {
+            mLock.readLock().lock();
+            Set<String> whitelistedProviders = mSyncWhitelist.get(username);
+            if (whitelistedProviders != null) {
+                result = whitelistedProviders.contains(authority);
+            }
+        } finally {
+            mLock.readLock().unlock();
         }
-        mLock.readLock().unlock();
         return result;
     }
 
@@ -204,22 +207,25 @@ public class AccountSnippet implements Snippet {
             throw new AccountSnippetException("Account " + username + " is not on the device");
         }
         // Add to the whitelist
-        mLock.writeLock().lock();
-        if (mSyncWhitelist.containsKey(username)) {
-            mSyncWhitelist.get(username).add(authority);
-        } else {
-            mSyncWhitelist.put(username, new HashSet<String>(Arrays.asList(authority)));
-        }
-        // Update the Sync settings
-        for (SyncAdapterType adapter : ContentResolver.getSyncAdapterTypes()) {
-            // Find the Google account content provider.
-            if (adapter.accountType.equals(GOOGLE_ACCOUNT_TYPE)
-                    && adapter.authority.equals(authority)) {
-                Account account = new Account(username, GOOGLE_ACCOUNT_TYPE);
-                updateSync(account, authority, true);
+        try {
+            mLock.writeLock().lock();
+            if (mSyncWhitelist.containsKey(username)) {
+                mSyncWhitelist.get(username).add(authority);
+            } else {
+                mSyncWhitelist.put(username, new HashSet<String>(Arrays.asList(authority)));
             }
+            // Update the Sync settings
+            for (SyncAdapterType adapter : ContentResolver.getSyncAdapterTypes()) {
+                // Find the Google account content provider.
+                if (adapter.accountType.equals(GOOGLE_ACCOUNT_TYPE)
+                        && adapter.authority.equals(authority)) {
+                    Account account = new Account(username, GOOGLE_ACCOUNT_TYPE);
+                    updateSync(account, authority, true);
+                }
+            }
+        } finally {
+            mLock.writeLock().unlock();
         }
-        mLock.writeLock().unlock();
     }
 
     /**
@@ -236,24 +242,27 @@ public class AccountSnippet implements Snippet {
             throw new AccountSnippetException("Account " + username + " is not on the device");
         }
         // Remove from whitelist
-        mLock.writeLock().lock();
-        if (mSyncWhitelist.containsKey(username)) {
-            Set<String> whitelistedProviders = mSyncWhitelist.get(username);
-            whitelistedProviders.remove(authority);
-            if (whitelistedProviders.isEmpty()) {
-                mSyncWhitelist.remove(username);
+        try {
+            mLock.writeLock().lock();
+            if (mSyncWhitelist.containsKey(username)) {
+                Set<String> whitelistedProviders = mSyncWhitelist.get(username);
+                whitelistedProviders.remove(authority);
+                if (whitelistedProviders.isEmpty()) {
+                    mSyncWhitelist.remove(username);
+                }
             }
-        }
-        // Update the Sync settings
-        for (SyncAdapterType adapter : ContentResolver.getSyncAdapterTypes()) {
-            // Find the Google account content provider.
-            if (adapter.accountType.equals(GOOGLE_ACCOUNT_TYPE)
-                    && adapter.authority.equals(authority)) {
-                Account account = new Account(username, GOOGLE_ACCOUNT_TYPE);
-                updateSync(account, authority, false);
+            // Update the Sync settings
+            for (SyncAdapterType adapter : ContentResolver.getSyncAdapterTypes()) {
+                // Find the Google account content provider.
+                if (adapter.accountType.equals(GOOGLE_ACCOUNT_TYPE)
+                        && adapter.authority.equals(authority)) {
+                    Account account = new Account(username, GOOGLE_ACCOUNT_TYPE);
+                    updateSync(account, authority, false);
+                }
             }
+        } finally {
+            mLock.writeLock().unlock();
         }
-        mLock.writeLock().unlock();
     }
 
     /**
