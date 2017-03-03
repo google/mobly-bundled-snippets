@@ -68,7 +68,7 @@ public class AccountSnippet implements Snippet {
         Context context = InstrumentationRegistry.getContext();
         mAccountManager = AccountManager.get(context);
         mSyncStatusObserverHandles = new LinkedList<>();
-        mSyncWhitelist = new HashMap<String, Set<String>>();
+        mSyncWhitelist = new HashMap<>();
         mLock = new ReentrantReadWriteLock();
     }
 
