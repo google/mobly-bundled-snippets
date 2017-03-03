@@ -131,11 +131,15 @@ public class AccountSnippet implements Snippet {
                                 if (!adapter.accountType.equals(GOOGLE_ACCOUNT_TYPE)) {
                                     continue;
                                 }
-                                // If a content provider was whitelisted, then don't disable it.
-                                if (isAdapterWhitelisted(username, adapter.authority)) {
-                                    continue;
+                                // If a content provider is not whitelisted, then disable it.
+                                mLock.writeLock().lock();
+                                try {
+                                    if (!isAdapterWhitelisted(username, adapter.authority)) {
+                                        updateSync(account, adapter.authority, false /* sync */);
+                                    }
+                                } finally {
+                                    mLock.writeLock().unlock();
                                 }
-                                updateSync(account, adapter.authority, false /* sync */);
                             }
                         });
         mSyncStatusObserverHandles.add(handle);
@@ -170,6 +174,9 @@ public class AccountSnippet implements Snippet {
      * <p>Sets an accounts SyncAdapter (selected based on authority) to sync/not-sync automatically
      * and immediately requests/cancels a sync.
      *
+     * <p>updateSync should always be called under {@link AccountSnippet#mLock} write lock to avoid
+     * flapping between the getSyncAutomatically and setSyncAutomatically calls.
+     *
      * @param account A Google Account.
      * @param authority The authority of a content provider that should (not) be synced.
      * @param sync Whether or not the account's content provider should be synced.
@@ -183,13 +190,13 @@ public class AccountSnippet implements Snippet {
                 ContentResolver.cancelSync(account, authority);
             }
             Log.i(
-                    "Set sync to "
-                            + sync
-                            + " for account "
-                            + account
-                            + ", adapter "
-                            + authority
-                            + ".");
+                "Set sync to "
+                    + sync
+                    + " for account "
+                    + account
+                    + ", adapter "
+                    + authority
+                    + ".");
         }
     }
 
