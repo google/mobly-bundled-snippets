@@ -132,6 +132,9 @@ public class AccountSnippet implements Snippet {
                                     continue;
                                 }
                                 // If a content provider is not whitelisted, then disable it.
+                                // Because startSync and stopSync synchronously update the whitelist
+                                // and sync settings, writelock both the whitelist check and the
+                                // call to sync together.
                                 mLock.writeLock().lock();
                                 try {
                                     if (!isAdapterWhitelisted(username, adapter.authority)) {
