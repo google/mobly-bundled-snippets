@@ -20,6 +20,7 @@ import android.net.DhcpInfo;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
+import android.bluetooth.BluetoothDevice;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.lang.reflect.Modifier;
@@ -67,6 +68,8 @@ public class JsonSerializer {
             return serializeWifiConfiguration((WifiConfiguration) object);
         } else if (object instanceof WifiInfo) {
             return serializeWifiInfo((WifiInfo) object);
+        } else if (object instanceof BluetoothDevice) {
+            return serializeBtDevice((BluetoothDevice) object);
         }
         return defaultSerialization(object);
     }
@@ -115,6 +118,12 @@ public class JsonSerializer {
                 result.put("SupplicantState", state.name());
             }
         }
+        return result;
+    }
+
+    private JSONObject serializeBtDevice(BluetoothDevice data) throws JSONException {
+        JSONObject result = new JSONObject(mGson.toJson(data));
+        result.put("NAME", data.getName());
         return result;
     }
 }
