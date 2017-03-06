@@ -29,10 +29,15 @@ import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.util.Log;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Snippet class exposing Android APIs related to management of device accounts.
@@ -56,10 +61,15 @@ public class AccountSnippet implements Snippet {
     private final AccountManager mAccountManager;
     private final List<Object> mSyncStatusObserverHandles;
 
+    private final Map<String, Set<String>> mSyncWhitelist;
+    private final ReentrantReadWriteLock mLock;
+
     public AccountSnippet() {
         Context context = InstrumentationRegistry.getContext();
         mAccountManager = AccountManager.get(context);
         mSyncStatusObserverHandles = new LinkedList<>();
+        mSyncWhitelist = new HashMap<>();
+        mLock = new ReentrantReadWriteLock();
     }
 
     /**
@@ -116,17 +126,153 @@ public class AccountSnippet implements Snippet {
                         ContentResolver.SYNC_OBSERVER_TYPE_ACTIVE
                                 | ContentResolver.SYNC_OBSERVER_TYPE_PENDING,
                         which -> {
-                            Log.i("Attempt to sync account " + username + " detected! Disabling.");
                             for (SyncAdapterType adapter : ContentResolver.getSyncAdapterTypes()) {
+                                // Ignore non-Google account types.
                                 if (!adapter.accountType.equals(GOOGLE_ACCOUNT_TYPE)) {
                                     continue;
                                 }
-                                ContentResolver.setSyncAutomatically(
-                                        account, adapter.authority, false /* sync */);
-                                ContentResolver.cancelSync(account, adapter.authority);
+                                // If a content provider is not whitelisted, then disable it.
+                                // Because startSync and stopSync synchronously update the whitelist
+                                // and sync settings, writelock both the whitelist check and the
+                                // call to sync together.
+                                mLock.writeLock().lock();
+                                try {
+                                    if (!isAdapterWhitelisted(username, adapter.authority)) {
+                                        updateSync(account, adapter.authority, false /* sync */);
+                                    }
+                                } finally {
+                                    mLock.writeLock().unlock();
+                                }
                             }
                         });
         mSyncStatusObserverHandles.add(handle);
+    }
+
+    /**
+     * Checks to see if the SyncAdapter is whitelisted.
+     *
+     * <p>AccountSnippet disables syncing by default when adding an account, except for whitelisted
+     * SyncAdapters. This function checks the whitelist for a specific account-authority pair.
+     *
+     * @param username Username of the account (including @gmail.com).
+     * @param authority The authority of a content provider that should be checked.
+     */
+    private boolean isAdapterWhitelisted(String username, String authority) {
+        boolean result = false;
+        mLock.readLock().lock();
+        try {
+            Set<String> whitelistedProviders = mSyncWhitelist.get(username);
+            if (whitelistedProviders != null) {
+                result = whitelistedProviders.contains(authority);
+            }
+        } finally {
+            mLock.readLock().unlock();
+        }
+        return result;
+    }
+
+    /**
+     * Updates ContentResolver sync settings for an Account's specified SyncAdapter.
+     *
+     * <p>Sets an accounts SyncAdapter (selected based on authority) to sync/not-sync automatically
+     * and immediately requests/cancels a sync.
+     *
+     * <p>updateSync should always be called under {@link AccountSnippet#mLock} write lock to avoid
+     * flapping between the getSyncAutomatically and setSyncAutomatically calls.
+     *
+     * @param account A Google Account.
+     * @param authority The authority of a content provider that should (not) be synced.
+     * @param sync Whether or not the account's content provider should be synced.
+     */
+    private void updateSync(Account account, String authority, boolean sync) {
+        if (ContentResolver.getSyncAutomatically(account, authority) != sync) {
+            ContentResolver.setSyncAutomatically(account, authority, sync);
+            if (sync) {
+                ContentResolver.requestSync(account, authority, new Bundle());
+            } else {
+                ContentResolver.cancelSync(account, authority);
+            }
+            Log.i(
+                "Set sync to "
+                    + sync
+                    + " for account "
+                    + account
+                    + ", adapter "
+                    + authority
+                    + ".");
+        }
+    }
+
+    /**
+     * Enables syncing of a SyncAdapter for a given content provider.
+     *
+     * <p>Adds the authority to a whitelist, and immediately requests a sync.
+     *
+     * @param username Username of the account (including @gmail.com).
+     * @param authority The authority of a content provider that should be synced.
+     */
+    @Rpc(description = "Enables syncing of a SyncAdapter for a content provider.")
+    public void startSync(String username, String authority) throws AccountSnippetException {
+        if (!listAccounts().contains(username)) {
+            throw new AccountSnippetException("Account " + username + " is not on the device");
+        }
+        // Add to the whitelist
+        mLock.writeLock().lock();
+        try {
+            if (mSyncWhitelist.containsKey(username)) {
+                mSyncWhitelist.get(username).add(authority);
+            } else {
+                mSyncWhitelist.put(username, new HashSet<String>(Arrays.asList(authority)));
+            }
+            // Update the Sync settings
+            for (SyncAdapterType adapter : ContentResolver.getSyncAdapterTypes()) {
+                // Find the Google account content provider.
+                if (adapter.accountType.equals(GOOGLE_ACCOUNT_TYPE)
+                        && adapter.authority.equals(authority)) {
+                    Account account = new Account(username, GOOGLE_ACCOUNT_TYPE);
+                    updateSync(account, authority, true);
+                }
+            }
+        } finally {
+            mLock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * Disables syncing of a SyncAdapter for a given content provider.
+     *
+     * <p>Removes the content provider authority from a whitelist.
+     *
+     * @param username Username of the account (including @gmail.com).
+     * @param authority The authority of a content provider that should not be synced.
+     */
+    @Rpc(description = "Disables syncing of a SyncAdapter for a content provider.")
+    public void stopSync(String username, String authority) throws AccountSnippetException {
+        if (!listAccounts().contains(username)) {
+            throw new AccountSnippetException("Account " + username + " is not on the device");
+        }
+        // Remove from whitelist
+        mLock.writeLock().lock();
+        try {
+            if (mSyncWhitelist.containsKey(username)) {
+                Set<String> whitelistedProviders = mSyncWhitelist.get(username);
+                whitelistedProviders.remove(authority);
+                if (whitelistedProviders.isEmpty()) {
+                    mSyncWhitelist.remove(username);
+                }
+            }
+            // Update the Sync settings
+            for (SyncAdapterType adapter : ContentResolver.getSyncAdapterTypes()) {
+                // Find the Google account content provider.
+                if (adapter.accountType.equals(GOOGLE_ACCOUNT_TYPE)
+                        && adapter.authority.equals(authority)) {
+                    Account account = new Account(username, GOOGLE_ACCOUNT_TYPE);
+                    updateSync(account, authority, false);
+                }
+            }
+        } finally {
+            mLock.writeLock().unlock();
+        }
     }
 
     /**
