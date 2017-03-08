@@ -16,11 +16,11 @@
 
 package com.google.android.mobly.snippet.bundled.utils;
 
+import android.bluetooth.BluetoothDevice;
 import android.net.DhcpInfo;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
-import android.bluetooth.BluetoothDevice;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.lang.reflect.Modifier;
