@@ -69,7 +69,7 @@ public class JsonSerializer {
         } else if (object instanceof WifiInfo) {
             return serializeWifiInfo((WifiInfo) object);
         } else if (object instanceof BluetoothDevice) {
-            return serializeBtDevice((BluetoothDevice) object);
+            return serializeBluetoothDevice((BluetoothDevice) object);
         }
         return defaultSerialization(object);
     }
@@ -121,7 +121,7 @@ public class JsonSerializer {
         return result;
     }
 
-    private JSONObject serializeBtDevice(BluetoothDevice data) throws JSONException {
+    private JSONObject serializeBluetoothDevice(BluetoothDevice data) throws JSONException {
         JSONObject result = new JSONObject(mGson.toJson(data));
         result.put("NAME", data.getName());
         return result;
