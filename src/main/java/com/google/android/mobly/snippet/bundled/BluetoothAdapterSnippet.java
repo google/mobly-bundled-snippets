@@ -18,21 +18,18 @@ package com.google.android.mobly.snippet.bundled;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.BroadcastReceiver;
 import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
-import com.google.android.mobly.snippet.bundled.utils.JsonDeserializer;
 import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
-import com.google.android.mobly.snippet.util.Log;
+import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
-import java.util.ArrayList;
 
 /** Snippet class exposing Android APIs in BluetoothAdapter. */
 public class BluetoothAdapterSnippet implements Snippet {
@@ -76,11 +73,11 @@ public class BluetoothAdapterSnippet implements Snippet {
 
     @Rpc(description = "Trigger bluetooth discovery.")
     public void bluetoothStartDiscovery() throws BluetoothAdapterSnippetException {
-        if (mBluetoothAdapter.isDiscovering()) {
-            mBluetoothAdapter.cancelDiscovery();
-        }
-        if (!mBluetoothAdapter.startDiscovery()) {
-            throw new BluetoothAdapterSnippetException("Failed to initiate Bluetooth Discovery.");
+        if (!mBluetoothAdapter.isDiscovering()) {
+            if (!mBluetoothAdapter.startDiscovery()) {
+                throw new BluetoothAdapterSnippetException(
+                        "Failed to initiate Bluetooth Discovery.");
+            }
         }
     }
 
@@ -105,25 +102,31 @@ public class BluetoothAdapterSnippet implements Snippet {
             throws InterruptedException, JSONException, BluetoothAdapterSnippetException {
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        BroadcastReceiver mReceiver = new BluetoothScanReceiver();
-        mContext.registerReceiver(mReceiver, filter);
+        if (mBluetoothAdapter.isDiscovering()) {
+            mBluetoothAdapter.cancelDiscovery();
+        }
         mDiscoveryResults.clear();
-        bluetoothStartDiscovery();
         mIsScanResultAvailable = false;
         mIsScanning = true;
+        BroadcastReceiver receiver = new BluetoothScanReceiver();
+        mContext.registerReceiver(receiver, filter);
+        bluetoothStartDiscovery();
         if (!Utils.waitUntil(() -> mIsScanResultAvailable, 60)) {
+            mContext.unregisterReceiver(receiver);
             throw new BluetoothAdapterSnippetException(
                     "Failed to get discovery results after 1 min, timeout!");
         }
-        mContext.unregisterReceiver(mReceiver);
+        mContext.unregisterReceiver(receiver);
         return bluetoothGetCachedScanResults();
     }
 
     @Rpc(description = "Get the list of paired bluetooth devices")
-    public JSONArray bluetoothGetPairedDevices() throws BluetoothAdapterSnippetException, InterruptedException, JSONException {
+    public JSONArray bluetoothGetPairedDevices()
+            throws BluetoothAdapterSnippetException, InterruptedException, JSONException {
         JSONArray pairedDevices = new JSONArray();
-        for (BluetoothDevice device : mBluetoothAdapter.getBondedDevices())
+        for (BluetoothDevice device : mBluetoothAdapter.getBondedDevices()) {
             pairedDevices.put(mJsonSerializer.toJson(device));
+        }
         return pairedDevices;
     }
 
@@ -132,14 +135,19 @@ public class BluetoothAdapterSnippet implements Snippet {
 
     private class BluetoothScanReceiver extends BroadcastReceiver {
 
+        /**
+         * The receiver gets an ACTION_FOUND intent whenever a new device is found.
+         * ACTION_DISCOVERY_FINISHED intent is received when the discovery process ends.
+         */
         @Override
-        public void onReceive(Context c, Intent intent) {
+        public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                 mIsScanning = false;
                 mIsScanResultAvailable = true;
             } else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                BluetoothDevice device = (BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                BluetoothDevice device =
+                        (BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 mDiscoveryResults.add(device);
             }
         }
