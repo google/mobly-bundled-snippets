@@ -193,13 +193,13 @@ public class AccountSnippet implements Snippet {
                 ContentResolver.cancelSync(account, authority);
             }
             Log.i(
-                "Set sync to "
-                    + sync
-                    + " for account "
-                    + account
-                    + ", adapter "
-                    + authority
-                    + ".");
+                    "Set sync to "
+                            + sync
+                            + " for account "
+                            + account
+                            + ", adapter "
+                            + authority
+                            + ".");
         }
     }
 
