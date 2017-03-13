@@ -124,6 +124,11 @@ public class WifiManagerSnippet implements Snippet {
     )
     public void wifiConnectSimple(String ssid, @Nullable String password)
             throws InterruptedException, JSONException, WifiManagerSnippetException {
+        String currentSsid =
+                JsonSerializer.trimQuotationMarks(mWifiManager.getConnectionInfo().getSSID());
+        if (ssid.equals(currentSsid)) {
+            return;
+        }
         JSONObject config = new JSONObject();
         config.put("SSID", ssid);
         if (password != null) {
