@@ -138,7 +138,7 @@ public class WifiManagerSnippet implements Snippet {
      * <p>If the network has not been configured, returns null.
      *
      * <p>A network is configured if a WifiConfiguration was created for it and added with {@link
-     * WifiManager}.addNetwork.
+     * WifiManager#addNetwork(WifiConfiguration)}.
      */
     private WifiConfiguration getExistingConfiguredNetwork(String ssid) {
         for (WifiConfiguration config : mWifiManager.getConfiguredNetworks()) {
