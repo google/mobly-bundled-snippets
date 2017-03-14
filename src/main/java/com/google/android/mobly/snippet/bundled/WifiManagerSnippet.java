@@ -124,11 +124,6 @@ public class WifiManagerSnippet implements Snippet {
     )
     public void wifiConnectSimple(String ssid, @Nullable String password)
             throws InterruptedException, JSONException, WifiManagerSnippetException {
-        String currentSsid =
-                JsonSerializer.trimQuotationMarks(mWifiManager.getConnectionInfo().getSSID());
-        if (ssid.equals(currentSsid)) {
-            return;
-        }
         JSONObject config = new JSONObject();
         config.put("SSID", ssid);
         if (password != null) {
@@ -137,6 +132,22 @@ public class WifiManagerSnippet implements Snippet {
         wifiConnect(config);
     }
 
+    /**
+     * Gets the {@link WifiConfiguration} of a Wi-Fi network that has already been configured.
+     *
+     * <p>If the network has not been configured, returns null.
+     *
+     * <p>A network is configured if a WifiConfiguration was created for it and added with {@link
+     * WifiManager}.addNetwork.
+     */
+    private WifiConfiguration getExistingConfiguredNetwork(String ssid) {
+        for (WifiConfiguration config : mWifiManager.getConfiguredNetworks()) {
+            if (config.SSID.equals(ssid)) {
+                return config;
+            }
+        }
+        return null;
+    }
     /**
      * Connect to a Wi-Fi network.
      *
@@ -152,6 +163,18 @@ public class WifiManagerSnippet implements Snippet {
             throws InterruptedException, JSONException, WifiManagerSnippetException {
         Log.d("Got network config: " + wifiNetworkConfig);
         WifiConfiguration wifiConfig = JsonDeserializer.jsonToWifiConfig(wifiNetworkConfig);
+        // Return directly if network is already connected.
+        String connectedSsid = mWifiManager.getConnectionInfo().getSSID();
+        if (connectedSsid.equals(wifiConfig.SSID)) {
+            Log.d("Network " + connectedSsid + " is already connected.");
+            return;
+        }
+        // If the network is already added but not connected, update the configuration first.
+        WifiConfiguration existingConfig = getExistingConfiguredNetwork(wifiConfig.SSID);
+        if (existingConfig != null) {
+            Log.d("Update the configuration of network " + existingConfig.SSID + ".");
+            mWifiManager.removeNetwork(existingConfig.networkId);
+        }
         int networkId = mWifiManager.addNetwork(wifiConfig);
         mWifiManager.disconnect();
         if (!mWifiManager.enableNetwork(networkId, true)) {
