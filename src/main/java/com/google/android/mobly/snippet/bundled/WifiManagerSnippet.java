@@ -48,7 +48,6 @@ public class WifiManagerSnippet implements Snippet {
     private final Context mContext;
     private static final String TAG = "WifiManagerSnippet";
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
-    private volatile boolean mIsScanning = false;
     private volatile boolean mIsScanResultAvailable = false;
 
     public WifiManagerSnippet() {
@@ -109,7 +108,6 @@ public class WifiManagerSnippet implements Snippet {
                 new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
         wifiStartScan();
         mIsScanResultAvailable = false;
-        mIsScanning = true;
         if (!Utils.waitUntil(() -> mIsScanResultAvailable, 2 * 60)) {
             throw new WifiManagerSnippetException(
                     "Failed to get scan results after 2min, timeout!");
@@ -250,7 +248,6 @@ public class WifiManagerSnippet implements Snippet {
         public void onReceive(Context c, Intent intent) {
             String action = intent.getAction();
             if (action.equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
-                mIsScanning = false;
                 mIsScanResultAvailable = true;
             }
         }
