@@ -43,7 +43,6 @@ public class BluetoothAdapterSnippet implements Snippet {
     private final BluetoothAdapter mBluetoothAdapter;
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
     private ArrayList<BluetoothDevice> mDiscoveryResults = new ArrayList<>();
-    private volatile boolean mIsScanning = false;
     private volatile boolean mIsScanResultAvailable = false;
 
     public BluetoothAdapterSnippet() {
@@ -107,7 +106,6 @@ public class BluetoothAdapterSnippet implements Snippet {
         }
         mDiscoveryResults.clear();
         mIsScanResultAvailable = false;
-        mIsScanning = true;
         BroadcastReceiver receiver = new BluetoothScanReceiver();
         mContext.registerReceiver(receiver, filter);
         bluetoothStartDiscovery();
@@ -143,7 +141,6 @@ public class BluetoothAdapterSnippet implements Snippet {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                mIsScanning = false;
                 mIsScanResultAvailable = true;
             } else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device =
