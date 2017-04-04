@@ -62,14 +62,14 @@ public class JsonSerializer {
     }
 
     public JSONObject toJson(Object object) throws JSONException {
-        if (object instanceof DhcpInfo) {
+        if (object instanceof BluetoothDevice) {
+            return serializeBluetoothDevice((BluetoothDevice) object);
+        } else if (object instanceof DhcpInfo) {
             return serializeDhcpInfo((DhcpInfo) object);
         } else if (object instanceof WifiConfiguration) {
             return serializeWifiConfiguration((WifiConfiguration) object);
         } else if (object instanceof WifiInfo) {
             return serializeWifiInfo((WifiInfo) object);
-        } else if (object instanceof BluetoothDevice) {
-            return serializeBluetoothDevice((BluetoothDevice) object);
         }
         return defaultSerialization(object);
     }
@@ -123,7 +123,7 @@ public class JsonSerializer {
 
     private JSONObject serializeBluetoothDevice(BluetoothDevice data) throws JSONException {
         JSONObject result = new JSONObject(mGson.toJson(data));
-        result.put("NAME", data.getName());
+        result.put("Name", data.getName());
         return result;
     }
 }
