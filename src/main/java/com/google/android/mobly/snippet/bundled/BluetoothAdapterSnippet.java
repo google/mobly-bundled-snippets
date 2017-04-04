@@ -42,7 +42,7 @@ public class BluetoothAdapterSnippet implements Snippet {
     private final Context mContext;
     private final BluetoothAdapter mBluetoothAdapter;
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
-    private ArrayList<BluetoothDevice> mDiscoveryResults = new ArrayList<>();
+    private final ArrayList<BluetoothDevice> mDiscoveryResults = new ArrayList<>();
     private volatile boolean mIsScanResultAvailable = false;
 
     public BluetoothAdapterSnippet() {
@@ -70,8 +70,7 @@ public class BluetoothAdapterSnippet implements Snippet {
         }
     }
 
-    @Rpc(description = "Trigger bluetooth discovery.")
-    public void bluetoothStartDiscovery() throws BluetoothAdapterSnippetException {
+    private void bluetoothStartDiscovery() throws BluetoothAdapterSnippetException {
         if (!mBluetoothAdapter.isDiscovering()) {
             if (!mBluetoothAdapter.startDiscovery()) {
                 throw new BluetoothAdapterSnippetException(
@@ -108,13 +107,15 @@ public class BluetoothAdapterSnippet implements Snippet {
         mIsScanResultAvailable = false;
         BroadcastReceiver receiver = new BluetoothScanReceiver();
         mContext.registerReceiver(receiver, filter);
-        bluetoothStartDiscovery();
-        if (!Utils.waitUntil(() -> mIsScanResultAvailable, 60)) {
-            mContext.unregisterReceiver(receiver);
-            throw new BluetoothAdapterSnippetException(
+        try {
+            bluetoothStartDiscovery();
+            if (!Utils.waitUntil(() -> mIsScanResultAvailable, 60)) {
+                throw new BluetoothAdapterSnippetException(
                     "Failed to get discovery results after 1 min, timeout!");
+            }
+        } finally {
+            mContext.unregisterReceiver(receiver);
         }
-        mContext.unregisterReceiver(receiver);
         return bluetoothGetCachedScanResults();
     }
 
