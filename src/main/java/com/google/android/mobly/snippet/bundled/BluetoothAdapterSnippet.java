@@ -51,7 +51,7 @@ public class BluetoothAdapterSnippet implements Snippet {
     }
 
     @Rpc(description = "Enable bluetooth with a 30s timeout.")
-    public void bluetoothEnable() throws BluetoothAdapterSnippetException, InterruptedException {
+    public void btEnable() throws BluetoothAdapterSnippetException, InterruptedException {
         if (!mBluetoothAdapter.enable()) {
             throw new BluetoothAdapterSnippetException("Failed to start enabling bluetooth");
         }
@@ -61,7 +61,7 @@ public class BluetoothAdapterSnippet implements Snippet {
     }
 
     @Rpc(description = "Disable bluetooth with a 30s timeout.")
-    public void bluetoothDisable() throws BluetoothAdapterSnippetException, InterruptedException {
+    public void btDisable() throws BluetoothAdapterSnippetException, InterruptedException {
         if (!mBluetoothAdapter.disable()) {
             throw new BluetoothAdapterSnippetException("Failed to start disabling bluetooth");
         }
@@ -70,20 +70,11 @@ public class BluetoothAdapterSnippet implements Snippet {
         }
     }
 
-    private void bluetoothStartDiscovery() throws BluetoothAdapterSnippetException {
-        if (!mBluetoothAdapter.isDiscovering()) {
-            if (!mBluetoothAdapter.startDiscovery()) {
-                throw new BluetoothAdapterSnippetException(
-                        "Failed to initiate Bluetooth Discovery.");
-            }
-        }
-    }
-
     @Rpc(
         description =
                 "Get bluetooth discovery results, which is a list of serialized BluetoothDevice objects."
     )
-    public JSONArray bluetoothGetCachedScanResults() throws JSONException {
+    public JSONArray btGetCachedScanResults() throws JSONException {
         JSONArray results = new JSONArray();
         for (BluetoothDevice result : mDiscoveryResults) {
             results.put(mJsonSerializer.toJson(result));
@@ -96,7 +87,7 @@ public class BluetoothAdapterSnippet implements Snippet {
                 "Start discovery, wait for discovery to complete, and return results, which is a list of "
                         + "serialized BluetoothDevice objects."
     )
-    public JSONArray bluetoothDiscoveryAndGetResults()
+    public JSONArray btDiscoveryAndGetResults()
             throws InterruptedException, JSONException, BluetoothAdapterSnippetException {
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
@@ -108,7 +99,10 @@ public class BluetoothAdapterSnippet implements Snippet {
         BroadcastReceiver receiver = new BluetoothScanReceiver();
         mContext.registerReceiver(receiver, filter);
         try {
-            bluetoothStartDiscovery();
+            if (!mBluetoothAdapter.startDiscovery()) {
+                throw new BluetoothAdapterSnippetException(
+                        "Failed to initiate Bluetooth Discovery.");
+            }
             if (!Utils.waitUntil(() -> mIsScanResultAvailable, 60)) {
                 throw new BluetoothAdapterSnippetException(
                     "Failed to get discovery results after 1 min, timeout!");
@@ -116,11 +110,11 @@ public class BluetoothAdapterSnippet implements Snippet {
         } finally {
             mContext.unregisterReceiver(receiver);
         }
-        return bluetoothGetCachedScanResults();
+        return btGetCachedScanResults();
     }
 
     @Rpc(description = "Get the list of paired bluetooth devices")
-    public JSONArray bluetoothGetPairedDevices()
+    public JSONArray btGetPairedDevices()
             throws BluetoothAdapterSnippetException, InterruptedException, JSONException {
         JSONArray pairedDevices = new JSONArray();
         for (BluetoothDevice device : mBluetoothAdapter.getBondedDevices()) {
