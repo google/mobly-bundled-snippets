@@ -21,11 +21,14 @@ import android.net.DhcpInfo;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
+import android.os.ParcelUuid;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.lang.reflect.Modifier;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -122,8 +125,45 @@ public class JsonSerializer {
     }
 
     private JSONObject serializeBluetoothDevice(BluetoothDevice data) throws JSONException {
-        JSONObject result = new JSONObject(mGson.toJson(data));
-        result.put("Name", data.getName());
+        JSONObject result = new JSONObject();
+        result.put("Address", data.getAddress());
+        switch (data.getBondState()) {
+            case 10:
+                result.put("BondState", "None");
+                break;
+            case 11:
+                result.put("BondState", "Bonding");
+                break;
+            case 12:
+                result.put("BondState", "Bonded");
+        }
+        if (data.getName() == null) {
+            result.put("Name", "Null");
+        } else {
+            result.put("Name", data.getName());
+        }
+        switch (data.getType()) {
+            case 0:
+                result.put("Type", "Unknown");
+                break;
+            case 1:
+                result.put("Type", "Classic");
+                break;
+            case 2:
+                result.put("Type", "Le");
+                break;
+            case 3:
+                result.put("Type", "Dual");
+        }
+        if (data.getUuids() == null) {
+            result.put("UUIDs", "Null");
+        } else {
+            ArrayList<String> uuids = new ArrayList<String>();
+            for (ParcelUuid uuid : data.getUuids()) {
+                uuids.add(uuid.toString());
+            }
+            result.put("UUIDs", new JSONArray(uuids));
+        }
         return result;
     }
 }
