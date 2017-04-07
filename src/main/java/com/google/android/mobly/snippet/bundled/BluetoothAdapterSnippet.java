@@ -101,11 +101,11 @@ public class BluetoothAdapterSnippet implements Snippet {
         try {
             if (!mBluetoothAdapter.startDiscovery()) {
                 throw new BluetoothAdapterSnippetException(
-                    "Failed to initiate Bluetooth Discovery.");
+                        "Failed to initiate Bluetooth Discovery.");
             }
             if (!Utils.waitUntil(() -> mIsScanResultAvailable, 60)) {
                 throw new BluetoothAdapterSnippetException(
-                    "Failed to get discovery results after 1 min, timeout!");
+                        "Failed to get discovery results after 1 min, timeout!");
             }
         } finally {
             mContext.unregisterReceiver(receiver);
