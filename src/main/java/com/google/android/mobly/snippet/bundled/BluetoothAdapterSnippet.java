@@ -17,11 +17,19 @@
 package com.google.android.mobly.snippet.bundled;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
+import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
+import java.util.ArrayList;
+import org.json.JSONArray;
+import org.json.JSONException;
 
 /** Snippet class exposing Android APIs in BluetoothAdapter. */
 public class BluetoothAdapterSnippet implements Snippet {
@@ -33,6 +41,9 @@ public class BluetoothAdapterSnippet implements Snippet {
 
     private final Context mContext;
     private final BluetoothAdapter mBluetoothAdapter;
+    private final JsonSerializer mJsonSerializer = new JsonSerializer();
+    private final ArrayList<BluetoothDevice> mDiscoveryResults = new ArrayList<>();
+    private volatile boolean mIsScanResultAvailable = false;
 
     public BluetoothAdapterSnippet() {
         mContext = InstrumentationRegistry.getContext();
@@ -40,7 +51,7 @@ public class BluetoothAdapterSnippet implements Snippet {
     }
 
     @Rpc(description = "Enable bluetooth with a 30s timeout.")
-    public void bluetoothEnable() throws BluetoothAdapterSnippetException, InterruptedException {
+    public void btEnable() throws BluetoothAdapterSnippetException, InterruptedException {
         if (!mBluetoothAdapter.enable()) {
             throw new BluetoothAdapterSnippetException("Failed to start enabling bluetooth");
         }
@@ -50,7 +61,7 @@ public class BluetoothAdapterSnippet implements Snippet {
     }
 
     @Rpc(description = "Disable bluetooth with a 30s timeout.")
-    public void bluetoothDisable() throws BluetoothAdapterSnippetException, InterruptedException {
+    public void btDisable() throws BluetoothAdapterSnippetException, InterruptedException {
         if (!mBluetoothAdapter.disable()) {
             throw new BluetoothAdapterSnippetException("Failed to start disabling bluetooth");
         }
@@ -59,6 +70,78 @@ public class BluetoothAdapterSnippet implements Snippet {
         }
     }
 
+    @Rpc(
+        description =
+                "Get bluetooth discovery results, which is a list of serialized BluetoothDevice objects."
+    )
+    public JSONArray btGetCachedScanResults() throws JSONException {
+        JSONArray results = new JSONArray();
+        for (BluetoothDevice result : mDiscoveryResults) {
+            results.put(mJsonSerializer.toJson(result));
+        }
+        return results;
+    }
+
+    @Rpc(
+        description =
+                "Start discovery, wait for discovery to complete, and return results, which is a list of "
+                        + "serialized BluetoothDevice objects."
+    )
+    public JSONArray btDiscoveryAndGetResults()
+            throws InterruptedException, JSONException, BluetoothAdapterSnippetException {
+        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        if (mBluetoothAdapter.isDiscovering()) {
+            mBluetoothAdapter.cancelDiscovery();
+        }
+        mDiscoveryResults.clear();
+        mIsScanResultAvailable = false;
+        BroadcastReceiver receiver = new BluetoothScanReceiver();
+        mContext.registerReceiver(receiver, filter);
+        try {
+            if (!mBluetoothAdapter.startDiscovery()) {
+                throw new BluetoothAdapterSnippetException(
+                    "Failed to initiate Bluetooth Discovery.");
+            }
+            if (!Utils.waitUntil(() -> mIsScanResultAvailable, 60)) {
+                throw new BluetoothAdapterSnippetException(
+                    "Failed to get discovery results after 1 min, timeout!");
+            }
+        } finally {
+            mContext.unregisterReceiver(receiver);
+        }
+        return btGetCachedScanResults();
+    }
+
+    @Rpc(description = "Get the list of paired bluetooth devices")
+    public JSONArray btGetPairedDevices()
+            throws BluetoothAdapterSnippetException, InterruptedException, JSONException {
+        JSONArray pairedDevices = new JSONArray();
+        for (BluetoothDevice device : mBluetoothAdapter.getBondedDevices()) {
+            pairedDevices.put(mJsonSerializer.toJson(device));
+        }
+        return pairedDevices;
+    }
+
     @Override
     public void shutdown() {}
+
+    private class BluetoothScanReceiver extends BroadcastReceiver {
+
+        /**
+         * The receiver gets an ACTION_FOUND intent whenever a new device is found.
+         * ACTION_DISCOVERY_FINISHED intent is received when the discovery process ends.
+         */
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                mIsScanResultAvailable = true;
+            } else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                BluetoothDevice device =
+                        (BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                mDiscoveryResults.add(device);
+            }
+        }
+    }
 }
