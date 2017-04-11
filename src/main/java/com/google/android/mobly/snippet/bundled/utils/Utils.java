@@ -26,7 +26,7 @@ public final class Utils {
      * desired state.
      *
      * <p>If the predicate function throws an exception and interrupts the waiting, the exception
-     * will be wrapped in an {@link InterruptedException}.
+     * will be wrapped in an {@link RuntimeException}.
      *
      * @param predicate A lambda function that specifies the condition to wait for. This function
      *     should return true when the desired state has been reached.
