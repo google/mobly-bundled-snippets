@@ -35,7 +35,7 @@ public final class Utils {
      * @throws InterruptedException
      */
     public static boolean waitUntil(Utils.Predicate predicate, int timeout)
-            throws InterruptedException {
+            throws RuntimeException {
         timeout *= 10;
         try {
             while (!predicate.waitCondition() && timeout >= 0) {
@@ -46,11 +46,7 @@ public final class Utils {
                 return true;
             }
         } catch (Exception e) {
-            throw new InterruptedException(
-                    "Waiting was interrupted because: "
-                            + e.getMessage()
-                            + "\n"
-                            + e.getStackTrace());
+            throw new RuntimeException(e);
         }
         return false;
     }

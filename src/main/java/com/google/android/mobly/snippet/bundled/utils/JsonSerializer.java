@@ -55,7 +55,7 @@ public class JsonSerializer {
      *
      * @param originalString
      */
-    private static String trimQuotationMarks(String originalString) {
+    public static String trimQuotationMarks(String originalString) {
         String result = originalString;
         if (originalString.charAt(0) == '"'
                 && originalString.charAt(originalString.length() - 1) == '"') {
