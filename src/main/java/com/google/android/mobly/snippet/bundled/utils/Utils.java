@@ -32,10 +32,8 @@ public final class Utils {
      *     should return true when the desired state has been reached.
      * @param timeout The number of seconds to wait for before giving up.
      * @return true if the operation finished before timeout, false otherwise.
-     * @throws InterruptedException
      */
-    public static boolean waitUntil(Utils.Predicate predicate, int timeout)
-            throws RuntimeException {
+    public static boolean waitUntil(Utils.Predicate predicate, int timeout) {
         timeout *= 10;
         try {
             while (!predicate.waitCondition() && timeout >= 0) {
