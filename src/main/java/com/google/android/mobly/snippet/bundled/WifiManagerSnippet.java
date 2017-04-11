@@ -31,6 +31,7 @@ import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.util.Log;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -238,6 +239,33 @@ public class WifiManagerSnippet implements Snippet {
     )
     public JSONObject wifiGetDhcpInfo() throws JSONException {
         return mJsonSerializer.toJson(mWifiManager.getDhcpInfo());
+    }
+
+    @Rpc(description = "Check whether Wi-Fi Soft AP (hotspot) is enabled.")
+    public boolean wifiIsApEnabled()
+            throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+        return (boolean)
+                mWifiManager.getClass().getDeclaredMethod("isWifiApEnabled").invoke(mWifiManager);
+    }
+
+    @Rpc(description = "Enable or disable Wi-Fi Soft AP (hotspot).")
+    public void wifiSetApEnabled(Boolean enable)
+            throws IllegalAccessException, InterruptedException, InvocationTargetException,
+                    NoSuchMethodException, WifiManagerSnippetException {
+        boolean success =
+                (boolean)
+                        mWifiManager
+                                .getClass()
+                                .getDeclaredMethod(
+                                        "setWifiApEnabled", WifiConfiguration.class, boolean.class)
+                                .invoke(mWifiManager, null, enable);
+        if (!success) {
+            throw new WifiManagerSnippetException("Failed to set soft AP state to " + enable);
+        }
+        if (!Utils.waitUntil(() -> wifiIsApEnabled() == enable, 60)) {
+            throw new WifiManagerSnippetException(
+                    "Timed out after 60 waiting for Wi-Fi Soft AP state to turn " + enable);
+        }
     }
 
     @Override

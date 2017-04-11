@@ -25,6 +25,9 @@ public final class Utils {
      * <p>This is often used to wait for asynchronous operations to finish and the system to reach a
      * desired state.
      *
+     * <p>If the predicate function throws an exception and interrupts the waiting, the exception
+     * will be wrapped in an {@link InterruptedException}.
+     *
      * @param predicate A lambda function that specifies the condition to wait for. This function
      *     should return true when the desired state has been reached.
      * @param timeout The number of seconds to wait for before giving up.
@@ -34,12 +37,20 @@ public final class Utils {
     public static boolean waitUntil(Utils.Predicate predicate, int timeout)
             throws InterruptedException {
         timeout *= 10;
-        while (!predicate.waitCondition() && timeout >= 0) {
-            Thread.sleep(100);
-            timeout -= 1;
-        }
-        if (predicate.waitCondition()) {
-            return true;
+        try {
+            while (!predicate.waitCondition() && timeout >= 0) {
+                Thread.sleep(100);
+                timeout -= 1;
+            }
+            if (predicate.waitCondition()) {
+                return true;
+            }
+        } catch (Exception e) {
+            throw new InterruptedException(
+                    "Waiting was interrupted because: "
+                            + e.getMessage()
+                            + "\n"
+                            + e.getStackTrace());
         }
         return false;
     }
@@ -49,6 +60,6 @@ public final class Utils {
      * going on.
      */
     public interface Predicate {
-        boolean waitCondition();
+        boolean waitCondition() throws Exception;
     }
 }
