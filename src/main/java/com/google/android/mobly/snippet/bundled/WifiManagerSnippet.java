@@ -248,6 +248,17 @@ public class WifiManagerSnippet implements Snippet {
                 mWifiManager.getClass().getDeclaredMethod("isWifiApEnabled").invoke(mWifiManager);
     }
 
+    /**
+     * Enable Wi-Fi Soft AP (hotspot).
+     *
+     * @param configuration The same format as the param wifiNetworkConfig param for wifiConnect.
+     * @throws IllegalAccessException
+     * @throws InterruptedException
+     * @throws InvocationTargetException
+     * @throws JSONException
+     * @throws NoSuchMethodException
+     * @throws WifiManagerSnippetException
+     */
     @Rpc(description = "Enable Wi-Fi Soft AP (hotspot).")
     public void wifiEnableSoftAp(@Nullable JSONObject configuration)
             throws IllegalAccessException, InterruptedException, InvocationTargetException,
@@ -288,8 +299,8 @@ public class WifiManagerSnippet implements Snippet {
                                 .getDeclaredMethod(
                                         "setWifiApEnabled", WifiConfiguration.class, boolean.class)
                                 .invoke(
-                                        mWifiManager, /* No configuration needed for disabling */
-                                        null,
+                                        mWifiManager,
+                                        null, /* No configuration needed for disabling */
                                         false);
         if (!success) {
             throw new WifiManagerSnippetException("Failed to initiate turning off Wi-Fi Soft AP.");
