@@ -248,8 +248,37 @@ public class WifiManagerSnippet implements Snippet {
                 mWifiManager.getClass().getDeclaredMethod("isWifiApEnabled").invoke(mWifiManager);
     }
 
-    @Rpc(description = "Enable or disable Wi-Fi Soft AP (hotspot).")
-    public void wifiSetApEnabled(Boolean enable)
+    @Rpc(description = "Enable Wi-Fi Soft AP (hotspot).")
+    public void wifiEnableSoftAp(@Nullable JSONObject configuration)
+            throws IllegalAccessException, InterruptedException, InvocationTargetException,
+                    JSONException, NoSuchMethodException, WifiManagerSnippetException {
+        // If no configuration is provided, the existing configuration would be used.
+        WifiConfiguration wifiConfiguration = null;
+        if (configuration != null) {
+            wifiConfiguration = JsonDeserializer.jsonToWifiConfig(configuration);
+            // Have to trim off the extra quotation marks since Soft AP logic interprets
+            // WifiConfiguration.SSID literally, unlike the WifiManager connection logic.
+            wifiConfiguration.SSID = JsonSerializer.trimQuotationMarks(wifiConfiguration.SSID);
+        }
+        boolean success =
+                (boolean)
+                        mWifiManager
+                                .getClass()
+                                .getDeclaredMethod(
+                                        "setWifiApEnabled", WifiConfiguration.class, boolean.class)
+                                .invoke(mWifiManager, wifiConfiguration, true);
+        if (!success) {
+            throw new WifiManagerSnippetException("Failed to initiate turning on Wi-Fi Soft AP.");
+        }
+        if (!Utils.waitUntil(() -> wifiIsApEnabled() == true, 60)) {
+            throw new WifiManagerSnippetException(
+                    "Timed out after 60 waiting for Wi-Fi Soft AP state to turn on with configuration: "
+                            + configuration);
+        }
+    }
+
+    @Rpc(description = "Disable Wi-Fi Soft AP (hotspot).")
+    public void wifiDisableSoftAp()
             throws IllegalAccessException, InterruptedException, InvocationTargetException,
                     NoSuchMethodException, WifiManagerSnippetException {
         boolean success =
@@ -258,13 +287,16 @@ public class WifiManagerSnippet implements Snippet {
                                 .getClass()
                                 .getDeclaredMethod(
                                         "setWifiApEnabled", WifiConfiguration.class, boolean.class)
-                                .invoke(mWifiManager, null, enable);
+                                .invoke(
+                                        mWifiManager, /* No configuration needed for disabling */
+                                        null,
+                                        false);
         if (!success) {
-            throw new WifiManagerSnippetException("Failed to set soft AP state to " + enable);
+            throw new WifiManagerSnippetException("Failed to initiate turning off Wi-Fi Soft AP.");
         }
-        if (!Utils.waitUntil(() -> wifiIsApEnabled() == enable, 60)) {
+        if (!Utils.waitUntil(() -> wifiIsApEnabled() == false, 60)) {
             throw new WifiManagerSnippetException(
-                    "Timed out after 60 waiting for Wi-Fi Soft AP state to turn " + enable);
+                    "Timed out after 60 waiting for Wi-Fi Soft AP state to turn off.");
         }
     }
 
