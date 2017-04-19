@@ -43,7 +43,7 @@ public final class Utils {
             if (predicate.waitCondition()) {
                 return true;
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
         return false;
@@ -54,6 +54,6 @@ public final class Utils {
      * going on.
      */
     public interface Predicate {
-        boolean waitCondition() throws Exception;
+        boolean waitCondition() throws Throwable;
     }
 }
