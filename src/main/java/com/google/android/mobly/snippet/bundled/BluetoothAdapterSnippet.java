@@ -34,6 +34,7 @@ import org.json.JSONException;
 /** Snippet class exposing Android APIs in BluetoothAdapter. */
 public class BluetoothAdapterSnippet implements Snippet {
     private static class BluetoothAdapterSnippetException extends Exception {
+        private static final long serialVersionUID = 1;
         public BluetoothAdapterSnippetException(String msg) {
             super(msg);
         }
