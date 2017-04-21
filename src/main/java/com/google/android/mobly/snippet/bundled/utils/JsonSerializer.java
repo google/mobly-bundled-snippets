@@ -21,11 +21,14 @@ import android.net.DhcpInfo;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
+import android.os.Build;
+import android.os.ParcelUuid;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.lang.reflect.Modifier;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -124,17 +127,44 @@ public class JsonSerializer {
     private JSONObject serializeBluetoothDevice(BluetoothDevice data) throws JSONException {
         JSONObject result = new JSONObject();
         result.put("Address", data.getAddress());
+        final String bondStateFieldName = "BondState";
         switch (data.getBondState()) {
             case BluetoothDevice.BOND_NONE:
-                result.put("BondState", "NONE");
+                result.put(bondStateFieldName, "NONE");
                 break;
             case BluetoothDevice.BOND_BONDING:
-                result.put("BondState", "BONDING");
+                result.put(bondStateFieldName, "BONDING");
                 break;
             case BluetoothDevice.BOND_BONDED:
-                result.put("BondState", "BONDED");
+                result.put(bondStateFieldName, "BONDED");
+                break;
         }
         result.put("Name", data.getName());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            final String deviceTypeFieldName = "DeviceType";
+            switch (data.getType()) {
+                case BluetoothDevice.DEVICE_TYPE_CLASSIC:
+                    result.put(deviceTypeFieldName, "CLASSIC");
+                    break;
+                case BluetoothDevice.DEVICE_TYPE_LE:
+                    result.put(deviceTypeFieldName, "LE");
+                    break;
+                case BluetoothDevice.DEVICE_TYPE_DUAL:
+                    result.put(deviceTypeFieldName, "DUAL");
+                    break;
+                case BluetoothDevice.DEVICE_TYPE_UNKNOWN:
+                    result.put(deviceTypeFieldName, "UNKNOWN");
+                    break;
+            }
+            ParcelUuid[] parcelUuids = data.getUuids();
+            if (parcelUuids != null) {
+                ArrayList<String> uuidStrings = new ArrayList<>(parcelUuids.length);
+                for (ParcelUuid parcelUuid : parcelUuids) {
+                    uuidStrings.add(parcelUuid.getUuid().toString());
+                }
+                result.put("UUIDs", uuidStrings);
+            }
+        }
         return result;
     }
 }
