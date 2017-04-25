@@ -16,7 +16,6 @@
 
 package com.google.android.mobly.snippet.bundled;
 
-import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
@@ -30,7 +29,6 @@ import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.rpc.RpcMinSdk;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import org.json.JSONArray;
@@ -130,6 +128,14 @@ public class BluetoothAdapterSnippet implements Snippet {
         return pairedDevices;
     }
 
+    /**
+     * Enable Bluetooth HCI snoop log collection.
+     *
+     * <p>The file can be pulled from `/sdcard/btsnoop_hci.log`.
+     *
+     * @return false if enabling the snoop log failed, true otherwise.
+     * @throws Throwable
+     */
     @RpcMinSdk(Build.VERSION_CODES.KITKAT)
     @Rpc(description = "Enable Bluetooth HCI snoop log for debugging.")
     public boolean btEnableHciSnoopLog() throws Throwable {
