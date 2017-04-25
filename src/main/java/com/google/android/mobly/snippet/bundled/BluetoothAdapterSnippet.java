@@ -29,6 +29,8 @@ import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
+import com.google.android.mobly.snippet.rpc.RpcMinSdk;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import org.json.JSONArray;
@@ -128,7 +130,7 @@ public class BluetoothAdapterSnippet implements Snippet {
         return pairedDevices;
     }
 
-    @TargetApi(Build.VERSION_CODES.KITKAT)
+    @RpcMinSdk(Build.VERSION_CODES.KITKAT)
     @Rpc(description = "Enable Bluetooth HCI snoop log for debugging.")
     public boolean btEnableHciSnoopLog() throws Throwable {
         try {
@@ -142,7 +144,7 @@ public class BluetoothAdapterSnippet implements Snippet {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.KITKAT)
+    @RpcMinSdk(Build.VERSION_CODES.KITKAT)
     @Rpc(description = "Disable Bluetooth HCI snoop log.")
     public boolean btDisableHciSnoopLog() throws Throwable {
         try {
