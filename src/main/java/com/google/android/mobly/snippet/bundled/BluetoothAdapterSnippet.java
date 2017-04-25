@@ -16,12 +16,14 @@
 
 package com.google.android.mobly.snippet.bundled;
 
+import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
@@ -126,6 +128,7 @@ public class BluetoothAdapterSnippet implements Snippet {
         return pairedDevices;
     }
 
+    @TargetApi(Build.VERSION_CODES.KITKAT)
     @Rpc(description = "Enable Bluetooth HCI snoop log for debugging.")
     public boolean btEnableHciSnoopLog() throws Throwable {
         try {
@@ -139,6 +142,7 @@ public class BluetoothAdapterSnippet implements Snippet {
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.KITKAT)
     @Rpc(description = "Disable Bluetooth HCI snoop log.")
     public boolean btDisableHciSnoopLog() throws Throwable {
         try {
