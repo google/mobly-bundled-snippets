@@ -27,6 +27,7 @@ import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,6 +36,7 @@ import org.json.JSONException;
 public class BluetoothAdapterSnippet implements Snippet {
     private static class BluetoothAdapterSnippetException extends Exception {
         private static final long serialVersionUID = 1;
+
         public BluetoothAdapterSnippetException(String msg) {
             super(msg);
         }
@@ -102,11 +104,11 @@ public class BluetoothAdapterSnippet implements Snippet {
         try {
             if (!mBluetoothAdapter.startDiscovery()) {
                 throw new BluetoothAdapterSnippetException(
-                    "Failed to initiate Bluetooth Discovery.");
+                        "Failed to initiate Bluetooth Discovery.");
             }
             if (!Utils.waitUntil(() -> mIsScanResultAvailable, 60)) {
                 throw new BluetoothAdapterSnippetException(
-                    "Failed to get discovery results after 1 min, timeout!");
+                        "Failed to get discovery results after 1 min, timeout!");
             }
         } finally {
             mContext.unregisterReceiver(receiver);
@@ -114,7 +116,7 @@ public class BluetoothAdapterSnippet implements Snippet {
         return btGetCachedScanResults();
     }
 
-    @Rpc(description = "Get the list of paired bluetooth devices")
+    @Rpc(description = "Get the list of paired bluetooth devices.")
     public JSONArray btGetPairedDevices()
             throws BluetoothAdapterSnippetException, InterruptedException, JSONException {
         JSONArray pairedDevices = new JSONArray();
@@ -122,6 +124,32 @@ public class BluetoothAdapterSnippet implements Snippet {
             pairedDevices.put(mJsonSerializer.toJson(device));
         }
         return pairedDevices;
+    }
+
+    @Rpc(description = "Enable Bluetooth HCI snoop log for debugging.")
+    public boolean btEnableHciSnoopLog() throws Throwable {
+        try {
+            return (boolean)
+                    mBluetoothAdapter
+                            .getClass()
+                            .getDeclaredMethod("configHciSnoopLog", boolean.class)
+                            .invoke(mBluetoothAdapter, true);
+        } catch (InvocationTargetException e) {
+            throw e.getCause();
+        }
+    }
+
+    @Rpc(description = "Disable Bluetooth HCI snoop log.")
+    public boolean btDisableHciSnoopLog() throws Throwable {
+        try {
+            return (boolean)
+                    mBluetoothAdapter
+                            .getClass()
+                            .getDeclaredMethod("configHciSnoopLog", boolean.class)
+                            .invoke(mBluetoothAdapter, false);
+        } catch (InvocationTargetException e) {
+            throw e.getCause();
+        }
     }
 
     @Override
