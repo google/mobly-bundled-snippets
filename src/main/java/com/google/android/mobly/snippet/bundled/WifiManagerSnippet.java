@@ -339,7 +339,7 @@ public class WifiManagerSnippet implements Snippet {
         }
         if (!Utils.waitUntil(() -> wifiIsApEnabled() == false, 60)) {
             throw new WifiManagerSnippetException(
-                    "Timed out after 60 waiting for Wi-Fi Soft AP state to turn off.");
+                    "Timed out after 60s waiting for Wi-Fi Soft AP state to turn off.");
         }
     }
 
