@@ -54,6 +54,7 @@ public class AccountSnippet implements Snippet {
 
     private static class AccountSnippetException extends Exception {
         private static final long serialVersionUID = 1;
+
         public AccountSnippetException(String msg) {
             super(msg);
         }

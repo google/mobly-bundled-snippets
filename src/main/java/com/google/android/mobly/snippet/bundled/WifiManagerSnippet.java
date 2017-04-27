@@ -43,6 +43,7 @@ import org.json.JSONObject;
 public class WifiManagerSnippet implements Snippet {
     private static class WifiManagerSnippetException extends Exception {
         private static final long serialVersionUID = 1;
+
         public WifiManagerSnippetException(String msg) {
             super(msg);
         }
