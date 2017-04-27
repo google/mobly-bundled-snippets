@@ -130,13 +130,13 @@ public class JsonSerializer {
         final String bondStateFieldName = "BondState";
         switch (data.getBondState()) {
             case BluetoothDevice.BOND_NONE:
-                result.put(bondStateFieldName, "NONE");
+                result.put(bondStateFieldName, "BOND_NONE");
                 break;
             case BluetoothDevice.BOND_BONDING:
-                result.put(bondStateFieldName, "BONDING");
+                result.put(bondStateFieldName, "BOND_BONDING");
                 break;
             case BluetoothDevice.BOND_BONDED:
-                result.put(bondStateFieldName, "BONDED");
+                result.put(bondStateFieldName, "BOND_BONDED");
                 break;
         }
         result.put("Name", data.getName());
@@ -144,16 +144,16 @@ public class JsonSerializer {
             final String deviceTypeFieldName = "DeviceType";
             switch (data.getType()) {
                 case BluetoothDevice.DEVICE_TYPE_CLASSIC:
-                    result.put(deviceTypeFieldName, "CLASSIC");
+                    result.put(deviceTypeFieldName, "DEVICE_TYPE_CLASSIC");
                     break;
                 case BluetoothDevice.DEVICE_TYPE_LE:
-                    result.put(deviceTypeFieldName, "LE");
+                    result.put(deviceTypeFieldName, "DEVICE_TYPE_LE");
                     break;
                 case BluetoothDevice.DEVICE_TYPE_DUAL:
-                    result.put(deviceTypeFieldName, "DUAL");
+                    result.put(deviceTypeFieldName, "DEVICE_TYPE_DUAL");
                     break;
                 case BluetoothDevice.DEVICE_TYPE_UNKNOWN:
-                    result.put(deviceTypeFieldName, "UNKNOWN");
+                    result.put(deviceTypeFieldName, "DEVICE_TYPE_UNKNOWN");
                     break;
             }
             ParcelUuid[] parcelUuids = data.getUuids();
