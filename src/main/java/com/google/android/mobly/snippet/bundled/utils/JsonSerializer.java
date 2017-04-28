@@ -16,12 +16,16 @@
 
 package com.google.android.mobly.snippet.bundled.utils;
 
+import android.annotation.TargetApi;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.le.AdvertiseSettings;
+import android.bluetooth.le.ScanRecord;
 import android.net.DhcpInfo;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.ParcelUuid;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -65,9 +69,7 @@ public class JsonSerializer {
     }
 
     public JSONObject toJson(Object object) throws JSONException {
-        if (object instanceof BluetoothDevice) {
-            return serializeBluetoothDevice((BluetoothDevice) object);
-        } else if (object instanceof DhcpInfo) {
+        if (object instanceof DhcpInfo) {
             return serializeDhcpInfo((DhcpInfo) object);
         } else if (object instanceof WifiConfiguration) {
             return serializeWifiConfiguration((WifiConfiguration) object);
@@ -109,13 +111,13 @@ public class JsonSerializer {
     private JSONObject serializeWifiConfiguration(WifiConfiguration data) throws JSONException {
         JSONObject result = new JSONObject(mGson.toJson(data));
         result.put("Status", WifiConfiguration.Status.strings[data.status]);
-        guaranteedPut(result, "SSID", trimQuotationMarks(data.SSID));
+        result.put("SSID", trimQuotationMarks(data.SSID));
         return result;
     }
 
     private JSONObject serializeWifiInfo(WifiInfo data) throws JSONException {
         JSONObject result = new JSONObject(mGson.toJson(data));
-        guaranteedPut(result, "SSID", trimQuotationMarks(data.getSSID()));
+        result.put("SSID", trimQuotationMarks(data.getSSID()));
         for (SupplicantState state : SupplicantState.values()) {
             if (data.getSupplicantState().equals(state)) {
                 result.put("SupplicantState", state.name());
@@ -124,36 +126,36 @@ public class JsonSerializer {
         return result;
     }
 
-    private JSONObject serializeBluetoothDevice(BluetoothDevice data) throws JSONException {
-        JSONObject result = new JSONObject();
-        guaranteedPut(result, "Address", data.getAddress());
+    public Bundle serializeBluetoothDevice(BluetoothDevice data) {
+        Bundle result = new Bundle();
+        result.putString("Address", data.getAddress());
         final String bondStateFieldName = "BondState";
         switch (data.getBondState()) {
             case BluetoothDevice.BOND_NONE:
-                result.put(bondStateFieldName, "BOND_NONE");
+                result.putString(bondStateFieldName, "BOND_NONE");
                 break;
             case BluetoothDevice.BOND_BONDING:
-                result.put(bondStateFieldName, "BOND_BONDING");
+                result.putString(bondStateFieldName, "BOND_BONDING");
                 break;
             case BluetoothDevice.BOND_BONDED:
-                result.put(bondStateFieldName, "BOND_BONDED");
+                result.putString(bondStateFieldName, "BOND_BONDED");
                 break;
         }
-        guaranteedPut(result, "Name", data.getName());
+        result.putString("Name", data.getName());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             final String deviceTypeFieldName = "DeviceType";
             switch (data.getType()) {
                 case BluetoothDevice.DEVICE_TYPE_CLASSIC:
-                    result.put(deviceTypeFieldName, "DEVICE_TYPE_CLASSIC");
+                    result.putString(deviceTypeFieldName, "DEVICE_TYPE_CLASSIC");
                     break;
                 case BluetoothDevice.DEVICE_TYPE_LE:
-                    result.put(deviceTypeFieldName, "DEVICE_TYPE_LE");
+                    result.putString(deviceTypeFieldName, "DEVICE_TYPE_LE");
                     break;
                 case BluetoothDevice.DEVICE_TYPE_DUAL:
-                    result.put(deviceTypeFieldName, "DEVICE_TYPE_DUAL");
+                    result.putString(deviceTypeFieldName, "DEVICE_TYPE_DUAL");
                     break;
                 case BluetoothDevice.DEVICE_TYPE_UNKNOWN:
-                    result.put(deviceTypeFieldName, "DEVICE_TYPE_UNKNOWN");
+                    result.putString(deviceTypeFieldName, "DEVICE_TYPE_UNKNOWN");
                     break;
             }
             ParcelUuid[] parcelUuids = data.getUuids();
@@ -162,33 +164,75 @@ public class JsonSerializer {
                 for (ParcelUuid parcelUuid : parcelUuids) {
                     uuidStrings.add(parcelUuid.getUuid().toString());
                 }
-                result.put("UUIDs", uuidStrings);
+                result.putStringArrayList("UUIDs", uuidStrings);
             }
         }
         return result;
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
+    public Bundle serializeBleScanResult(android.bluetooth.le.ScanResult scanResult) {
+        Bundle result = new Bundle();
+        result.putBundle("Device", serializeBluetoothDevice(scanResult.getDevice()));
+        result.putInt("Rssi", scanResult.getRssi());
+        result.putBundle("ScanRecord", serializeBleScanRecord(scanResult.getScanRecord()));
+        result.putLong("TimestampNanos", scanResult.getTimestampNanos());
+        return result;
+    }
+
     /**
-     * Guarantees a field is put into a JSONObject even if it's null.
+     * Serialize ScanRecord for Bluetooth LE.
      *
-     * <p>By default, if the object of {@link JSONObject#put(String, Object)} is null, the `put`
-     * method would either remove the field or do nothing, causing serialized objects to have
-     * inconsistent fields.
+     * <p>Not all fields are serialized here. Will add more as we need.
      *
-     * <p>Use this method to put objects that may be null into the serialized JSONObject so the
-     * serialized objects have a consistent set of critical fields, like the SSID field in
-     * serialized WifiConfiguration objects.
-     *
-     * @param data
-     * @param name
-     * @param object
-     * @throws JSONException
+     * @param record
+     * @return
      */
-    private void guaranteedPut(JSONObject data, String name, Object object) throws JSONException {
-        if (object == null) {
-            data.put(name, JSONObject.NULL);
-        } else {
-            data.put(name, object);
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
+    private Bundle serializeBleScanRecord(ScanRecord record) {
+        Bundle result = new Bundle();
+        result.putString("DeviceName", record.getDeviceName());
+        result.putString("TxPowerLevel", bleAdvertiseTxPowerToString(record.getTxPowerLevel()));
+        return result;
+    }
+
+    private String bleAdvertiseTxPowerToString(int advertiseTxPower) {
+        switch (advertiseTxPower) {
+            case AdvertiseSettings.ADVERTISE_TX_POWER_ULTRA_LOW:
+                return "ADVERTISE_TX_POWER_ULTRA_LOW";
+            case AdvertiseSettings.ADVERTISE_TX_POWER_LOW:
+                return "ADVERTISE_TX_POWER_LOW";
+            case AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM:
+                return "ADVERTISE_TX_POWER_MEDIUM";
+            case AdvertiseSettings.ADVERTISE_TX_POWER_HIGH:
+                return "ADVERTISE_TX_POWER_HIGH";
+            default:
+                return "UNKNOWN";
         }
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
+    private Bundle serializeBleAdvertisingSettings(AdvertiseSettings advertiseSettings) {
+        Bundle result = new Bundle();
+        result.putString(
+                "TxPowerLevel", bleAdvertiseTxPowerToString(advertiseSettings.getTxPowerLevel()));
+        final String nameMode = "Mode";
+        switch (advertiseSettings.getMode()) {
+            case AdvertiseSettings.ADVERTISE_MODE_BALANCED:
+                result.putString(nameMode, "ADVERTISE_MODE_BALANCED");
+                break;
+            case AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY:
+                result.putString(nameMode, "ADVERTISE_MODE_LOW_LATENCY");
+                break;
+            case AdvertiseSettings.ADVERTISE_MODE_LOW_POWER:
+                result.putString(nameMode, "ADVERTISE_MODE_LOW_POWER");
+                break;
+            default:
+                result.putString(nameMode, "UNKNOWN");
+                break;
+        }
+        result.putInt("Timeout", advertiseSettings.getTimeout());
+        result.putBoolean("IsConnectable", advertiseSettings.isConnectable());
+        return result;
     }
 }
