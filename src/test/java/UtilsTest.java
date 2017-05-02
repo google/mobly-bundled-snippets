@@ -33,6 +33,10 @@ public class UtilsTest {
             return arg;
         }
 
+        public boolean returnTrue() {
+            return true;
+        }
+
         public void throwsException() throws IOException {
             throw new IOException("Example exception");
         }
@@ -44,6 +48,20 @@ public class UtilsTest {
         ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
         Object ret = Utils.invokeByReflection(hostClass, "returnSame", sampleList);
         Truth.assertThat(ret).isSameAs(sampleList);
+    }
+
+    @Test
+    public void testInvokeByReflection_Null() throws Throwable {
+        ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
+        Object ret = Utils.invokeByReflection(hostClass, "returnSame", (Object) null);
+        Truth.assertThat(ret).isNull();
+    }
+
+    @Test
+    public void testInvokeByReflection_NoArg() throws Throwable {
+        ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
+        boolean ret = (boolean) Utils.invokeByReflection(hostClass, "returnTrue");
+        Truth.assertThat(ret).isTrue();
     }
 
     @Test
