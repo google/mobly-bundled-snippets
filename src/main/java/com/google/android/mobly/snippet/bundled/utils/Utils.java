@@ -64,6 +64,12 @@ public final class Utils {
 
     public static Object invokeByReflection(Object instance, String methodName, Object... args)
             throws Throwable {
+        // Java doesn't know if invokeByReflection(instance, name, null) means that the array is
+        // null or that it's a non-null array containing a single null element. We mean the latter.
+        // Silly Java.
+        if (args == null) {
+            args = new Object[]{null};
+        }
         // Can't use Class#getMethod(Class<?>...) because it expects that the passed in classes
         // exactly match the parameters of the method, and doesn't handle superclasses.
         Method method = null;
@@ -79,13 +85,20 @@ public final class Utils {
                 continue;
             }
             for (int i = 0; i < declaredParams.length; i++) {
-                // Allow autoboxing during reflection by wrapping primitives.
-                Class<?> declaredClass = Primitives.wrap(declaredParams[i]);
-                Class<?> actualClass = Primitives.wrap(args[i].getClass());
-                TypeToken<?> declaredParamType = TypeToken.of(declaredClass);
-                TypeToken<?> actualParamType = TypeToken.of(actualClass);
-                if (!declaredParamType.isSupertypeOf(actualParamType)) {
-                    continue METHOD_SEARCHER;
+                if (args[i] == null) {
+                    // Null is assignable to anything except primitives.
+                    if (declaredParams[i].isPrimitive()) {
+                        continue METHOD_SEARCHER;
+                    }
+                } else {
+                    // Allow autoboxing during reflection by wrapping primitives.
+                    Class<?> declaredClass = Primitives.wrap(declaredParams[i]);
+                    Class<?> actualClass = Primitives.wrap(args[i].getClass());
+                    TypeToken<?> declaredParamType = TypeToken.of(declaredClass);
+                    TypeToken<?> actualParamType = TypeToken.of(actualClass);
+                    if (!declaredParamType.isSupertypeOf(actualParamType)) {
+                        continue METHOD_SEARCHER;
+                    }
                 }
             }
             method = candidateMethod;
