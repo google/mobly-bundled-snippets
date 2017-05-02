@@ -95,6 +95,11 @@ public class BluetoothAdapterSnippet implements Snippet {
         }
     }
 
+    @Rpc(description = "Get the friendly Bluetooth name of the local Bluetooth adapter.")
+    public String btGetName() {
+        return mBluetoothAdapter.getName();
+    }
+
     @Rpc(
         description =
                 "Start discovery, wait for discovery to complete, and return results, which is a list of "
