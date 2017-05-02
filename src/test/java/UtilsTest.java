@@ -85,11 +85,12 @@ public class UtilsTest {
         ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
         Object arg1 = new Object();
         Object arg2 = new Object();
-        Object ret = invokeByReflection(
-            hostClass, "multiArgCall", arg1, arg2, true /* returnArg1 */);
+        Object ret =
+                invokeByReflection(hostClass, "multiArgCall", arg1, arg2, true /* returnArg1 */);
         Truth.assertThat(ret).isSameAs(arg1);
-        ret = Utils.invokeByReflection(
-            hostClass, "multiArgCall", arg1, arg2, false /* returnArg1 */);
+        ret =
+                Utils.invokeByReflection(
+                        hostClass, "multiArgCall", arg1, arg2, false /* returnArg1 */);
         Truth.assertThat(ret).isSameAs(arg2);
     }
 

@@ -65,18 +65,21 @@ public final class Utils {
     /**
      * Simplified API to invoke an instance method by reflection.
      *
-     * <p>Sample usage:
-     * <code><pre>
+     * <p>Sample usage: <code>
+     *
+     * <pre>
      *   boolean result = (boolean) Utils.invokeByReflection(
      *           mWifiManager,
      *           "setWifiApEnabled", null /* wifiConfiguration * /, true /* enabled * /);
-     * </pre></code>
+     * </pre>
+     *
+     * </code>
      *
      * @param instance Instance of object defining the method to call.
      * @param methodName Name of the method to call. Can be inherited.
      * @param args Variadic array of arguments to supply to the method. Their types will be used to
-     *     locate a suitable method to call. Subtypes, primitive types, boxed types, and
-     *     {@code null} arguments are properly handled.
+     *     locate a suitable method to call. Subtypes, primitive types, boxed types, and {@code
+     *     null} arguments are properly handled.
      * @return The return value of the method, or {@code null} if no return value.
      * @throws NoSuchMethodException If no suitable method could be found.
      * @throws Throwable The exception raised by the method, if any.
