@@ -87,6 +87,14 @@ public class BluetoothAdapterSnippet implements Snippet {
         return results;
     }
 
+    @Rpc(description = "Set the friendly Bluetooth name of the local Bluetooth adapter.")
+    public void btSetName(String name) throws BluetoothAdapterSnippetException {
+        if (!mBluetoothAdapter.setName(name)) {
+            throw new BluetoothAdapterSnippetException(
+                    "Failed to set local Bluetooth name to " + name);
+        }
+    }
+
     @Rpc(
         description =
                 "Start discovery, wait for discovery to complete, and return results, which is a list of "
@@ -116,6 +124,48 @@ public class BluetoothAdapterSnippet implements Snippet {
             mContext.unregisterReceiver(receiver);
         }
         return btGetCachedScanResults();
+    }
+
+    @Rpc(description = "Become discoverable in Bluetooth.")
+    public void btBecomeDiscoverable(Integer duration) throws Throwable {
+        boolean success;
+        try {
+            success =
+                    (boolean)
+                            mBluetoothAdapter
+                                    .getClass()
+                                    .getDeclaredMethod("setScanMode", int.class, int.class)
+                                    .invoke(
+                                            mBluetoothAdapter,
+                                            BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE,
+                                            duration);
+        } catch (InvocationTargetException e) {
+            throw e.getCause();
+        }
+        if (!success) {
+            throw new BluetoothAdapterSnippetException("Failed to become discoverable.");
+        }
+    }
+
+    @Rpc(description = "Stop being discoverable in Bluetooth.")
+    public void btStopBeingDiscoverable() throws Throwable {
+        boolean success;
+        try {
+            success =
+                    (boolean)
+                            mBluetoothAdapter
+                                    .getClass()
+                                    .getDeclaredMethod("setScanMode", int.class, int.class)
+                                    .invoke(
+                                            mBluetoothAdapter,
+                                            BluetoothAdapter.SCAN_MODE_NONE,
+                                            0 /* duration is not used for this */);
+        } catch (InvocationTargetException e) {
+            throw e.getCause();
+        }
+        if (!success) {
+            throw new BluetoothAdapterSnippetException("Failed to stop being discoverable.");
+        }
     }
 
     @Rpc(description = "Get the list of paired bluetooth devices.")
