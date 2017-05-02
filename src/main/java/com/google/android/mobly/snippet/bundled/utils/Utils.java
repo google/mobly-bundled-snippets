@@ -22,14 +22,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public final class Utils {
-    /**
-     * A function interface that is used by lambda functions signaling an async operation is still
-     * going on.
-     */
-    public interface Predicate {
-        boolean waitCondition() throws Throwable;
-    }
-
     private Utils() {}
 
     /**
@@ -62,6 +54,26 @@ public final class Utils {
         return false;
     }
 
+    /**
+     * A function interface that is used by lambda functions signaling an async operation is still
+     * going on.
+     */
+    public interface Predicate {
+        boolean waitCondition() throws Throwable;
+    }
+
+    /**
+     * Simplified API to invoke an instance method by reflection.
+     *
+     * @param instance Instance of object defining the method to call.
+     * @param methodName Name of the method to call. Can be inherited.
+     * @param args Variadic array of arguments to supply to the method. Their types will be used to
+     *     locate a suitable method to call. Subtypes, primitive types, boxed types, and
+     *     {@code null} arguments are properly handled.
+     * @return The return value of the method, or {@code null} if no return value.
+     * @throws NoSuchMethodException If no suitable method could be found.
+     * @throws Throwable The exception raised by the method, if any.
+     */
     public static Object invokeByReflection(Object instance, String methodName, Object... args)
             throws Throwable {
         // Java doesn't know if invokeByReflection(instance, name, null) means that the array is
