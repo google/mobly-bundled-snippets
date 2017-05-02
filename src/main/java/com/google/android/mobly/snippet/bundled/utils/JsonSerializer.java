@@ -109,13 +109,13 @@ public class JsonSerializer {
     private JSONObject serializeWifiConfiguration(WifiConfiguration data) throws JSONException {
         JSONObject result = new JSONObject(mGson.toJson(data));
         result.put("Status", WifiConfiguration.Status.strings[data.status]);
-        result.put("SSID", trimQuotationMarks(data.SSID));
+        guaranteedPut(result, "SSID", trimQuotationMarks(data.SSID));
         return result;
     }
 
     private JSONObject serializeWifiInfo(WifiInfo data) throws JSONException {
         JSONObject result = new JSONObject(mGson.toJson(data));
-        result.put("SSID", trimQuotationMarks(data.getSSID()));
+        guaranteedPut(result, "SSID", trimQuotationMarks(data.getSSID()));
         for (SupplicantState state : SupplicantState.values()) {
             if (data.getSupplicantState().equals(state)) {
                 result.put("SupplicantState", state.name());
@@ -126,7 +126,7 @@ public class JsonSerializer {
 
     private JSONObject serializeBluetoothDevice(BluetoothDevice data) throws JSONException {
         JSONObject result = new JSONObject();
-        result.put("Address", data.getAddress());
+        guaranteedPut(result, "Address", data.getAddress());
         final String bondStateFieldName = "BondState";
         switch (data.getBondState()) {
             case BluetoothDevice.BOND_NONE:
@@ -139,7 +139,7 @@ public class JsonSerializer {
                 result.put(bondStateFieldName, "BOND_BONDED");
                 break;
         }
-        result.put("Name", data.getName());
+        guaranteedPut(result, "Name", data.getName());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             final String deviceTypeFieldName = "DeviceType";
             switch (data.getType()) {
@@ -166,5 +166,29 @@ public class JsonSerializer {
             }
         }
         return result;
+    }
+
+    /**
+     * Guarantees a field is put into a JSONObject even if it's null.
+     *
+     * <p>By default, if the object of {@link JSONObject#put(String, Object)} is null, the `put`
+     * method would either remove the field or do nothing, causing serialized objects to have
+     * inconsistent fields.
+     *
+     * <p>Use this method to put objects that may be null into the serialized JSONObject so the
+     * serialized objects have a consistent set of critical fields, like the SSID field in
+     * serialized WifiConfiguration objects.
+     *
+     * @param data
+     * @param name
+     * @param object
+     * @throws JSONException
+     */
+    private void guaranteedPut(JSONObject data, String name, Object object) throws JSONException {
+        if (object == null) {
+            data.put(name, JSONObject.NULL);
+        } else {
+            data.put(name, object);
+        }
     }
 }

@@ -105,7 +105,7 @@ public class BluetoothAdapterSnippet implements Snippet {
                 "Start discovery, wait for discovery to complete, and return results, which is a list of "
                         + "serialized BluetoothDevice objects."
     )
-    public JSONArray btDiscoveryAndGetResults()
+    public JSONArray btDiscoverAndGetResults()
             throws InterruptedException, JSONException, BluetoothAdapterSnippetException {
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
