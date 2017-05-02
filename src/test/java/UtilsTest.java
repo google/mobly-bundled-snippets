@@ -14,6 +14,8 @@
  * the License.
  */
 
+import static com.google.android.mobly.snippet.bundled.utils.Utils.invokeByReflection;
+
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.common.truth.Truth;
 import java.io.IOException;
@@ -33,6 +35,13 @@ public class UtilsTest {
             return arg;
         }
 
+        public Object multiArgCall(Object arg1, Object arg2, boolean returnArg1) {
+            if (returnArg1) {
+                return arg1;
+            }
+            return arg2;
+        }
+
         public boolean returnTrue() {
             return true;
         }
@@ -46,29 +55,42 @@ public class UtilsTest {
     public void testInvokeByReflection_Obj() throws Throwable {
         List<?> sampleList = Collections.singletonList("sampleList");
         ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
-        Object ret = Utils.invokeByReflection(hostClass, "returnSame", sampleList);
+        Object ret = invokeByReflection(hostClass, "returnSame", sampleList);
         Truth.assertThat(ret).isSameAs(sampleList);
     }
 
     @Test
     public void testInvokeByReflection_Null() throws Throwable {
         ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
-        Object ret = Utils.invokeByReflection(hostClass, "returnSame", (Object) null);
+        Object ret = invokeByReflection(hostClass, "returnSame", (Object) null);
         Truth.assertThat(ret).isNull();
     }
 
     @Test
     public void testInvokeByReflection_NoArg() throws Throwable {
         ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
-        boolean ret = (boolean) Utils.invokeByReflection(hostClass, "returnTrue");
+        boolean ret = (boolean) invokeByReflection(hostClass, "returnTrue");
         Truth.assertThat(ret).isTrue();
     }
 
     @Test
     public void testInvokeByReflection_Primitive() throws Throwable {
         ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
-        Object ret = Utils.invokeByReflection(hostClass, "returnSame", 5);
+        Object ret = invokeByReflection(hostClass, "returnSame", 5);
         Truth.assertThat(ret).isEqualTo(5);
+    }
+
+    @Test
+    public void testInvokeByReflection_MultiArg() throws Throwable {
+        ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
+        Object arg1 = new Object();
+        Object arg2 = new Object();
+        Object ret = invokeByReflection(
+            hostClass, "multiArgCall", arg1, arg2, true /* returnArg1 */);
+        Truth.assertThat(ret).isSameAs(arg1);
+        ret = Utils.invokeByReflection(
+            hostClass, "multiArgCall", arg1, arg2, false /* returnArg1 */);
+        Truth.assertThat(ret).isSameAs(arg2);
     }
 
     @Test
@@ -76,7 +98,7 @@ public class UtilsTest {
         ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
         Truth.assertThat(List.class.isAssignableFrom(Object.class)).isFalse();
         try {
-            Utils.invokeByReflection(hostClass, "returnSame", new Object());
+            invokeByReflection(hostClass, "returnSame", new Object());
             Assert.fail();
         } catch (NoSuchMethodException e) {
             Truth.assertThat(e.getMessage())
@@ -88,7 +110,7 @@ public class UtilsTest {
     public void testInvokeByReflection_UnwrapException() throws Throwable {
         ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
         try {
-            Utils.invokeByReflection(hostClass, "throwsException");
+            invokeByReflection(hostClass, "throwsException");
             Assert.fail();
         } catch (IOException e) {
             Truth.assertThat(e.getMessage()).isEqualTo("Example exception");
