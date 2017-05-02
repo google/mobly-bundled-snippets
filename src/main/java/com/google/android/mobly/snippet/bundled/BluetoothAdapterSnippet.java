@@ -75,6 +75,11 @@ public class BluetoothAdapterSnippet implements Snippet {
         }
     }
 
+    @Rpc(description = "Return true if Bluetooth is enabled, false otherwise.")
+    public boolean btIsEnabled() {
+        return mBluetoothAdapter.isEnabled();
+    }
+
     @Rpc(
         description =
                 "Get bluetooth discovery results, which is a list of serialized BluetoothDevice objects."
@@ -89,6 +94,10 @@ public class BluetoothAdapterSnippet implements Snippet {
 
     @Rpc(description = "Set the friendly Bluetooth name of the local Bluetooth adapter.")
     public void btSetName(String name) throws BluetoothAdapterSnippetException {
+        if (!btIsEnabled()) {
+            throw new BluetoothAdapterSnippetException(
+                    "Bluetooth is not enabled, cannot set Bluetooth name.");
+        }
         if (!mBluetoothAdapter.setName(name)) {
             throw new BluetoothAdapterSnippetException(
                     "Failed to set local Bluetooth name to " + name);
@@ -133,6 +142,10 @@ public class BluetoothAdapterSnippet implements Snippet {
 
     @Rpc(description = "Become discoverable in Bluetooth.")
     public void btBecomeDiscoverable(Integer duration) throws Throwable {
+        if (!btIsEnabled()) {
+            throw new BluetoothAdapterSnippetException(
+                    "Bluetooth is not enabled, cannot become discoverable.");
+        }
         boolean success;
         try {
             success =
