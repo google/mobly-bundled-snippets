@@ -229,13 +229,13 @@ public class WifiManagerSnippet implements Snippet {
 
     @TargetApi(21)
     @Rpc(description = "Enable or disable wifi verbose logging.")
-    public void setWifiVerboseLogging(boolean enabled) throws Throwable {
+    public void setWifiVerboseLogging(boolean enable) throws Throwable {
         try {
             mWifiManager
                     .getClass()
                     .getDeclaredMethod("enableVerboseLogging", int.class)
-                    .invoke(mWifiManager, enabled ? 1 : 0);
-        } catch (NoSuchMethodException | InvocationTargetException e) {
+                    .invoke(mWifiManager, enable ? 1 : 0);
+        } catch (InvocationTargetException e) {
             throw e.getCause();
         }
     }
