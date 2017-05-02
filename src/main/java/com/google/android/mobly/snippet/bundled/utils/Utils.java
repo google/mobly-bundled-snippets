@@ -16,7 +16,19 @@
 
 package com.google.android.mobly.snippet.bundled.utils;
 
+import com.google.common.primitives.Primitives;
+import com.google.common.reflect.TypeToken;
+import java.lang.reflect.Method;
+
 public final class Utils {
+    /**
+     * A function interface that is used by lambda functions signaling an async operation is still
+     * going on.
+     */
+    public interface Predicate {
+        boolean waitCondition() throws Throwable;
+    }
+
     private Utils() {}
 
     /**
@@ -49,11 +61,50 @@ public final class Utils {
         return false;
     }
 
-    /**
-     * A function interface that is used by lambda functions signaling an async operation is still
-     * going on.
-     */
-    public interface Predicate {
-        boolean waitCondition() throws Throwable;
+    public static Object invokeByReflection(Object instance, String methodName, Object... args)
+        throws Throwable {
+        // Can't use Class#getMethod(Class<?>...) because it expects that the passed in classes
+        // exactly match the parameters of the method, and doesn't handle superclasses.
+        Method method = null;
+        METHOD_SEARCHER: for (Method candidateMethod : instance.getClass().getMethods()) {
+            // getMethods() returns only public methods, so we don't need to worry about checking
+            // whether the method is accessible.
+            if (!candidateMethod.getName().equals(methodName)) {
+                continue;
+            }
+            Class<?>[] declaredParams = candidateMethod.getParameterTypes();
+            if (declaredParams.length != args.length) {
+                continue;
+            }
+            for (int i = 0; i < declaredParams.length; i++) {
+                // Allow autoboxing during reflection by wrapping primitives.
+                Class<?> declaredClass = Primitives.wrap(declaredParams[i]);
+                Class<?> actualClass = Primitives.wrap(args[i].getClass());
+                TypeToken<?> declaredParamType = TypeToken.of(declaredClass);
+                TypeToken<?> actualParamType = TypeToken.of(actualClass);
+                if (!declaredParamType.isSupertypeOf(actualParamType)) {
+                    continue METHOD_SEARCHER;
+                }
+            }
+            method = candidateMethod;
+            break;
+        }
+        if (method == null) {
+            StringBuilder methodString =
+                new StringBuilder(instance.getClass().getName())
+                    .append('#')
+                .append(methodName)
+                .append('(');
+            for (int i = 0; i < args.length - 1; i++) {
+                methodString.append(args[i].getClass().getSimpleName()).append(", ");
+            }
+            if (args.length > 0) {
+                methodString.append(args[args.length - 1].getClass().getSimpleName());
+            }
+            methodString.append(')');
+            throw new NoSuchMethodException(methodString.toString());
+        }
+        Object result = method.invoke(instance, args);
+        return result;
     }
 }
