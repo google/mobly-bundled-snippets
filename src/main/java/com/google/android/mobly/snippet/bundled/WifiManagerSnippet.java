@@ -16,6 +16,7 @@
 
 package com.google.android.mobly.snippet.bundled;
 
+import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -224,6 +225,19 @@ public class WifiManagerSnippet implements Snippet {
             networks.add(mJsonSerializer.toJson(config));
         }
         return networks;
+    }
+
+    @TargetApi(21)
+    @Rpc(description = "Enable or disable wifi verbose logging.")
+    public void setWifiVerboseLogging(boolean enabled) throws Throwable {
+        try {
+            mWifiManager
+                    .getClass()
+                    .getDeclaredMethod("enableVerboseLogging", int.class)
+                    .invoke(mWifiManager, enabled ? 1 : 0);
+        } catch (NoSuchMethodException | InvocationTargetException e) {
+            throw e.getCause();
+        }
     }
 
     @Rpc(
