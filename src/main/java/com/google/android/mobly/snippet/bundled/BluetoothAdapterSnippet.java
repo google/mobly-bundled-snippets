@@ -133,34 +133,43 @@ public class BluetoothAdapterSnippet implements Snippet {
      *
      * <p>The file can be pulled from `/sdcard/btsnoop_hci.log`.
      *
-     * @return false if enabling the snoop log failed, true otherwise.
      * @throws Throwable
      */
     @RpcMinSdk(Build.VERSION_CODES.KITKAT)
     @Rpc(description = "Enable Bluetooth HCI snoop log for debugging.")
-    public boolean btEnableHciSnoopLog() throws Throwable {
+    public void btEnableHciSnoopLog() throws Throwable {
+        boolean success;
         try {
-            return (boolean)
-                    mBluetoothAdapter
-                            .getClass()
-                            .getDeclaredMethod("configHciSnoopLog", boolean.class)
-                            .invoke(mBluetoothAdapter, true);
+            success =
+                    (boolean)
+                            mBluetoothAdapter
+                                    .getClass()
+                                    .getDeclaredMethod("configHciSnoopLog", boolean.class)
+                                    .invoke(mBluetoothAdapter, true);
         } catch (InvocationTargetException e) {
             throw e.getCause();
+        }
+        if (!success) {
+            throw new BluetoothAdapterSnippetException("Failed to enable HCI snoop log.");
         }
     }
 
     @RpcMinSdk(Build.VERSION_CODES.KITKAT)
     @Rpc(description = "Disable Bluetooth HCI snoop log.")
-    public boolean btDisableHciSnoopLog() throws Throwable {
+    public void btDisableHciSnoopLog() throws Throwable {
+        boolean success;
         try {
-            return (boolean)
-                    mBluetoothAdapter
-                            .getClass()
-                            .getDeclaredMethod("configHciSnoopLog", boolean.class)
-                            .invoke(mBluetoothAdapter, false);
+            success =
+                    (boolean)
+                            mBluetoothAdapter
+                                    .getClass()
+                                    .getDeclaredMethod("configHciSnoopLog", boolean.class)
+                                    .invoke(mBluetoothAdapter, false);
         } catch (InvocationTargetException e) {
             throw e.getCause();
+        }
+        if (!success) {
+            throw new BluetoothAdapterSnippetException("Failed to disable HCI snoop log.");
         }
     }
 
