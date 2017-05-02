@@ -18,6 +18,7 @@ package com.google.android.mobly.snippet.bundled.utils;
 
 import com.google.common.primitives.Primitives;
 import com.google.common.reflect.TypeToken;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public final class Utils {
@@ -104,7 +105,11 @@ public final class Utils {
             methodString.append(')');
             throw new NoSuchMethodException(methodString.toString());
         }
-        Object result = method.invoke(instance, args);
-        return result;
+        try {
+            Object result = method.invoke(instance, args);
+            return result;
+        } catch (InvocationTargetException e) {
+            throw e.getCause();
+        }
     }
 }

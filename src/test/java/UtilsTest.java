@@ -16,6 +16,7 @@
 
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.common.truth.Truth;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import org.junit.Assert;
@@ -29,6 +30,9 @@ public class UtilsTest {
       }
         public Object returnSame(int arg) {
             return arg;
+        }
+        public void throwsException() throws IOException {
+            throw new IOException("Example exception");
         }
     }
 
@@ -57,6 +61,17 @@ public class UtilsTest {
         } catch (NoSuchMethodException e) {
             Truth.assertThat(e.getMessage()).contains(
                 "UtilsTest$ReflectionTest_HostClass#returnSame(Object)");
+        }
+    }
+
+    @Test
+    public void testInvokeByReflection_UnwrapException() throws Throwable {
+        ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
+        try {
+            Utils.invokeByReflection(hostClass, "throwsException");
+            Assert.fail();
+        } catch (IOException e) {
+            Truth.assertThat(e.getMessage()).isEqualTo("Example exception");
         }
     }
 }

@@ -78,7 +78,7 @@ public class AudioSnippet implements Snippet {
          * calling muteAll will throw. */
         Class<?> audioSystem = Class.forName("android.media.AudioSystem");
         Method getNumStreamTypes = audioSystem.getDeclaredMethod("getNumStreamTypes");
-        int numStreams = (int) getNumStreamTypes.invoke(null);
+        int numStreams = (int) getNumStreamTypes.invoke(null /* instance */);
         for (int i = 0; i < numStreams; i++) {
             mAudioManager.setStreamVolume(i /* audio stream */, 0 /* value */, 0 /* flags */);
         }
