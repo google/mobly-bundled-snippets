@@ -51,7 +51,6 @@ public class WifiManagerSnippet implements Snippet {
 
     private final WifiManager mWifiManager;
     private final Context mContext;
-    private static final String TAG = "WifiManagerSnippet";
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
     private volatile boolean mIsScanResultAvailable = false;
 
@@ -245,7 +244,7 @@ public class WifiManagerSnippet implements Snippet {
     }
 
     private void verifyApiVersionForSoftAp() throws ApiVersionException {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             throw new ApiVersionException(
                     "Soft AP APIs are not supported in Android versions >= N.");
         }
