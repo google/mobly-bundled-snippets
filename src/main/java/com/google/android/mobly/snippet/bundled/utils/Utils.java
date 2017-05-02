@@ -68,7 +68,7 @@ public final class Utils {
         // null or that it's a non-null array containing a single null element. We mean the latter.
         // Silly Java.
         if (args == null) {
-            args = new Object[]{null};
+            args = new Object[] {null};
         }
         // Can't use Class#getMethod(Class<?>...) because it expects that the passed in classes
         // exactly match the parameters of the method, and doesn't handle superclasses.
