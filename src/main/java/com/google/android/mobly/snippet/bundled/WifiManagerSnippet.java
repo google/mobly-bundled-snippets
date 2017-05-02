@@ -261,8 +261,9 @@ public class WifiManagerSnippet implements Snippet {
             // WifiConfiguration.SSID literally, unlike the WifiManager connection logic.
             wifiConfiguration.SSID = JsonSerializer.trimQuotationMarks(wifiConfiguration.SSID);
         }
-        if (!(boolean) Utils.invokeByReflection(
-            mWifiManager, "setWifiApEnabled", wifiConfiguration, true)) {
+        if (!(boolean)
+                Utils.invokeByReflection(
+                        mWifiManager, "setWifiApEnabled", wifiConfiguration, true)) {
             throw new WifiManagerSnippetException("Failed to initiate turning on Wi-Fi Soft AP.");
         }
         if (!Utils.waitUntil(() -> wifiIsApEnabled() == true, 60)) {
@@ -275,9 +276,12 @@ public class WifiManagerSnippet implements Snippet {
     /** Disables Wi-Fi Soft AP (hotspot). */
     @Rpc(description = "Disable Wi-Fi Soft AP (hotspot).")
     public void wifiDisableSoftAp() throws Throwable {
-        if (!(boolean) Utils.invokeByReflection(mWifiManager, "setWifiApEnabled",
-                                            null /* No configuration needed for disabling */,
-                                            false)) {
+        if (!(boolean)
+                Utils.invokeByReflection(
+                        mWifiManager,
+                        "setWifiApEnabled",
+                        null /* No configuration needed for disabling */,
+                        false)) {
             throw new WifiManagerSnippetException("Failed to initiate turning off Wi-Fi Soft AP.");
         }
         if (!Utils.waitUntil(() -> wifiIsApEnabled() == false, 60)) {

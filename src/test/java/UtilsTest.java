@@ -26,11 +26,13 @@ import org.junit.Test;
 public class UtilsTest {
     public static final class ReflectionTest_HostClass {
         public Object returnSame(List<String> arg) {
-        return arg;
-      }
+            return arg;
+        }
+
         public Object returnSame(int arg) {
             return arg;
         }
+
         public void throwsException() throws IOException {
             throw new IOException("Example exception");
         }
@@ -59,8 +61,8 @@ public class UtilsTest {
             Utils.invokeByReflection(hostClass, "returnSame", new Object());
             Assert.fail();
         } catch (NoSuchMethodException e) {
-            Truth.assertThat(e.getMessage()).contains(
-                "UtilsTest$ReflectionTest_HostClass#returnSame(Object)");
+            Truth.assertThat(e.getMessage())
+                    .contains("UtilsTest$ReflectionTest_HostClass#returnSame(Object)");
         }
     }
 
