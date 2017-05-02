@@ -63,11 +63,12 @@ public final class Utils {
     }
 
     public static Object invokeByReflection(Object instance, String methodName, Object... args)
-        throws Throwable {
+            throws Throwable {
         // Can't use Class#getMethod(Class<?>...) because it expects that the passed in classes
         // exactly match the parameters of the method, and doesn't handle superclasses.
         Method method = null;
-        METHOD_SEARCHER: for (Method candidateMethod : instance.getClass().getMethods()) {
+        METHOD_SEARCHER:
+        for (Method candidateMethod : instance.getClass().getMethods()) {
             // getMethods() returns only public methods, so we don't need to worry about checking
             // whether the method is accessible.
             if (!candidateMethod.getName().equals(methodName)) {
@@ -92,10 +93,10 @@ public final class Utils {
         }
         if (method == null) {
             StringBuilder methodString =
-                new StringBuilder(instance.getClass().getName())
-                    .append('#')
-                .append(methodName)
-                .append('(');
+                    new StringBuilder(instance.getClass().getName())
+                            .append('#')
+                            .append(methodName)
+                            .append('(');
             for (int i = 0; i < args.length - 1; i++) {
                 methodString.append(args[i].getClass().getSimpleName()).append(", ");
             }
