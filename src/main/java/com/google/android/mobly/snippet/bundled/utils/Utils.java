@@ -67,11 +67,15 @@ public final class Utils {
      *
      * <p>Sample usage: <code>
      *
+     *
+     *
      * <pre>
      *   boolean result = (boolean) Utils.invokeByReflection(
      *           mWifiManager,
      *           "setWifiApEnabled", null /* wifiConfiguration * /, true /* enabled * /);
      * </pre>
+     *
+     *
      *
      * </code>
      *

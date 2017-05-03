@@ -145,22 +145,24 @@ public class BluetoothAdapterSnippet implements Snippet {
             throw new BluetoothAdapterSnippetException(
                     "Bluetooth is not enabled, cannot become discoverable.");
         }
-        if (!(boolean) Utils.invokeByReflection(
-            mBluetoothAdapter,
-            "setScanMode",
-            BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE,
-            duration)) {
+        if (!(boolean)
+                Utils.invokeByReflection(
+                        mBluetoothAdapter,
+                        "setScanMode",
+                        BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE,
+                        duration)) {
             throw new BluetoothAdapterSnippetException("Failed to become discoverable.");
         }
     }
 
     @Rpc(description = "Stop being discoverable in Bluetooth.")
     public void btStopBeingDiscoverable() throws Throwable {
-        if (!(boolean) Utils.invokeByReflection(
-            mBluetoothAdapter,
-            "setScanMode",
-            BluetoothAdapter.SCAN_MODE_NONE,
-            0 /* duration is not used for this */)) {
+        if (!(boolean)
+                Utils.invokeByReflection(
+                        mBluetoothAdapter,
+                        "setScanMode",
+                        BluetoothAdapter.SCAN_MODE_NONE,
+                        0 /* duration is not used for this */)) {
             throw new BluetoothAdapterSnippetException("Failed to stop being discoverable.");
         }
     }
