@@ -54,14 +54,24 @@ task sourcesJar(type: Jar) {
     classifier = 'src'
 }
 
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(
+        android.getBootClasspath().join(File.pathSeparator))
+}
+
 artifacts {
     archives sourcesJar
 }
 
 dependencies {
-    compile 'com.google.android.mobly:mobly-snippet-lib:1.0.0'
     compile 'com.android.support.test:runner:0.5'
+    compile 'com.google.android.mobly:mobly-snippet-lib:1.0.0'
     compile 'com.google.code.gson:gson:2.6.2'
+    compile 'com.google.guava:guava:20.0'
+
+    testCompile 'com.google.truth:truth:0.32'
+    testCompile 'junit:junit:4.12'
 }
 
 googleJavaFormat {

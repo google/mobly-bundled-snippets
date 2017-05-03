@@ -24,17 +24,14 @@ import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
-import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
-import com.google.android.mobly.snippet.bundled.utils.ApiVersionException;
 import com.google.android.mobly.snippet.bundled.utils.JsonDeserializer;
 import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.util.Log;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -52,7 +49,6 @@ public class WifiManagerSnippet implements Snippet {
 
     private final WifiManager mWifiManager;
     private final Context mContext;
-    private static final String TAG = "WifiManagerSnippet";
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
     private volatile boolean mIsScanResultAvailable = false;
 
@@ -258,38 +254,19 @@ public class WifiManagerSnippet implements Snippet {
         return mJsonSerializer.toJson(mWifiManager.getDhcpInfo());
     }
 
-    private void verifyApiVersionForSoftAp() throws ApiVersionException {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            throw new ApiVersionException(
-                    "Soft AP APIs are not supported in Android versions >= N.");
-        }
-    }
-
     @Rpc(description = "Check whether Wi-Fi Soft AP (hotspot) is enabled.")
     public boolean wifiIsApEnabled() throws Throwable {
-        verifyApiVersionForSoftAp();
-        try {
-            return (boolean)
-                    mWifiManager
-                            .getClass()
-                            .getDeclaredMethod("isWifiApEnabled")
-                            .invoke(mWifiManager);
-        } catch (InvocationTargetException e) {
-            throw e.getCause();
-        }
+        return (boolean) Utils.invokeByReflection(mWifiManager, "isWifiApEnabled");
     }
 
     /**
      * Enable Wi-Fi Soft AP (hotspot).
-     *
-     * <p>Does not work for release N.
      *
      * @param configuration The same format as the param wifiNetworkConfig param for wifiConnect.
      * @throws Throwable
      */
     @Rpc(description = "Enable Wi-Fi Soft AP (hotspot).")
     public void wifiEnableSoftAp(@Nullable JSONObject configuration) throws Throwable {
-        verifyApiVersionForSoftAp();
         // If no configuration is provided, the existing configuration would be used.
         WifiConfiguration wifiConfiguration = null;
         if (configuration != null) {
@@ -298,21 +275,9 @@ public class WifiManagerSnippet implements Snippet {
             // WifiConfiguration.SSID literally, unlike the WifiManager connection logic.
             wifiConfiguration.SSID = JsonSerializer.trimQuotationMarks(wifiConfiguration.SSID);
         }
-        boolean success;
-        try {
-            success =
-                    (boolean)
-                            mWifiManager
-                                    .getClass()
-                                    .getDeclaredMethod(
-                                            "setWifiApEnabled",
-                                            WifiConfiguration.class,
-                                            boolean.class)
-                                    .invoke(mWifiManager, wifiConfiguration, true);
-        } catch (InvocationTargetException e) {
-            throw e.getCause();
-        }
-        if (!success) {
+        if (!(boolean)
+                Utils.invokeByReflection(
+                        mWifiManager, "setWifiApEnabled", wifiConfiguration, true)) {
             throw new WifiManagerSnippetException("Failed to initiate turning on Wi-Fi Soft AP.");
         }
         if (!Utils.waitUntil(() -> wifiIsApEnabled() == true, 60)) {
@@ -322,34 +287,15 @@ public class WifiManagerSnippet implements Snippet {
         }
     }
 
-    /**
-     * Disables Wi-Fi Soft AP (hotspot).
-     *
-     * <p>Does not work for release N.
-     *
-     * @throws Throwable
-     */
+    /** Disables Wi-Fi Soft AP (hotspot). */
     @Rpc(description = "Disable Wi-Fi Soft AP (hotspot).")
     public void wifiDisableSoftAp() throws Throwable {
-        verifyApiVersionForSoftAp();
-        boolean success;
-        try {
-            success =
-                    (boolean)
-                            mWifiManager
-                                    .getClass()
-                                    .getDeclaredMethod(
-                                            "setWifiApEnabled",
-                                            WifiConfiguration.class,
-                                            boolean.class)
-                                    .invoke(
-                                            mWifiManager,
-                                            null, /* No configuration needed for disabling */
-                                            false);
-        } catch (InvocationTargetException e) {
-            throw e.getCause();
-        }
-        if (!success) {
+        if (!(boolean)
+                Utils.invokeByReflection(
+                        mWifiManager,
+                        "setWifiApEnabled",
+                        null /* No configuration needed for disabling */,
+                        false)) {
             throw new WifiManagerSnippetException("Failed to initiate turning off Wi-Fi Soft AP.");
         }
         if (!Utils.waitUntil(() -> wifiIsApEnabled() == false, 60)) {
