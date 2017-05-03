@@ -29,7 +29,6 @@ import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.rpc.RpcMinSdk;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -146,42 +145,24 @@ public class BluetoothAdapterSnippet implements Snippet {
             throw new BluetoothAdapterSnippetException(
                     "Bluetooth is not enabled, cannot become discoverable.");
         }
-        boolean success;
-        try {
-            success =
-                    (boolean)
-                            mBluetoothAdapter
-                                    .getClass()
-                                    .getDeclaredMethod("setScanMode", int.class, int.class)
-                                    .invoke(
-                                            mBluetoothAdapter,
-                                            BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE,
-                                            duration);
-        } catch (InvocationTargetException e) {
-            throw e.getCause();
-        }
-        if (!success) {
+        if (!(boolean)
+                Utils.invokeByReflection(
+                        mBluetoothAdapter,
+                        "setScanMode",
+                        BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE,
+                        duration)) {
             throw new BluetoothAdapterSnippetException("Failed to become discoverable.");
         }
     }
 
     @Rpc(description = "Stop being discoverable in Bluetooth.")
     public void btStopBeingDiscoverable() throws Throwable {
-        boolean success;
-        try {
-            success =
-                    (boolean)
-                            mBluetoothAdapter
-                                    .getClass()
-                                    .getDeclaredMethod("setScanMode", int.class, int.class)
-                                    .invoke(
-                                            mBluetoothAdapter,
-                                            BluetoothAdapter.SCAN_MODE_NONE,
-                                            0 /* duration is not used for this */);
-        } catch (InvocationTargetException e) {
-            throw e.getCause();
-        }
-        if (!success) {
+        if (!(boolean)
+                Utils.invokeByReflection(
+                        mBluetoothAdapter,
+                        "setScanMode",
+                        BluetoothAdapter.SCAN_MODE_NONE,
+                        0 /* duration is not used for this */)) {
             throw new BluetoothAdapterSnippetException("Failed to stop being discoverable.");
         }
     }
@@ -206,18 +187,7 @@ public class BluetoothAdapterSnippet implements Snippet {
     @RpcMinSdk(Build.VERSION_CODES.KITKAT)
     @Rpc(description = "Enable Bluetooth HCI snoop log for debugging.")
     public void btEnableHciSnoopLog() throws Throwable {
-        boolean success;
-        try {
-            success =
-                    (boolean)
-                            mBluetoothAdapter
-                                    .getClass()
-                                    .getDeclaredMethod("configHciSnoopLog", boolean.class)
-                                    .invoke(mBluetoothAdapter, true);
-        } catch (InvocationTargetException e) {
-            throw e.getCause();
-        }
-        if (!success) {
+        if (!(boolean) Utils.invokeByReflection(mBluetoothAdapter, "configHciSnoopLog", true)) {
             throw new BluetoothAdapterSnippetException("Failed to enable HCI snoop log.");
         }
     }
@@ -225,18 +195,7 @@ public class BluetoothAdapterSnippet implements Snippet {
     @RpcMinSdk(Build.VERSION_CODES.KITKAT)
     @Rpc(description = "Disable Bluetooth HCI snoop log.")
     public void btDisableHciSnoopLog() throws Throwable {
-        boolean success;
-        try {
-            success =
-                    (boolean)
-                            mBluetoothAdapter
-                                    .getClass()
-                                    .getDeclaredMethod("configHciSnoopLog", boolean.class)
-                                    .invoke(mBluetoothAdapter, false);
-        } catch (InvocationTargetException e) {
-            throw e.getCause();
-        }
-        if (!success) {
+        if (!(boolean) Utils.invokeByReflection(mBluetoothAdapter, "configHciSnoopLog", false)) {
             throw new BluetoothAdapterSnippetException("Failed to disable HCI snoop log.");
         }
     }

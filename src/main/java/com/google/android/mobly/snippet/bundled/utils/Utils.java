@@ -16,6 +16,11 @@
 
 package com.google.android.mobly.snippet.bundled.utils;
 
+import com.google.common.primitives.Primitives;
+import com.google.common.reflect.TypeToken;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 public final class Utils {
     private Utils() {}
 
@@ -55,5 +60,90 @@ public final class Utils {
      */
     public interface Predicate {
         boolean waitCondition() throws Throwable;
+    }
+
+    /**
+     * Simplified API to invoke an instance method by reflection.
+     *
+     * <p>Sample usage:
+     *
+     * <pre>
+     *   boolean result = (boolean) Utils.invokeByReflection(
+     *           mWifiManager,
+     *           "setWifiApEnabled", null /* wifiConfiguration * /, true /* enabled * /);
+     * </pre>
+     *
+     * @param instance Instance of object defining the method to call.
+     * @param methodName Name of the method to call. Can be inherited.
+     * @param args Variadic array of arguments to supply to the method. Their types will be used to
+     *     locate a suitable method to call. Subtypes, primitive types, boxed types, and {@code
+     *     null} arguments are properly handled.
+     * @return The return value of the method, or {@code null} if no return value.
+     * @throws NoSuchMethodException If no suitable method could be found.
+     * @throws Throwable The exception raised by the method, if any.
+     */
+    public static Object invokeByReflection(Object instance, String methodName, Object... args)
+            throws Throwable {
+        // Java doesn't know if invokeByReflection(instance, name, null) means that the array is
+        // null or that it's a non-null array containing a single null element. We mean the latter.
+        // Silly Java.
+        if (args == null) {
+            args = new Object[] {null};
+        }
+        // Can't use Class#getMethod(Class<?>...) because it expects that the passed in classes
+        // exactly match the parameters of the method, and doesn't handle superclasses.
+        Method method = null;
+        METHOD_SEARCHER:
+        for (Method candidateMethod : instance.getClass().getMethods()) {
+            // getMethods() returns only public methods, so we don't need to worry about checking
+            // whether the method is accessible.
+            if (!candidateMethod.getName().equals(methodName)) {
+                continue;
+            }
+            Class<?>[] declaredParams = candidateMethod.getParameterTypes();
+            if (declaredParams.length != args.length) {
+                continue;
+            }
+            for (int i = 0; i < declaredParams.length; i++) {
+                if (args[i] == null) {
+                    // Null is assignable to anything except primitives.
+                    if (declaredParams[i].isPrimitive()) {
+                        continue METHOD_SEARCHER;
+                    }
+                } else {
+                    // Allow autoboxing during reflection by wrapping primitives.
+                    Class<?> declaredClass = Primitives.wrap(declaredParams[i]);
+                    Class<?> actualClass = Primitives.wrap(args[i].getClass());
+                    TypeToken<?> declaredParamType = TypeToken.of(declaredClass);
+                    TypeToken<?> actualParamType = TypeToken.of(actualClass);
+                    if (!declaredParamType.isSupertypeOf(actualParamType)) {
+                        continue METHOD_SEARCHER;
+                    }
+                }
+            }
+            method = candidateMethod;
+            break;
+        }
+        if (method == null) {
+            StringBuilder methodString =
+                    new StringBuilder(instance.getClass().getName())
+                            .append('#')
+                            .append(methodName)
+                            .append('(');
+            for (int i = 0; i < args.length - 1; i++) {
+                methodString.append(args[i].getClass().getSimpleName()).append(", ");
+            }
+            if (args.length > 0) {
+                methodString.append(args[args.length - 1].getClass().getSimpleName());
+            }
+            methodString.append(')');
+            throw new NoSuchMethodException(methodString.toString());
+        }
+        try {
+            Object result = method.invoke(instance, args);
+            return result;
+        } catch (InvocationTargetException e) {
+            throw e.getCause();
+        }
     }
 }
