@@ -145,42 +145,22 @@ public class BluetoothAdapterSnippet implements Snippet {
             throw new BluetoothAdapterSnippetException(
                     "Bluetooth is not enabled, cannot become discoverable.");
         }
-        boolean success;
-        try {
-            success =
-                    (boolean)
-                            mBluetoothAdapter
-                                    .getClass()
-                                    .getDeclaredMethod("setScanMode", int.class, int.class)
-                                    .invoke(
-                                            mBluetoothAdapter,
-                                            BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE,
-                                            duration);
-        } catch (InvocationTargetException e) {
-            throw e.getCause();
-        }
-        if (!success) {
+        if (!(boolean) Utils.invokeByReflection(
+            mBluetoothAdapter,
+            "setScanMode",
+            BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE,
+            duration)) {
             throw new BluetoothAdapterSnippetException("Failed to become discoverable.");
         }
     }
 
     @Rpc(description = "Stop being discoverable in Bluetooth.")
     public void btStopBeingDiscoverable() throws Throwable {
-        boolean success;
-        try {
-            success =
-                    (boolean)
-                            mBluetoothAdapter
-                                    .getClass()
-                                    .getDeclaredMethod("setScanMode", int.class, int.class)
-                                    .invoke(
-                                            mBluetoothAdapter,
-                                            BluetoothAdapter.SCAN_MODE_NONE,
-                                            0 /* duration is not used for this */);
-        } catch (InvocationTargetException e) {
-            throw e.getCause();
-        }
-        if (!success) {
+        if (!(boolean) Utils.invokeByReflection(
+            mBluetoothAdapter,
+            "setScanMode",
+            BluetoothAdapter.SCAN_MODE_NONE,
+            0 /* duration is not used for this */)) {
             throw new BluetoothAdapterSnippetException("Failed to stop being discoverable.");
         }
     }
