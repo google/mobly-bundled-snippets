@@ -24,6 +24,7 @@ import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
@@ -31,6 +32,7 @@ import com.google.android.mobly.snippet.bundled.utils.JsonDeserializer;
 import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
+import com.google.android.mobly.snippet.rpc.RpcMinSdk;
 import com.google.android.mobly.snippet.util.Log;
 import java.util.ArrayList;
 import org.json.JSONArray;
@@ -223,7 +225,7 @@ public class WifiManagerSnippet implements Snippet {
         return networks;
     }
 
-    @TargetApi(21)
+    @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP)
     @Rpc(description = "Enable or disable wifi verbose logging.")
     public void setWifiVerboseLogging(boolean enable) throws Throwable {
         Utils.invokeByReflection(mWifiManager, "enableVerboseLogging", enable ? 1 : 0);
