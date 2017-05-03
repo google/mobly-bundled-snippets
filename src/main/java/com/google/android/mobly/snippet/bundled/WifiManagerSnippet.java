@@ -226,7 +226,7 @@ public class WifiManagerSnippet implements Snippet {
 
     @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP)
     @Rpc(description = "Enable or disable wifi verbose logging.")
-    public void setWifiVerboseLogging(boolean enable) throws Throwable {
+    public void wifiSetVerboseLogging(boolean enable) throws Throwable {
         Utils.invokeByReflection(mWifiManager, "enableVerboseLogging", enable ? 1 : 0);
     }
 
