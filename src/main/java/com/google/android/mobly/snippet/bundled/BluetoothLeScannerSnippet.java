@@ -17,71 +17,80 @@
 package com.google.android.mobly.snippet.bundled;
 
 import android.annotation.TargetApi;
-import android.bluetooth.BluetoothManager;
-import android.bluetooth.le.AdvertiseCallback;
-import android.bluetooth.le.AdvertiseData;
-import android.bluetooth.le.AdvertiseSettings;
-import android.bluetooth.le.BluetoothLeAdvertiser;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
-import android.content.Context;
 import android.os.Build;
-import android.support.test.InstrumentationRegistry;
-
+import android.os.Bundle;
 import com.google.android.mobly.snippet.Snippet;
-import com.google.android.mobly.snippet.bundled.utils.JsonDeserializer;
+import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.event.EventCache;
 import com.google.android.mobly.snippet.event.SnippetEvent;
 import com.google.android.mobly.snippet.rpc.AsyncRpc;
 import com.google.android.mobly.snippet.rpc.Rpc;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import com.google.android.mobly.snippet.util.Log;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 /** Snippet class exposing Android APIs in WifiManager. */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
 public class BluetoothLeScannerSnippet implements Snippet {
-    private static class BluetoothLeAdvertiserSnippetException extends Exception {
+    private static class BluetoothLeScanSnippetException extends Exception {
         private static final long serialVersionUID = 1;
 
-        public BluetoothLeAdvertiserSnippetException(String msg) {
+        public BluetoothLeScanSnippetException(String msg) {
             super(msg);
         }
     }
 
-    private final BluetoothManager mBluetoothManager;
     private final BluetoothLeScanner mScanner;
-    private final Context mContext;
     private final EventCache mEventCache = EventCache.getInstance();
-    private final HashMap<String, AdvertiseCallback> mAdvertiseCallbacks = new HashMap<>();
+    private final HashMap<String, ScanCallback> mScanCallbacks = new HashMap<>();
+    private final JsonSerializer mJsonSerializer = new JsonSerializer();
 
     public BluetoothLeScannerSnippet() {
-        mContext = InstrumentationRegistry.getContext();
-        mBluetoothManager = (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
-        mScanner = mBluetoothManager.getAdapter().getBluetoothLeScanner();
+        mScanner = BluetoothAdapter.getDefaultAdapter().getBluetoothLeScanner();
     }
 
-    @AsyncRpc(description = "Start BLE advertising.")
-    public void bleStartScan(String callbackId) {
+    @AsyncRpc(description = "Start BLE scan.")
+    public void bleStartScan(String callbackId) throws BluetoothLeScanSnippetException {
+        if (!BluetoothAdapter.getDefaultAdapter().isEnabled()) {
+            throw new BluetoothLeScanSnippetException(
+                    "Bluetooth is disabled, cannot start BLE scan.");
+        }
         DefaultScanCallback callback = new DefaultScanCallback((callbackId));
         mScanner.startScan(callback);
+        mScanCallbacks.put(callbackId, callback);
+    }
+
+    @Rpc(description = "Stop BLE scan.")
+    public void bleStopScan(String id) throws BluetoothLeScanSnippetException {
+        if (!mScanCallbacks.containsKey(id)) {
+            throw new BluetoothLeScanSnippetException("No ongoing scan with ID: " + id);
+        }
+        mScanner.stopScan(mScanCallbacks.remove(id));
     }
 
     @Override
-    public void shutdown() {}
+    public void shutdown() {
+        for (String id : mScanCallbacks.keySet()) {
+            mScanner.stopScan(mScanCallbacks.get(id));
+        }
+        mScanCallbacks.clear();
+    }
 
     private class DefaultScanCallback extends ScanCallback {
         private final String mCallbackId;
+
         public DefaultScanCallback(String callbackId) {
             mCallbackId = callbackId;
         }
 
         public void onScanResult(int callbackType, ScanResult result) {
+            Log.i("Got Bluetooth LE scan result.");
             SnippetEvent event = new SnippetEvent(mCallbackId, "onScanResult");
             final String nameCallbackType = "CallbackType";
             switch (callbackType) {
@@ -95,22 +104,44 @@ public class BluetoothLeScannerSnippet implements Snippet {
                     event.getData().putString(nameCallbackType, "CALLBACK_TYPE_MATCH_LOST");
                     break;
             }
+            event.getData().putBundle("result", mJsonSerializer.serializeBleScanResult(result));
+            mEventCache.postEvent(event);
         }
 
-        /**
-         * Callback when batch results are delivered.
-         *
-         * @param results List of scan results that are previously scanned.
-         */
         public void onBatchScanResults(List<ScanResult> results) {
+            Log.i("Got Bluetooth LE batch scan results.");
+            SnippetEvent event = new SnippetEvent(mCallbackId, "onBatchScanResult");
+            ArrayList<Bundle> resultList = new ArrayList<>(results.size());
+            for (ScanResult result : results) {
+                resultList.add(mJsonSerializer.serializeBleScanResult(result));
+            }
+            event.getData().putParcelableArrayList("results", resultList);
+            mEventCache.postEvent(event);
         }
 
-        /**
-         * Callback when scan could not be started.
-         *
-         * @param errorCode Error code (one of SCAN_FAILED_*) for scan failure.
-         */
         public void onScanFailed(int errorCode) {
+            Log.e("Bluetooth LE scan failed with error code: " + errorCode);
+            SnippetEvent event = new SnippetEvent(mCallbackId, "onScanFailed");
+            String errorCodeString;
+            switch (errorCode) {
+                case SCAN_FAILED_ALREADY_STARTED:
+                    errorCodeString = "SCAN_FAILED_ALREADY_STARTED";
+                    break;
+                case SCAN_FAILED_APPLICATION_REGISTRATION_FAILED:
+                    errorCodeString = "SCAN_FAILED_APPLICATION_REGISTRATION_FAILED";
+                    break;
+                case SCAN_FAILED_FEATURE_UNSUPPORTED:
+                    errorCodeString = "SCAN_FAILED_FEATURE_UNSUPPORTED";
+                    break;
+                case SCAN_FAILED_INTERNAL_ERROR:
+                    errorCodeString = "SCAN_FAILED_INTERNAL_ERROR";
+                    break;
+                default:
+                    errorCodeString = "UNKNOWN";
+                    break;
+            }
+            event.getData().putString("ErrorCode", errorCodeString);
+            mEventCache.postEvent(event);
         }
     }
 }

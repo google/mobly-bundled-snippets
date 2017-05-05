@@ -17,20 +17,19 @@
 package com.google.android.mobly.snippet.bundled;
 
 import android.annotation.TargetApi;
-import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.BluetoothLeAdvertiser;
-import android.content.Context;
 import android.os.Build;
-import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.JsonDeserializer;
 import com.google.android.mobly.snippet.event.EventCache;
 import com.google.android.mobly.snippet.event.SnippetEvent;
 import com.google.android.mobly.snippet.rpc.AsyncRpc;
 import com.google.android.mobly.snippet.rpc.Rpc;
+import com.google.android.mobly.snippet.util.Log;
 import java.util.HashMap;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -46,16 +45,13 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
         }
     }
 
-    private final BluetoothManager mBluetoothManager;
     private final BluetoothLeAdvertiser mAdvertiser;
-    private final Context mContext;
     private final EventCache mEventCache = EventCache.getInstance();
     private final HashMap<String, AdvertiseCallback> mAdvertiseCallbacks = new HashMap<>();
 
     public BluetoothLeAdvertiserSnippet() {
-        mContext = InstrumentationRegistry.getContext();
-        mBluetoothManager = (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
-        mAdvertiser = mBluetoothManager.getAdapter().getBluetoothLeAdvertiser();
+        mAdvertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
+        Log.i("Constructed BLE advertiser.");
     }
 
     /**
@@ -77,7 +73,11 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
     @AsyncRpc(description = "Start BLE advertising.")
     public void bleStartAdvertising(
             String callbackId, JSONObject advertiseSettings, JSONObject advertiseData)
-            throws JSONException {
+            throws BluetoothLeAdvertiserSnippetException, JSONException {
+        if (!BluetoothAdapter.getDefaultAdapter().isEnabled()) {
+            throw new BluetoothLeAdvertiserSnippetException(
+                    "Bluetooth is disabled, cannot start BLE advertising.");
+        }
         AdvertiseSettings settings = JsonDeserializer.jsonToBleAdvertiseSettings(advertiseSettings);
         AdvertiseData data = JsonDeserializer.jsonToBleAdvertiseData(advertiseData);
         AdvertiseCallback advertiseCallback = new DefaultAdvertiseCallback(callbackId);
@@ -102,6 +102,7 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
         }
 
         public void onStartSuccess(AdvertiseSettings settingsInEffect) {
+            Log.e("Bluetooth LE advertising started with settings: " + settingsInEffect.toString());
             SnippetEvent event = new SnippetEvent(mCallbackId, "onStartSuccess");
             final String nameTxPowerLevel = "TxPowerLevel";
             switch (settingsInEffect.getTxPowerLevel()) {
@@ -142,6 +143,7 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
         }
 
         public void onStartFailure(int errorCode) {
+            Log.e("Bluetooth LE advertising failed to start with error code: " + errorCode);
             SnippetEvent event = new SnippetEvent(mCallbackId, "onStartFailure");
             final String nameErrorCode = "ErrorCode";
             switch (errorCode) {
@@ -152,13 +154,15 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
                     event.getData().putString(nameErrorCode, "ADVERTISE_FAILED_DATA_TOO_LARGE");
                     break;
                 case ADVERTISE_FAILED_FEATURE_UNSUPPORTED:
-                    event.getData().putString(nameErrorCode, "ADVERTISE_FAILED_FEATURE_UNSUPPORTED");
+                    event.getData()
+                            .putString(nameErrorCode, "ADVERTISE_FAILED_FEATURE_UNSUPPORTED");
                     break;
                 case ADVERTISE_FAILED_INTERNAL_ERROR:
                     event.getData().putString(nameErrorCode, "ADVERTISE_FAILED_INTERNAL_ERROR");
                     break;
                 case ADVERTISE_FAILED_TOO_MANY_ADVERTISERS:
-                    event.getData().putString(nameErrorCode, "ADVERTISE_FAILED_TOO_MANY_ADVERTISERS");
+                    event.getData()
+                            .putString(nameErrorCode, "ADVERTISE_FAILED_TOO_MANY_ADVERTISERS");
                     break;
                 default:
                     event.getData().putString(nameErrorCode, "UNKNOWN");
@@ -170,7 +174,7 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
 
     @Override
     public void shutdown() {
-        for(String id : mAdvertiseCallbacks.keySet()) {
+        for (String id : mAdvertiseCallbacks.keySet()) {
             mAdvertiser.stopAdvertising(mAdvertiseCallbacks.get(id));
         }
         mAdvertiseCallbacks.clear();
