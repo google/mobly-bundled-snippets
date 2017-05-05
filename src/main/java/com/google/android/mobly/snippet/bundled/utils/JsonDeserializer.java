@@ -54,6 +54,7 @@ public class JsonDeserializer {
         if (jsonObject.has("AdvertiseMode")) {
             builder.setAdvertiseMode(jsonObject.getInt("AdvertiseMode"));
         }
+        // Timeout in milliseconds.
         if (jsonObject.has("Timeout")) {
             builder.setTimeout(jsonObject.getInt("Timeout"));
         }
@@ -82,7 +83,7 @@ public class JsonDeserializer {
         if (jsonObject.has("ServiceData")) {
             JSONObject serviceData = jsonObject.getJSONObject("ServiceData");
             ParcelUuid parcelUuid = stringToParcelUuid(serviceData.getString("UUID"));
-            byte[] data = Base64.decode(jsonObject.getString("Data"), Base64.DEFAULT);
+            byte[] data = Base64.decode(serviceData.getString("Data"), Base64.DEFAULT);
             builder.addServiceData(parcelUuid, data);
         }
         if (jsonObject.has("ServiceUuid")) {
