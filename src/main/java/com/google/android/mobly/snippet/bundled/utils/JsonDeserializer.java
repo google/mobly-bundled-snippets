@@ -67,10 +67,6 @@ public class JsonDeserializer {
         return builder.build();
     }
 
-    public static ParcelUuid stringToParcelUuid(String uuidString) throws JSONException {
-        return ParcelUuid.fromString(uuidString);
-    }
-
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public static AdvertiseData jsonToBleAdvertiseData(JSONObject jsonObject) throws JSONException {
         AdvertiseData.Builder builder = new AdvertiseData.Builder();
@@ -82,12 +78,12 @@ public class JsonDeserializer {
         }
         if (jsonObject.has("ServiceData")) {
             JSONObject serviceData = jsonObject.getJSONObject("ServiceData");
-            ParcelUuid parcelUuid = stringToParcelUuid(serviceData.getString("UUID"));
+            ParcelUuid parcelUuid = ParcelUuid.fromString(serviceData.getString("UUID"));
             byte[] data = Base64.decode(serviceData.getString("Data"), Base64.DEFAULT);
             builder.addServiceData(parcelUuid, data);
         }
         if (jsonObject.has("ServiceUuid")) {
-            ParcelUuid uuid = stringToParcelUuid(jsonObject.getString("ServiceUuid"));
+            ParcelUuid uuid = ParcelUuid.fromString(jsonObject.getString("ServiceUuid"));
             builder.addServiceUuid(uuid);
         }
         if (jsonObject.has("ManufacturerData")) {

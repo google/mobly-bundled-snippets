@@ -23,8 +23,10 @@ import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.os.Build;
+import android.os.Bundle;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.JsonDeserializer;
+import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.event.EventCache;
 import com.google.android.mobly.snippet.event.SnippetEvent;
 import com.google.android.mobly.snippet.rpc.AsyncRpc;
@@ -46,12 +48,11 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
     }
 
     private final BluetoothLeAdvertiser mAdvertiser;
-    private final EventCache mEventCache = EventCache.getInstance();
+    private static final EventCache sEventCache = EventCache.getInstance();
     private final HashMap<String, AdvertiseCallback> mAdvertiseCallbacks = new HashMap<>();
 
     public BluetoothLeAdvertiserSnippet() {
         mAdvertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
-        Log.i("Constructed BLE advertiser.");
     }
 
     /**
@@ -62,9 +63,11 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
      *
      * @param callbackId
      * @param advertiseSettings A JSONObject with the info on the settings for the advertising. For
-     *     example: {"AdvertiseMode": {@link AdvertiseSettings#ADVERTISE_MODE_BALANCED}, "Timeout":
+     *     example:
+     *     <pre>{"AdvertiseMode": {@link AdvertiseSettings#ADVERTISE_MODE_BALANCED}, "Timeout":
      *     60000, "Connectable": False, "TxPowerLevel": {@link
-     *     AdvertiseSettings#ADVERTISE_TX_POWER_LOW} }
+     *     AdvertiseSettings#ADVERTISE_TX_POWER_LOW} }</pre>
+     *
      * @param advertiseData A JSONObject representing the data to include in advertising beacon. For
      *     example: {"IncludeDeviceName": true, "ServiceData": [A Base64 encoded string],
      *     "ServiceUuid": [A string representation of the UUID]}
@@ -86,15 +89,16 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
     }
 
     @Rpc(description = "Stop BLE advertising.")
-    public void bleStopAdvertitsing(String id) throws BluetoothLeAdvertiserSnippetException {
-        if (!mAdvertiseCallbacks.containsKey(id)) {
+    public void bleStopAdvertising(String id) throws BluetoothLeAdvertiserSnippetException {
+        AdvertiseCallback callback = mAdvertiseCallbacks.remove(id);
+        if (callback == null) {
             throw new BluetoothLeAdvertiserSnippetException(
                     "No advertising session found for ID " + id);
         }
-        mAdvertiser.stopAdvertising(mAdvertiseCallbacks.remove(id));
+        mAdvertiser.stopAdvertising(callback);
     }
 
-    private class DefaultAdvertiseCallback extends AdvertiseCallback {
+    private static class DefaultAdvertiseCallback extends AdvertiseCallback {
         private final String mCallbackId;
 
         public DefaultAdvertiseCallback(String callbackId) {
@@ -104,42 +108,10 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
         public void onStartSuccess(AdvertiseSettings settingsInEffect) {
             Log.e("Bluetooth LE advertising started with settings: " + settingsInEffect.toString());
             SnippetEvent event = new SnippetEvent(mCallbackId, "onStartSuccess");
-            final String nameTxPowerLevel = "TxPowerLevel";
-            switch (settingsInEffect.getTxPowerLevel()) {
-                case AdvertiseSettings.ADVERTISE_TX_POWER_ULTRA_LOW:
-                    event.getData().putString(nameTxPowerLevel, "ADVERTISE_TX_POWER_ULTRA_LOW");
-                    break;
-                case AdvertiseSettings.ADVERTISE_TX_POWER_LOW:
-                    event.getData().putString(nameTxPowerLevel, "ADVERTISE_TX_POWER_LOW");
-                    break;
-                case AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM:
-                    event.getData().putString(nameTxPowerLevel, "ADVERTISE_TX_POWER_MEDIUM");
-                    break;
-                case AdvertiseSettings.ADVERTISE_TX_POWER_HIGH:
-                    event.getData().putString(nameTxPowerLevel, "ADVERTISE_TX_POWER_HIGH");
-                    break;
-                default:
-                    event.getData().putString(nameTxPowerLevel, "UNKNOWN");
-                    break;
-            }
-            final String nameMode = "Mode";
-            switch (settingsInEffect.getMode()) {
-                case AdvertiseSettings.ADVERTISE_MODE_BALANCED:
-                    event.getData().putString(nameMode, "ADVERTISE_MODE_BALANCED");
-                    break;
-                case AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY:
-                    event.getData().putString(nameMode, "ADVERTISE_MODE_LOW_LATENCY");
-                    break;
-                case AdvertiseSettings.ADVERTISE_MODE_LOW_POWER:
-                    event.getData().putString(nameMode, "ADVERTISE_MODE_LOW_POWER");
-                    break;
-                default:
-                    event.getData().putString(nameMode, "UNKNOWN");
-                    break;
-            }
-            event.getData().putInt("Timeout", settingsInEffect.getTimeout());
-            event.getData().putBoolean("IsConnectable", settingsInEffect.isConnectable());
-            mEventCache.postEvent(event);
+            Bundle advertiseSettings =
+                    JsonSerializer.serializeBleAdvertisingSettings(settingsInEffect);
+            event.getData().putBundle("SettingsInEffect", advertiseSettings);
+            sEventCache.postEvent(event);
         }
 
         public void onStartFailure(int errorCode) {
@@ -168,14 +140,14 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
                     event.getData().putString(nameErrorCode, "UNKNOWN");
                     break;
             }
-            mEventCache.postEvent(event);
+            sEventCache.postEvent(event);
         }
     }
 
     @Override
     public void shutdown() {
-        for (String id : mAdvertiseCallbacks.keySet()) {
-            mAdvertiser.stopAdvertising(mAdvertiseCallbacks.get(id));
+        for (AdvertiseCallback callback : mAdvertiseCallbacks.values()) {
+            mAdvertiser.stopAdvertising(callback);
         }
         mAdvertiseCallbacks.clear();
     }

@@ -61,7 +61,7 @@ public class BluetoothLeScannerSnippet implements Snippet {
             throw new BluetoothLeScanSnippetException(
                     "Bluetooth is disabled, cannot start BLE scan.");
         }
-        DefaultScanCallback callback = new DefaultScanCallback((callbackId));
+        DefaultScanCallback callback = new DefaultScanCallback(callbackId);
         mScanner.startScan(callback);
         mScanCallbacks.put(callbackId, callback);
     }
@@ -76,8 +76,8 @@ public class BluetoothLeScannerSnippet implements Snippet {
 
     @Override
     public void shutdown() {
-        for (String id : mScanCallbacks.keySet()) {
-            mScanner.stopScan(mScanCallbacks.get(id));
+        for (ScanCallback callback : mScanCallbacks.values()) {
+            mScanner.stopScan(callback);
         }
         mScanCallbacks.clear();
     }
