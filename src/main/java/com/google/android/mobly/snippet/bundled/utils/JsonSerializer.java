@@ -196,7 +196,7 @@ public class JsonSerializer {
         return result;
     }
 
-    private String bleAdvertiseTxPowerToString(int advertiseTxPower) {
+    private static String bleAdvertiseTxPowerToString(int advertiseTxPower) {
         switch (advertiseTxPower) {
             case AdvertiseSettings.ADVERTISE_TX_POWER_ULTRA_LOW:
                 return "ADVERTISE_TX_POWER_ULTRA_LOW";
@@ -212,7 +212,7 @@ public class JsonSerializer {
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
-    private Bundle serializeBleAdvertisingSettings(AdvertiseSettings advertiseSettings) {
+    public static Bundle serializeBleAdvertisingSettings(AdvertiseSettings advertiseSettings) {
         Bundle result = new Bundle();
         result.putString(
                 "TxPowerLevel", bleAdvertiseTxPowerToString(advertiseSettings.getTxPowerLevel()));
