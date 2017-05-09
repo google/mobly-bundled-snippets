@@ -30,6 +30,7 @@ import com.google.android.mobly.snippet.event.EventCache;
 import com.google.android.mobly.snippet.event.SnippetEvent;
 import com.google.android.mobly.snippet.rpc.AsyncRpc;
 import com.google.android.mobly.snippet.rpc.Rpc;
+import com.google.android.mobly.snippet.rpc.RpcMinSdk;
 import com.google.android.mobly.snippet.util.Log;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,6 +38,7 @@ import java.util.List;
 
 /** Snippet class exposing Android APIs in WifiManager. */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
+@RpcMinSdk(Build.VERSION_CODES.LOLLIPOP_MR1)
 public class BluetoothLeScannerSnippet implements Snippet {
     private static class BluetoothLeScanSnippetException extends Exception {
         private static final long serialVersionUID = 1;
