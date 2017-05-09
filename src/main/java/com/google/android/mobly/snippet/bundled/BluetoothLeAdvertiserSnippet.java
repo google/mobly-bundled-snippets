@@ -62,15 +62,25 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
      * AdvertiseCallback} object, which is used to stop the advertising.
      *
      * @param callbackId
-     * @param advertiseSettings A JSONObject with the info on the settings for the advertising. For
-     *     example:
-     *     <pre>{"AdvertiseMode": {@link AdvertiseSettings#ADVERTISE_MODE_BALANCED}, "Timeout":
-     *     60000, "Connectable": False, "TxPowerLevel": {@link
-     *     AdvertiseSettings#ADVERTISE_TX_POWER_LOW} }</pre>
+     * @param advertiseSettings A JSONObject representing a {@link AdvertiseSettings object}. E.g.
+     *     <pre>
+     *          {
+     *            "AdvertiseMode": {@link AdvertiseSettings#ADVERTISE_MODE_BALANCED},
+     *            "Timeout": 60000,
+     *            "Connectable": False,
+     *            "TxPowerLevel": {@link AdvertiseSettings#ADVERTISE_TX_POWER_LOW}
+     *          }
+     *     </pre>
      *
-     * @param advertiseData A JSONObject representing the data to include in advertising beacon. For
-     *     example: {"IncludeDeviceName": true, "ServiceData": [A Base64 encoded string],
-     *     "ServiceUuid": [A string representation of the UUID]}
+     * @param advertiseData A JSONObject representing a {@link AdvertiseData} object. E.g.
+     *     <pre>
+     *          {
+     *            "IncludeDeviceName": true,
+     *            "ServiceData": [A Base64 encoded string],
+     *            "ServiceUuid": [A string representation of the UUID]
+     *          }
+     *     </pre>
+     *
      * @throws JSONException
      */
     @AsyncRpc(description = "Start BLE advertising.")
