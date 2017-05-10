@@ -38,7 +38,6 @@ import java.util.List;
 
 /** Snippet class exposing Android APIs in WifiManager. */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
-@RpcMinSdk(Build.VERSION_CODES.LOLLIPOP_MR1)
 public class BluetoothLeScannerSnippet implements Snippet {
     private static class BluetoothLeScanSnippetException extends Exception {
         private static final long serialVersionUID = 1;
@@ -57,6 +56,7 @@ public class BluetoothLeScannerSnippet implements Snippet {
         mScanner = BluetoothAdapter.getDefaultAdapter().getBluetoothLeScanner();
     }
 
+    @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP_MR1)
     @AsyncRpc(description = "Start BLE scan.")
     public void bleStartScan(String callbackId) throws BluetoothLeScanSnippetException {
         if (!BluetoothAdapter.getDefaultAdapter().isEnabled()) {
@@ -68,6 +68,7 @@ public class BluetoothLeScannerSnippet implements Snippet {
         mScanCallbacks.put(callbackId, callback);
     }
 
+    @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP_MR1)
     @Rpc(description = "Stop BLE scan.")
     public void bleStopScan(String id) throws BluetoothLeScanSnippetException {
         if (!mScanCallbacks.containsKey(id)) {

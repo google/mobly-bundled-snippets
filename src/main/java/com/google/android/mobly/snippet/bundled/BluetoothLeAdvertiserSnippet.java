@@ -24,6 +24,7 @@ import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.ParcelUuid;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.JsonDeserializer;
 import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
@@ -31,6 +32,7 @@ import com.google.android.mobly.snippet.event.EventCache;
 import com.google.android.mobly.snippet.event.SnippetEvent;
 import com.google.android.mobly.snippet.rpc.AsyncRpc;
 import com.google.android.mobly.snippet.rpc.Rpc;
+import com.google.android.mobly.snippet.rpc.RpcMinSdk;
 import com.google.android.mobly.snippet.util.Log;
 import java.util.HashMap;
 import org.json.JSONException;
@@ -66,8 +68,8 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
      *     <pre>
      *          {
      *            "AdvertiseMode": {@link AdvertiseSettings#ADVERTISE_MODE_BALANCED},
-     *            "Timeout": 60000,
-     *            "Connectable": False,
+     *            "Timeout": (int, milliseconds),
+     *            "Connectable": (bool),
      *            "TxPowerLevel": {@link AdvertiseSettings#ADVERTISE_TX_POWER_LOW}
      *          }
      *     </pre>
@@ -75,14 +77,20 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
      * @param advertiseData A JSONObject representing a {@link AdvertiseData} object. E.g.
      *     <pre>
      *          {
-     *            "IncludeDeviceName": true,
-     *            "ServiceData": [A Base64 encoded string],
-     *            "ServiceUuid": [A string representation of the UUID]
+     *            "IncludeDeviceName": (bool),
+     *            "ServiceData":
+     *                      {
+     *                        "UUID": (A string representation of {@link ParcelUuid}),
+     *                        "Data": (The string representation of what you want to advertise,
+     *                                 base64 encoded)
+     *                      }
+     *            "ServiceUuid": (A string representation of {@link ParcelUuid})
      *          }
      *     </pre>
      *
      * @throws JSONException
      */
+    @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP_MR1)
     @AsyncRpc(description = "Start BLE advertising.")
     public void bleStartAdvertising(
             String callbackId, JSONObject advertiseSettings, JSONObject advertiseData)
@@ -98,6 +106,7 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
         mAdvertiseCallbacks.put(callbackId, advertiseCallback);
     }
 
+    @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP_MR1)
     @Rpc(description = "Stop BLE advertising.")
     public void bleStopAdvertising(String id) throws BluetoothLeAdvertiserSnippetException {
         AdvertiseCallback callback = mAdvertiseCallbacks.remove(id);
