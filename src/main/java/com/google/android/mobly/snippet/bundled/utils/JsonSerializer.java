@@ -27,7 +27,9 @@ import android.net.wifi.WifiInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.ParcelUuid;
-import com.google.android.mobly.snippet.bundled.BluetoothLeAdvertiserSnippet;
+import com.google.android.mobly.snippet.bundled.enums.Api18Enums;
+import com.google.android.mobly.snippet.bundled.enums.Api21Enums;
+import com.google.android.mobly.snippet.bundled.enums.Api5Enums;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.lang.reflect.Modifier;
@@ -130,35 +132,12 @@ public class JsonSerializer {
     public Bundle serializeBluetoothDevice(BluetoothDevice data) {
         Bundle result = new Bundle();
         result.putString("Address", data.getAddress());
-        final String bondStateFieldName = "BondState";
-        switch (data.getBondState()) {
-            case BluetoothDevice.BOND_NONE:
-                result.putString(bondStateFieldName, "BOND_NONE");
-                break;
-            case BluetoothDevice.BOND_BONDING:
-                result.putString(bondStateFieldName, "BOND_BONDING");
-                break;
-            case BluetoothDevice.BOND_BONDED:
-                result.putString(bondStateFieldName, "BOND_BONDED");
-                break;
-        }
+        final String bondState = Api5Enums.bluetoothDeviceBondState.getString(data.getBondState());
+        result.putString("BondState", bondState);
         result.putString("Name", data.getName());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            final String deviceTypeFieldName = "DeviceType";
-            switch (data.getType()) {
-                case BluetoothDevice.DEVICE_TYPE_CLASSIC:
-                    result.putString(deviceTypeFieldName, "DEVICE_TYPE_CLASSIC");
-                    break;
-                case BluetoothDevice.DEVICE_TYPE_LE:
-                    result.putString(deviceTypeFieldName, "DEVICE_TYPE_LE");
-                    break;
-                case BluetoothDevice.DEVICE_TYPE_DUAL:
-                    result.putString(deviceTypeFieldName, "DEVICE_TYPE_DUAL");
-                    break;
-                case BluetoothDevice.DEVICE_TYPE_UNKNOWN:
-                    result.putString(deviceTypeFieldName, "DEVICE_TYPE_UNKNOWN");
-                    break;
-            }
+            String deviceType = Api18Enums.bluetoothDeviceTypeEnums.getString(data.getType());
+            result.putString("DeviceType", deviceType);
             ParcelUuid[] parcelUuids = data.getUuids();
             if (parcelUuids != null) {
                 ArrayList<String> uuidStrings = new ArrayList<>(parcelUuids.length);
@@ -195,8 +174,7 @@ public class JsonSerializer {
         result.putString("DeviceName", record.getDeviceName());
         result.putString(
                 "TxPowerLevel",
-                BluetoothLeAdvertiserSnippet.bleAdvertiseTxPowerEnums.getStringValue(
-                        record.getTxPowerLevel()));
+                Api21Enums.bleAdvertiseTxPowerEnums.getString(record.getTxPowerLevel()));
         return result;
     }
 
@@ -205,12 +183,9 @@ public class JsonSerializer {
         Bundle result = new Bundle();
         result.putString(
                 "TxPowerLevel",
-                BluetoothLeAdvertiserSnippet.bleAdvertiseTxPowerEnums.getStringValue(
-                        advertiseSettings.getTxPowerLevel()));
+                Api21Enums.bleAdvertiseTxPowerEnums.getString(advertiseSettings.getTxPowerLevel()));
         result.putString(
-                "Mode",
-                BluetoothLeAdvertiserSnippet.bleAdvertiseModeEnums.getStringValue(
-                        advertiseSettings.getMode()));
+                "Mode", Api21Enums.bleAdvertiseModeEnums.getString(advertiseSettings.getMode()));
         result.putInt("Timeout", advertiseSettings.getTimeout());
         result.putBoolean("IsConnectable", advertiseSettings.isConnectable());
         return result;

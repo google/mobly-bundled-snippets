@@ -39,7 +39,7 @@ public class RpcEnum {
      * @param enumString
      * @return
      */
-    public int getIntValue(String enumString) {
+    public int getInt(String enumString) {
         return mEnums.get(enumString);
     }
 
@@ -49,7 +49,7 @@ public class RpcEnum {
      * @param enumInt
      * @return
      */
-    public String getStringValue(int enumInt) {
+    public String getString(int enumInt) {
         return mEnums.inverse().get(enumInt);
     }
 

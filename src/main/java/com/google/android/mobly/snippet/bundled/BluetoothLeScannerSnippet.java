@@ -21,10 +21,10 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
-import android.bluetooth.le.ScanSettings;
 import android.os.Build;
 import android.os.Bundle;
 import com.google.android.mobly.snippet.Snippet;
+import com.google.android.mobly.snippet.bundled.enums.Api21Enums;
 import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.event.EventCache;
 import com.google.android.mobly.snippet.event.SnippetEvent;
@@ -56,6 +56,12 @@ public class BluetoothLeScannerSnippet implements Snippet {
         mScanner = BluetoothAdapter.getDefaultAdapter().getBluetoothLeScanner();
     }
 
+    /**
+     * Start a BLE scan.
+     *
+     * @param callbackId
+     * @throws BluetoothLeScanSnippetException
+     */
     @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP_MR1)
     @AsyncRpc(description = "Start BLE scan.")
     public void bleStartScan(String callbackId) throws BluetoothLeScanSnippetException {
@@ -68,13 +74,20 @@ public class BluetoothLeScannerSnippet implements Snippet {
         mScanCallbacks.put(callbackId, callback);
     }
 
+    /**
+     * Stop a BLE scan.
+     *
+     * @param callbackId The callbackId corresponding to the {@link
+     *     BluetoothLeScannerSnippet#bleStartScan} call that started the scan.
+     * @throws BluetoothLeScanSnippetException
+     */
     @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP_MR1)
-    @Rpc(description = "Stop BLE scan.")
-    public void bleStopScan(String id) throws BluetoothLeScanSnippetException {
-        if (!mScanCallbacks.containsKey(id)) {
-            throw new BluetoothLeScanSnippetException("No ongoing scan with ID: " + id);
+    @Rpc(description = "Stop a BLE scan.")
+    public void bleStopScan(String callbackId) throws BluetoothLeScanSnippetException {
+        if (!mScanCallbacks.containsKey(callbackId)) {
+            throw new BluetoothLeScanSnippetException("No ongoing scan with ID: " + callbackId);
         }
-        mScanner.stopScan(mScanCallbacks.remove(id));
+        mScanner.stopScan(mScanCallbacks.remove(callbackId));
     }
 
     @Override
@@ -95,18 +108,9 @@ public class BluetoothLeScannerSnippet implements Snippet {
         public void onScanResult(int callbackType, ScanResult result) {
             Log.i("Got Bluetooth LE scan result.");
             SnippetEvent event = new SnippetEvent(mCallbackId, "onScanResult");
-            final String nameCallbackType = "CallbackType";
-            switch (callbackType) {
-                case ScanSettings.CALLBACK_TYPE_ALL_MATCHES:
-                    event.getData().putString(nameCallbackType, "CALLBACK_TYPE_ALL_MATCHES");
-                    break;
-                case ScanSettings.CALLBACK_TYPE_FIRST_MATCH:
-                    event.getData().putString(nameCallbackType, "CALLBACK_TYPE_FIRST_MATCH");
-                    break;
-                case ScanSettings.CALLBACK_TYPE_MATCH_LOST:
-                    event.getData().putString(nameCallbackType, "CALLBACK_TYPE_MATCH_LOST");
-                    break;
-            }
+            String callbackTypeString =
+                    Api21Enums.bleScanResultCallbackTypeEnums.getString(callbackType);
+            event.getData().putString("CallbackType", callbackTypeString);
             event.getData().putBundle("result", mJsonSerializer.serializeBleScanResult(result));
             mEventCache.postEvent(event);
         }
@@ -125,24 +129,7 @@ public class BluetoothLeScannerSnippet implements Snippet {
         public void onScanFailed(int errorCode) {
             Log.e("Bluetooth LE scan failed with error code: " + errorCode);
             SnippetEvent event = new SnippetEvent(mCallbackId, "onScanFailed");
-            String errorCodeString;
-            switch (errorCode) {
-                case SCAN_FAILED_ALREADY_STARTED:
-                    errorCodeString = "SCAN_FAILED_ALREADY_STARTED";
-                    break;
-                case SCAN_FAILED_APPLICATION_REGISTRATION_FAILED:
-                    errorCodeString = "SCAN_FAILED_APPLICATION_REGISTRATION_FAILED";
-                    break;
-                case SCAN_FAILED_FEATURE_UNSUPPORTED:
-                    errorCodeString = "SCAN_FAILED_FEATURE_UNSUPPORTED";
-                    break;
-                case SCAN_FAILED_INTERNAL_ERROR:
-                    errorCodeString = "SCAN_FAILED_INTERNAL_ERROR";
-                    break;
-                default:
-                    errorCodeString = "UNKNOWN";
-                    break;
-            }
+            String errorCodeString = Api21Enums.bleScanFailedErrorCodeEnums.getString(errorCode);
             event.getData().putString("ErrorCode", errorCodeString);
             mEventCache.postEvent(event);
         }

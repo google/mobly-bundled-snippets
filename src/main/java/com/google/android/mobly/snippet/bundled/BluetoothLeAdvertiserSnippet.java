@@ -53,22 +53,6 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
     private final BluetoothLeAdvertiser mAdvertiser;
     private static final EventCache sEventCache = EventCache.getInstance();
 
-    public static RpcEnum bleAdvertiseTxPowerEnums =
-            new RpcEnum.Builder()
-                    .add(
-                            "ADVERTISE_TX_POWER_ULTRA_LOW",
-                            AdvertiseSettings.ADVERTISE_TX_POWER_ULTRA_LOW)
-                    .add("ADVERTISE_TX_POWER_LOW", AdvertiseSettings.ADVERTISE_TX_POWER_LOW)
-                    .add("ADVERTISE_TX_POWER_MEDIUM", AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
-                    .add("ADVERTISE_TX_POWER_HIGH", AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
-                    .build();
-    public static RpcEnum bleAdvertiseModeEnums =
-            new RpcEnum.Builder()
-                    .add("ADVERTISE_MODE_BALANCED", AdvertiseSettings.ADVERTISE_MODE_BALANCED)
-                    .add("ADVERTISE_MODE_LOW_LATENCY", AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
-                    .add("ADVERTISE_MODE_LOW_POWER", AdvertiseSettings.ADVERTISE_MODE_LOW_POWER)
-                    .build();
-
     private final HashMap<String, AdvertiseCallback> mAdvertiseCallbacks = new HashMap<>();
 
     public BluetoothLeAdvertiserSnippet() {
@@ -124,13 +108,20 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
         mAdvertiseCallbacks.put(callbackId, advertiseCallback);
     }
 
+    /**
+     * Stop a BLE advertising.
+     *
+     * @param callbackId The callbackId corresponding to the {@link
+     *     BluetoothLeAdvertiserSnippet#bleStartAdvertising} call that started the advertising.
+     * @throws BluetoothLeScannerSnippet.BluetoothLeScanSnippetException
+     */
     @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP_MR1)
     @Rpc(description = "Stop BLE advertising.")
-    public void bleStopAdvertising(String id) throws BluetoothLeAdvertiserSnippetException {
-        AdvertiseCallback callback = mAdvertiseCallbacks.remove(id);
+    public void bleStopAdvertising(String callbackId) throws BluetoothLeAdvertiserSnippetException {
+        AdvertiseCallback callback = mAdvertiseCallbacks.remove(callbackId);
         if (callback == null) {
             throw new BluetoothLeAdvertiserSnippetException(
-                    "No advertising session found for ID " + id);
+                    "No advertising session found for ID " + callbackId);
         }
         mAdvertiser.stopAdvertising(callback);
     }
@@ -148,7 +139,7 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
                         .add(
                                 "ADVERTISE_FAILED_TOO_MANY_ADVERTISERS",
                                 ADVERTISE_FAILED_TOO_MANY_ADVERTISERS)
-                        .build();;
+                        .build();
 
         public DefaultAdvertiseCallback(String callbackId) {
             mCallbackId = callbackId;
@@ -166,7 +157,7 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
         public void onStartFailure(int errorCode) {
             Log.e("Bluetooth LE advertising failed to start with error code: " + errorCode);
             SnippetEvent event = new SnippetEvent(mCallbackId, "onStartFailure");
-            final String errorCodeString = advertiseFailureErrorCodeEnums.getStringValue(errorCode);
+            final String errorCodeString = advertiseFailureErrorCodeEnums.getString(errorCode);
             event.getData().putString("ErrorCode", errorCodeString);
             sEventCache.postEvent(event);
         }
