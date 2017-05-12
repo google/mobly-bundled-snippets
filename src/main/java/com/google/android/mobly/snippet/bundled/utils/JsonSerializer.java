@@ -27,6 +27,7 @@ import android.net.wifi.WifiInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.ParcelUuid;
+import com.google.android.mobly.snippet.bundled.BluetoothLeAdvertiserSnippet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.lang.reflect.Modifier;
@@ -192,45 +193,24 @@ public class JsonSerializer {
     private Bundle serializeBleScanRecord(ScanRecord record) {
         Bundle result = new Bundle();
         result.putString("DeviceName", record.getDeviceName());
-        result.putString("TxPowerLevel", bleAdvertiseTxPowerToString(record.getTxPowerLevel()));
+        result.putString(
+                "TxPowerLevel",
+                BluetoothLeAdvertiserSnippet.bleAdvertiseTxPowerEnums.getStringValue(
+                        record.getTxPowerLevel()));
         return result;
-    }
-
-    private static String bleAdvertiseTxPowerToString(int advertiseTxPower) {
-        switch (advertiseTxPower) {
-            case AdvertiseSettings.ADVERTISE_TX_POWER_ULTRA_LOW:
-                return "ADVERTISE_TX_POWER_ULTRA_LOW";
-            case AdvertiseSettings.ADVERTISE_TX_POWER_LOW:
-                return "ADVERTISE_TX_POWER_LOW";
-            case AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM:
-                return "ADVERTISE_TX_POWER_MEDIUM";
-            case AdvertiseSettings.ADVERTISE_TX_POWER_HIGH:
-                return "ADVERTISE_TX_POWER_HIGH";
-            default:
-                return "UNKNOWN";
-        }
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
     public static Bundle serializeBleAdvertisingSettings(AdvertiseSettings advertiseSettings) {
         Bundle result = new Bundle();
         result.putString(
-                "TxPowerLevel", bleAdvertiseTxPowerToString(advertiseSettings.getTxPowerLevel()));
-        final String nameMode = "Mode";
-        switch (advertiseSettings.getMode()) {
-            case AdvertiseSettings.ADVERTISE_MODE_BALANCED:
-                result.putString(nameMode, "ADVERTISE_MODE_BALANCED");
-                break;
-            case AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY:
-                result.putString(nameMode, "ADVERTISE_MODE_LOW_LATENCY");
-                break;
-            case AdvertiseSettings.ADVERTISE_MODE_LOW_POWER:
-                result.putString(nameMode, "ADVERTISE_MODE_LOW_POWER");
-                break;
-            default:
-                result.putString(nameMode, "UNKNOWN");
-                break;
-        }
+                "TxPowerLevel",
+                BluetoothLeAdvertiserSnippet.bleAdvertiseTxPowerEnums.getStringValue(
+                        advertiseSettings.getTxPowerLevel()));
+        result.putString(
+                "Mode",
+                BluetoothLeAdvertiserSnippet.bleAdvertiseModeEnums.getStringValue(
+                        advertiseSettings.getMode()));
         result.putInt("Timeout", advertiseSettings.getTimeout());
         result.putBoolean("IsConnectable", advertiseSettings.isConnectable());
         return result;

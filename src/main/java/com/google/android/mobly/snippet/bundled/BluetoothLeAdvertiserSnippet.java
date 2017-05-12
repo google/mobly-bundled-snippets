@@ -28,6 +28,7 @@ import android.os.ParcelUuid;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.JsonDeserializer;
 import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
+import com.google.android.mobly.snippet.bundled.utils.RpcEnum;
 import com.google.android.mobly.snippet.event.EventCache;
 import com.google.android.mobly.snippet.event.SnippetEvent;
 import com.google.android.mobly.snippet.rpc.AsyncRpc;
@@ -51,6 +52,23 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
 
     private final BluetoothLeAdvertiser mAdvertiser;
     private static final EventCache sEventCache = EventCache.getInstance();
+
+    public static RpcEnum bleAdvertiseTxPowerEnums =
+            new RpcEnum.Builder()
+                    .add(
+                            "ADVERTISE_TX_POWER_ULTRA_LOW",
+                            AdvertiseSettings.ADVERTISE_TX_POWER_ULTRA_LOW)
+                    .add("ADVERTISE_TX_POWER_LOW", AdvertiseSettings.ADVERTISE_TX_POWER_LOW)
+                    .add("ADVERTISE_TX_POWER_MEDIUM", AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
+                    .add("ADVERTISE_TX_POWER_HIGH", AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
+                    .build();
+    public static RpcEnum bleAdvertiseModeEnums =
+            new RpcEnum.Builder()
+                    .add("ADVERTISE_MODE_BALANCED", AdvertiseSettings.ADVERTISE_MODE_BALANCED)
+                    .add("ADVERTISE_MODE_LOW_LATENCY", AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
+                    .add("ADVERTISE_MODE_LOW_POWER", AdvertiseSettings.ADVERTISE_MODE_LOW_POWER)
+                    .build();
+
     private final HashMap<String, AdvertiseCallback> mAdvertiseCallbacks = new HashMap<>();
 
     public BluetoothLeAdvertiserSnippet() {
@@ -67,10 +85,10 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
      * @param advertiseSettings A JSONObject representing a {@link AdvertiseSettings object}. E.g.
      *     <pre>
      *          {
-     *            "AdvertiseMode": {@link AdvertiseSettings#ADVERTISE_MODE_BALANCED},
+     *            "AdvertiseMode": "ADVERTISE_MODE_BALANCED",
      *            "Timeout": (int, milliseconds),
      *            "Connectable": (bool),
-     *            "TxPowerLevel": {@link AdvertiseSettings#ADVERTISE_TX_POWER_LOW}
+     *            "TxPowerLevel": "ADVERTISE_TX_POWER_LOW"
      *          }
      *     </pre>
      *
@@ -119,6 +137,18 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
 
     private static class DefaultAdvertiseCallback extends AdvertiseCallback {
         private final String mCallbackId;
+        public static RpcEnum advertiseFailureErrorCodeEnums =
+                new RpcEnum.Builder()
+                        .add("ADVERTISE_FAILED_ALREADY_STARTED", ADVERTISE_FAILED_ALREADY_STARTED)
+                        .add("ADVERTISE_FAILED_DATA_TOO_LARGE", ADVERTISE_FAILED_DATA_TOO_LARGE)
+                        .add(
+                                "ADVERTISE_FAILED_FEATURE_UNSUPPORTED",
+                                ADVERTISE_FAILED_FEATURE_UNSUPPORTED)
+                        .add("ADVERTISE_FAILED_INTERNAL_ERROR", ADVERTISE_FAILED_INTERNAL_ERROR)
+                        .add(
+                                "ADVERTISE_FAILED_TOO_MANY_ADVERTISERS",
+                                ADVERTISE_FAILED_TOO_MANY_ADVERTISERS)
+                        .build();;
 
         public DefaultAdvertiseCallback(String callbackId) {
             mCallbackId = callbackId;
@@ -136,29 +166,8 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
         public void onStartFailure(int errorCode) {
             Log.e("Bluetooth LE advertising failed to start with error code: " + errorCode);
             SnippetEvent event = new SnippetEvent(mCallbackId, "onStartFailure");
-            final String nameErrorCode = "ErrorCode";
-            switch (errorCode) {
-                case ADVERTISE_FAILED_ALREADY_STARTED:
-                    event.getData().putString(nameErrorCode, "ADVERTISE_FAILED_ALREADY_STARTED");
-                    break;
-                case ADVERTISE_FAILED_DATA_TOO_LARGE:
-                    event.getData().putString(nameErrorCode, "ADVERTISE_FAILED_DATA_TOO_LARGE");
-                    break;
-                case ADVERTISE_FAILED_FEATURE_UNSUPPORTED:
-                    event.getData()
-                            .putString(nameErrorCode, "ADVERTISE_FAILED_FEATURE_UNSUPPORTED");
-                    break;
-                case ADVERTISE_FAILED_INTERNAL_ERROR:
-                    event.getData().putString(nameErrorCode, "ADVERTISE_FAILED_INTERNAL_ERROR");
-                    break;
-                case ADVERTISE_FAILED_TOO_MANY_ADVERTISERS:
-                    event.getData()
-                            .putString(nameErrorCode, "ADVERTISE_FAILED_TOO_MANY_ADVERTISERS");
-                    break;
-                default:
-                    event.getData().putString(nameErrorCode, "UNKNOWN");
-                    break;
-            }
+            final String errorCodeString = advertiseFailureErrorCodeEnums.getStringValue(errorCode);
+            event.getData().putString("ErrorCode", errorCodeString);
             sEventCache.postEvent(event);
         }
     }

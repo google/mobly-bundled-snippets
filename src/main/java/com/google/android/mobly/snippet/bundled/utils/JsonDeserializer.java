@@ -23,6 +23,7 @@ import android.net.wifi.WifiConfiguration;
 import android.os.Build;
 import android.os.ParcelUuid;
 import android.util.Base64;
+import com.google.android.mobly.snippet.bundled.BluetoothLeAdvertiserSnippet;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -52,7 +53,10 @@ public class JsonDeserializer {
             throws JSONException {
         AdvertiseSettings.Builder builder = new AdvertiseSettings.Builder();
         if (jsonObject.has("AdvertiseMode")) {
-            builder.setAdvertiseMode(jsonObject.getInt("AdvertiseMode"));
+            int mode =
+                    BluetoothLeAdvertiserSnippet.bleAdvertiseModeEnums.getIntValue(
+                            jsonObject.getString("AdvertiseMode"));
+            builder.setAdvertiseMode(mode);
         }
         // Timeout in milliseconds.
         if (jsonObject.has("Timeout")) {
@@ -62,7 +66,10 @@ public class JsonDeserializer {
             builder.setConnectable(jsonObject.getBoolean("Connectable"));
         }
         if (jsonObject.has("TxPowerLevel")) {
-            builder.setTxPowerLevel(jsonObject.getInt("TxPowerLevel"));
+            int txPowerLevel =
+                    BluetoothLeAdvertiserSnippet.bleAdvertiseTxPowerEnums.getIntValue(
+                            jsonObject.getString("TxPowerLevel"));
+            builder.setTxPowerLevel(txPowerLevel);
         }
         return builder.build();
     }
