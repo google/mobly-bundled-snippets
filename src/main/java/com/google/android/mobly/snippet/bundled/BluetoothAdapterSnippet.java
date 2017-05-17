@@ -108,6 +108,11 @@ public class BluetoothAdapterSnippet implements Snippet {
         return mBluetoothAdapter.getName();
     }
 
+    @Rpc(description = "Returns the hardware address of the local Bluetooth adapter.")
+    public String btGetAddress() {
+        return mBluetoothAdapter.getAddress();
+    }
+
     @Rpc(
         description =
                 "Start discovery, wait for discovery to complete, and return results, which is a list of "
