@@ -80,12 +80,15 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
      *     <pre>
      *          {
      *            "IncludeDeviceName": (bool),
-     *            "ServiceData":
+     *            # JSON list, each element representing a set of service data, which is composed of
+     *            # a UUID, and an optional string.
+     *            "ServiceData": [
      *                      {
      *                        "UUID": (A string representation of {@link ParcelUuid}),
      *                        "Data": (The string representation of what you want to advertise,
      *                                 base64 encoded)
      *                      }
+     *                ]
      *            "ServiceUuid": (A string representation of {@link ParcelUuid})
      *          }
      *     </pre>

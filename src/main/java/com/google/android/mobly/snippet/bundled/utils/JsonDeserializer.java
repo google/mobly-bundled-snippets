@@ -23,6 +23,7 @@ import android.net.wifi.WifiConfiguration;
 import android.os.Build;
 import android.os.ParcelUuid;
 import android.util.Base64;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -80,14 +81,16 @@ public class JsonDeserializer {
             builder.setIncludeTxPowerLevel(jsonObject.getBoolean("IncludeTxPowerLevel"));
         }
         if (jsonObject.has("ServiceData")) {
-            JSONObject serviceData = jsonObject.getJSONObject("ServiceData");
-            ParcelUuid parcelUuid = ParcelUuid.fromString(serviceData.getString("UUID"));
-            byte[] data = Base64.decode(serviceData.getString("Data"), Base64.DEFAULT);
-            builder.addServiceData(parcelUuid, data);
-        }
-        if (jsonObject.has("ServiceUuid")) {
-            ParcelUuid uuid = ParcelUuid.fromString(jsonObject.getString("ServiceUuid"));
-            builder.addServiceUuid(uuid);
+            JSONArray serviceData = jsonObject.getJSONArray("ServiceData");
+            for (int i = 0; i < serviceData.length(); i++) {
+                JSONObject dataSet = serviceData.getJSONObject(i);
+                ParcelUuid parcelUuid = ParcelUuid.fromString(dataSet.getString("UUID"));
+                builder.addServiceUuid(parcelUuid);
+                if (dataSet.has("Data")) {
+                    byte[] data = Base64.decode(dataSet.getString("Data"), Base64.DEFAULT);
+                    builder.addServiceData(parcelUuid, data);
+                }
+            }
         }
         if (jsonObject.has("ManufacturerData")) {
             JSONObject manufacturerData = jsonObject.getJSONObject("ManufacturerData");
