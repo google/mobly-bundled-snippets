@@ -7,8 +7,8 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanSettings;
 import android.os.Build;
 
-/** Class for {@link RpcEnum} objects that represent classes introduced in Android API 5. */
-public class Enums {
+/** Mobly Bundled Snippets (MBS)'s {@link RpcEnum} objects representing enums in Android APIs. */
+public class MbsEnums {
     static RpcEnum bleAdvertiseModeEnum = buildBleAdvertiseModeEnum();
     static RpcEnum bleAdvertiseTxPowerEnum = buildBleAdvertiseTxPowerEnum();
     public static RpcEnum bleScanFailedErrorCodeEnum = buildBleScanFailedErrorCodeEnum();
@@ -16,7 +16,9 @@ public class Enums {
     static RpcEnum bluetoothDeviceBondStateEnum = buildBluetoothDeviceBondState();
     static RpcEnum bluetoothDeviceTypeEnum = buildBluetoothDeviceTypeEnum();
 
+    @TargetApi(Build.VERSION_CODES.ECLAIR)
     private static RpcEnum buildBluetoothDeviceBondState() {
+        Utils.assertMinSdk(Build.VERSION_CODES.ECLAIR);
         return new RpcEnum.Builder()
                 .add("BOND_NONE", BluetoothDevice.BOND_NONE)
                 .add("BOND_BONDING", BluetoothDevice.BOND_BONDING)
@@ -26,6 +28,7 @@ public class Enums {
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private static RpcEnum buildBluetoothDeviceTypeEnum() {
+        Utils.assertMinSdk(Build.VERSION_CODES.JELLY_BEAN_MR2);
         return new RpcEnum.Builder()
                 .add("DEVICE_TYPE_CLASSIC", BluetoothDevice.DEVICE_TYPE_CLASSIC)
                 .add("DEVICE_TYPE_LE", BluetoothDevice.DEVICE_TYPE_LE)
@@ -35,6 +38,7 @@ public class Enums {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private static RpcEnum buildBleAdvertiseTxPowerEnum() {
+        Utils.assertMinSdk(Build.VERSION_CODES.LOLLIPOP);
         return new RpcEnum.Builder()
                 .add("ADVERTISE_TX_POWER_ULTRA_LOW", AdvertiseSettings.ADVERTISE_TX_POWER_ULTRA_LOW)
                 .add("ADVERTISE_TX_POWER_LOW", AdvertiseSettings.ADVERTISE_TX_POWER_LOW)
@@ -45,6 +49,7 @@ public class Enums {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private static RpcEnum buildBleAdvertiseModeEnum() {
+        Utils.assertMinSdk(Build.VERSION_CODES.LOLLIPOP);
         return new RpcEnum.Builder()
                 .add("ADVERTISE_MODE_BALANCED", AdvertiseSettings.ADVERTISE_MODE_BALANCED)
                 .add("ADVERTISE_MODE_LOW_LATENCY", AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
@@ -54,6 +59,7 @@ public class Enums {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private static RpcEnum buildBleScanFailedErrorCodeEnum() {
+        Utils.assertMinSdk(Build.VERSION_CODES.LOLLIPOP);
         return new RpcEnum.Builder()
                 .add("SCAN_FAILED_ALREADY_STARTED", ScanCallback.SCAN_FAILED_ALREADY_STARTED)
                 .add(
@@ -68,6 +74,7 @@ public class Enums {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private static RpcEnum buildBleScanResultCallbackTypeEnum() {
+        Utils.assertMinSdk(Build.VERSION_CODES.LOLLIPOP);
         RpcEnum.Builder builder =
                 new RpcEnum.Builder()
                         .add("CALLBACK_TYPE_ALL_MATCHES", ScanSettings.CALLBACK_TYPE_ALL_MATCHES);

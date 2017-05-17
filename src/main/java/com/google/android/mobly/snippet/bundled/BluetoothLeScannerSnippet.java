@@ -24,8 +24,8 @@ import android.bluetooth.le.ScanResult;
 import android.os.Build;
 import android.os.Bundle;
 import com.google.android.mobly.snippet.Snippet;
-import com.google.android.mobly.snippet.bundled.utils.Enums;
 import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
+import com.google.android.mobly.snippet.bundled.utils.MbsEnums;
 import com.google.android.mobly.snippet.event.EventCache;
 import com.google.android.mobly.snippet.event.SnippetEvent;
 import com.google.android.mobly.snippet.rpc.AsyncRpc;
@@ -84,10 +84,11 @@ public class BluetoothLeScannerSnippet implements Snippet {
     @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP_MR1)
     @Rpc(description = "Stop a BLE scan.")
     public void bleStopScan(String callbackId) throws BluetoothLeScanSnippetException {
-        if (!mScanCallbacks.containsKey(callbackId)) {
+        ScanCallback callback = mScanCallbacks.remove(callbackId);
+        if (callback == null) {
             throw new BluetoothLeScanSnippetException("No ongoing scan with ID: " + callbackId);
         }
-        mScanner.stopScan(mScanCallbacks.remove(callbackId));
+        mScanner.stopScan(callback);
     }
 
     @Override
@@ -108,7 +109,8 @@ public class BluetoothLeScannerSnippet implements Snippet {
         public void onScanResult(int callbackType, ScanResult result) {
             Log.i("Got Bluetooth LE scan result.");
             SnippetEvent event = new SnippetEvent(mCallbackId, "onScanResult");
-            String callbackTypeString = Enums.bleScanResultCallbackTypeEnum.getString(callbackType);
+            String callbackTypeString =
+                    MbsEnums.bleScanResultCallbackTypeEnum.getString(callbackType);
             event.getData().putString("CallbackType", callbackTypeString);
             event.getData().putBundle("result", mJsonSerializer.serializeBleScanResult(result));
             mEventCache.postEvent(event);
@@ -128,7 +130,7 @@ public class BluetoothLeScannerSnippet implements Snippet {
         public void onScanFailed(int errorCode) {
             Log.e("Bluetooth LE scan failed with error code: " + errorCode);
             SnippetEvent event = new SnippetEvent(mCallbackId, "onScanFailed");
-            String errorCodeString = Enums.bleScanFailedErrorCodeEnum.getString(errorCode);
+            String errorCodeString = MbsEnums.bleScanFailedErrorCodeEnum.getString(errorCode);
             event.getData().putString("ErrorCode", errorCodeString);
             mEventCache.postEvent(event);
         }

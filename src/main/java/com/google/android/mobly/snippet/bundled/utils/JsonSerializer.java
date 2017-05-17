@@ -129,11 +129,12 @@ public class JsonSerializer {
     public Bundle serializeBluetoothDevice(BluetoothDevice data) {
         Bundle result = new Bundle();
         result.putString("Address", data.getAddress());
-        final String bondState = Enums.bluetoothDeviceBondStateEnum.getString(data.getBondState());
+        final String bondState =
+                MbsEnums.bluetoothDeviceBondStateEnum.getString(data.getBondState());
         result.putString("BondState", bondState);
         result.putString("Name", data.getName());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            String deviceType = Enums.bluetoothDeviceTypeEnum.getString(data.getType());
+            String deviceType = MbsEnums.bluetoothDeviceTypeEnum.getString(data.getType());
             result.putString("DeviceType", deviceType);
             ParcelUuid[] parcelUuids = data.getUuids();
             if (parcelUuids != null) {
@@ -170,7 +171,8 @@ public class JsonSerializer {
         Bundle result = new Bundle();
         result.putString("DeviceName", record.getDeviceName());
         result.putString(
-                "TxPowerLevel", Enums.bleAdvertiseTxPowerEnum.getString(record.getTxPowerLevel()));
+                "TxPowerLevel",
+                MbsEnums.bleAdvertiseTxPowerEnum.getString(record.getTxPowerLevel()));
         return result;
     }
 
@@ -179,8 +181,9 @@ public class JsonSerializer {
         Bundle result = new Bundle();
         result.putString(
                 "TxPowerLevel",
-                Enums.bleAdvertiseTxPowerEnum.getString(advertiseSettings.getTxPowerLevel()));
-        result.putString("Mode", Enums.bleAdvertiseModeEnum.getString(advertiseSettings.getMode()));
+                MbsEnums.bleAdvertiseTxPowerEnum.getString(advertiseSettings.getTxPowerLevel()));
+        result.putString(
+                "Mode", MbsEnums.bleAdvertiseModeEnum.getString(advertiseSettings.getMode()));
         result.putInt("Timeout", advertiseSettings.getTimeout());
         result.putBoolean("IsConnectable", advertiseSettings.isConnectable());
         return result;

@@ -16,14 +16,32 @@
 
 package com.google.android.mobly.snippet.bundled.utils;
 
+import android.os.Build;
 import com.google.common.primitives.Primitives;
 import com.google.common.reflect.TypeToken;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public final class Utils {
+
     private Utils() {}
 
+    /**
+     * Asserts that the current SDK version is no lower than a certain vession.
+     *
+     * <p>{@link NoSuchFieldError} is thrown if the current SDK version is lower than expected.
+     *
+     * @param minSdkVersion
+     */
+    public static void assertMinSdk(int minSdkVersion) {
+        if (Build.VERSION.SDK_INT < minSdkVersion) {
+            throw new NoSuchFieldError(
+                    "Current SDK version "
+                            + Build.VERSION.SDK_INT
+                            + " is lower than the minimum requirement "
+                            + minSdkVersion);
+        }
+    }
     /**
      * Waits util a condition is met.
      *
