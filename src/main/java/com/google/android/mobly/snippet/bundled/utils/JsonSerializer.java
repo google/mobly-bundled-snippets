@@ -27,9 +27,6 @@ import android.net.wifi.WifiInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.ParcelUuid;
-import com.google.android.mobly.snippet.bundled.enums.Api18Enums;
-import com.google.android.mobly.snippet.bundled.enums.Api21Enums;
-import com.google.android.mobly.snippet.bundled.enums.Api5Enums;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.lang.reflect.Modifier;
@@ -132,11 +129,11 @@ public class JsonSerializer {
     public Bundle serializeBluetoothDevice(BluetoothDevice data) {
         Bundle result = new Bundle();
         result.putString("Address", data.getAddress());
-        final String bondState = Api5Enums.bluetoothDeviceBondState.getString(data.getBondState());
+        final String bondState = Enums.bluetoothDeviceBondStateEnum.getString(data.getBondState());
         result.putString("BondState", bondState);
         result.putString("Name", data.getName());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            String deviceType = Api18Enums.bluetoothDeviceTypeEnums.getString(data.getType());
+            String deviceType = Enums.bluetoothDeviceTypeEnum.getString(data.getType());
             result.putString("DeviceType", deviceType);
             ParcelUuid[] parcelUuids = data.getUuids();
             if (parcelUuids != null) {
@@ -173,8 +170,7 @@ public class JsonSerializer {
         Bundle result = new Bundle();
         result.putString("DeviceName", record.getDeviceName());
         result.putString(
-                "TxPowerLevel",
-                Api21Enums.bleAdvertiseTxPowerEnums.getString(record.getTxPowerLevel()));
+                "TxPowerLevel", Enums.bleAdvertiseTxPowerEnum.getString(record.getTxPowerLevel()));
         return result;
     }
 
@@ -183,9 +179,8 @@ public class JsonSerializer {
         Bundle result = new Bundle();
         result.putString(
                 "TxPowerLevel",
-                Api21Enums.bleAdvertiseTxPowerEnums.getString(advertiseSettings.getTxPowerLevel()));
-        result.putString(
-                "Mode", Api21Enums.bleAdvertiseModeEnums.getString(advertiseSettings.getMode()));
+                Enums.bleAdvertiseTxPowerEnum.getString(advertiseSettings.getTxPowerLevel()));
+        result.putString("Mode", Enums.bleAdvertiseModeEnum.getString(advertiseSettings.getMode()));
         result.putInt("Timeout", advertiseSettings.getTimeout());
         result.putBoolean("IsConnectable", advertiseSettings.isConnectable());
         return result;

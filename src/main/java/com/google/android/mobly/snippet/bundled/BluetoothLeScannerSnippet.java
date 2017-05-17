@@ -24,7 +24,7 @@ import android.bluetooth.le.ScanResult;
 import android.os.Build;
 import android.os.Bundle;
 import com.google.android.mobly.snippet.Snippet;
-import com.google.android.mobly.snippet.bundled.enums.Api21Enums;
+import com.google.android.mobly.snippet.bundled.utils.Enums;
 import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.event.EventCache;
 import com.google.android.mobly.snippet.event.SnippetEvent;
@@ -108,8 +108,7 @@ public class BluetoothLeScannerSnippet implements Snippet {
         public void onScanResult(int callbackType, ScanResult result) {
             Log.i("Got Bluetooth LE scan result.");
             SnippetEvent event = new SnippetEvent(mCallbackId, "onScanResult");
-            String callbackTypeString =
-                    Api21Enums.bleScanResultCallbackTypeEnums.getString(callbackType);
+            String callbackTypeString = Enums.bleScanResultCallbackTypeEnum.getString(callbackType);
             event.getData().putString("CallbackType", callbackTypeString);
             event.getData().putBundle("result", mJsonSerializer.serializeBleScanResult(result));
             mEventCache.postEvent(event);
@@ -129,7 +128,7 @@ public class BluetoothLeScannerSnippet implements Snippet {
         public void onScanFailed(int errorCode) {
             Log.e("Bluetooth LE scan failed with error code: " + errorCode);
             SnippetEvent event = new SnippetEvent(mCallbackId, "onScanFailed");
-            String errorCodeString = Api21Enums.bleScanFailedErrorCodeEnums.getString(errorCode);
+            String errorCodeString = Enums.bleScanFailedErrorCodeEnum.getString(errorCode);
             event.getData().putString("ErrorCode", errorCodeString);
             mEventCache.postEvent(event);
         }
