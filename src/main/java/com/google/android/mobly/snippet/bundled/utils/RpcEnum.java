@@ -16,6 +16,7 @@
 
 package com.google.android.mobly.snippet.bundled.utils;
 
+import android.os.Build;
 import com.google.common.collect.ImmutableBiMap;
 
 /**
@@ -28,9 +29,11 @@ import com.google.common.collect.ImmutableBiMap;
  */
 public class RpcEnum {
     private final ImmutableBiMap<String, Integer> mEnums;
+    private int minSdk = 0;
 
-    private RpcEnum(ImmutableBiMap.Builder<String, Integer> builder) {
+    private RpcEnum(ImmutableBiMap.Builder<String, Integer> builder, int minSdk) {
         mEnums = builder.build();
+        this.minSdk = minSdk;
     }
 
     /**
@@ -40,7 +43,15 @@ public class RpcEnum {
      * @return
      */
     public int getInt(String enumString) {
-        return mEnums.get(enumString);
+        if (Build.VERSION.SDK_INT < minSdk) {
+            throw new NoSuchFieldError(
+                    "Android SDK version has to be at least " + minSdk + " to use this Enum.");
+        }
+        Integer result = mEnums.get(enumString);
+        if (result == null) {
+            throw new NoSuchFieldError("No int value found for: " + enumString);
+        }
+        return result;
     }
 
     /**
@@ -50,12 +61,21 @@ public class RpcEnum {
      * @return
      */
     public String getString(int enumInt) {
-        return mEnums.inverse().get(enumInt);
+        if (Build.VERSION.SDK_INT < minSdk) {
+            throw new NoSuchFieldError(
+                    "Android SDK version has to be at least " + minSdk + " to use this Enum.");
+        }
+        String result = mEnums.inverse().get(enumInt);
+        if (result == null) {
+            throw new NoSuchFieldError("No String value found for: " + enumInt);
+        }
+        return result;
     }
 
     /** Builder for RpcEnum. */
     public static class Builder {
         private final ImmutableBiMap.Builder<String, Integer> builder;
+        public int minSdk = 0;
 
         public Builder() {
             builder = new ImmutableBiMap.Builder<>();
@@ -73,8 +93,19 @@ public class RpcEnum {
             return this;
         }
 
+        /**
+         * Specify the minimum Android SDK version required to use a RpcParam object.
+         *
+         * @param minSdk
+         * @return
+         */
+        public Builder setMinSdk(int minSdk) {
+            this.minSdk = minSdk;
+            return this;
+        }
+
         public RpcEnum build() {
-            return new RpcEnum(builder);
+            return new RpcEnum(builder, minSdk);
         }
     }
 }
