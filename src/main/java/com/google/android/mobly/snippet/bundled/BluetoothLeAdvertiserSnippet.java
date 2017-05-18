@@ -85,14 +85,16 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
      *            "ServiceData": [
      *                      {
      *                        "UUID": (A string representation of {@link ParcelUuid}),
-     *                        "Data": (The string representation of what you want to advertise,
-     *                                 base64 encoded)
+     *                        "Data": (Optional, The string representation of what you want to
+     *                                 advertise, base64 encoded)
+     *                        # If you want to add a UUID without data, simply omit the "Data"
+     *                        # field.
      *                      }
      *                ]
-     *            "ServiceUuid": (A string representation of {@link ParcelUuid})
      *          }
      *     </pre>
      *
+     * @throws BluetoothLeAdvertiserSnippetException
      * @throws JSONException
      */
     @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP_MR1)

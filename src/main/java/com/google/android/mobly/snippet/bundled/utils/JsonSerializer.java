@@ -163,6 +163,11 @@ public class JsonSerializer {
      *
      * <p>Not all fields are serialized here. Will add more as we need.
      *
+     * <pre>The returned {@link Bundle} has the following info:
+     *          "DeviceName", String
+     *          "TxPowerLevel", String
+     * </pre>
+     *
      * @param record
      * @return
      */
