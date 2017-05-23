@@ -23,6 +23,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
@@ -173,11 +174,11 @@ public class BluetoothAdapterSnippet implements Snippet {
     }
 
     @Rpc(description = "Get the list of paired bluetooth devices.")
-    public JSONArray btGetPairedDevices()
+    public ArrayList<Bundle> btGetPairedDevices()
             throws BluetoothAdapterSnippetException, InterruptedException, JSONException {
-        JSONArray pairedDevices = new JSONArray();
+        ArrayList<Bundle> pairedDevices = new ArrayList<>();
         for (BluetoothDevice device : mBluetoothAdapter.getBondedDevices()) {
-            pairedDevices.put(mJsonSerializer.toJson(device));
+            pairedDevices.add(mJsonSerializer.serializeBluetoothDevice(device));
         }
         return pairedDevices;
     }
