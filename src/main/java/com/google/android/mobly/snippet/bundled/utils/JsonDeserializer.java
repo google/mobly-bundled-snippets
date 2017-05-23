@@ -53,7 +53,7 @@ public class JsonDeserializer {
             throws JSONException {
         AdvertiseSettings.Builder builder = new AdvertiseSettings.Builder();
         if (jsonObject.has("AdvertiseMode")) {
-            int mode = MbsEnums.bleAdvertiseModeEnum.getInt(jsonObject.getString("AdvertiseMode"));
+            int mode = MbsEnums.BLE_ADVERTISE_MODE.getInt(jsonObject.getString("AdvertiseMode"));
             builder.setAdvertiseMode(mode);
         }
         // Timeout in milliseconds.
@@ -65,7 +65,7 @@ public class JsonDeserializer {
         }
         if (jsonObject.has("TxPowerLevel")) {
             int txPowerLevel =
-                    MbsEnums.bleAdvertiseTxPowerEnum.getInt(jsonObject.getString("TxPowerLevel"));
+                    MbsEnums.BLE_ADVERTISE_TX_POWER.getInt(jsonObject.getString("TxPowerLevel"));
             builder.setTxPowerLevel(txPowerLevel);
         }
         return builder.build();

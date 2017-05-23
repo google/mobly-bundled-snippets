@@ -133,7 +133,7 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
 
     private static class DefaultAdvertiseCallback extends AdvertiseCallback {
         private final String mCallbackId;
-        public static RpcEnum advertiseFailureErrorCodeEnums =
+        public static RpcEnum ADVERTISE_FAILURE_ERROR_CODE =
                 new RpcEnum.Builder()
                         .add("ADVERTISE_FAILED_ALREADY_STARTED", ADVERTISE_FAILED_ALREADY_STARTED)
                         .add("ADVERTISE_FAILED_DATA_TOO_LARGE", ADVERTISE_FAILED_DATA_TOO_LARGE)
@@ -162,7 +162,7 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
         public void onStartFailure(int errorCode) {
             Log.e("Bluetooth LE advertising failed to start with error code: " + errorCode);
             SnippetEvent event = new SnippetEvent(mCallbackId, "onStartFailure");
-            final String errorCodeString = advertiseFailureErrorCodeEnums.getString(errorCode);
+            final String errorCodeString = ADVERTISE_FAILURE_ERROR_CODE.getString(errorCode);
             event.getData().putString("ErrorCode", errorCodeString);
             sEventCache.postEvent(event);
         }

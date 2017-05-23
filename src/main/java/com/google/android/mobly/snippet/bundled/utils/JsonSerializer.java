@@ -130,11 +130,11 @@ public class JsonSerializer {
         Bundle result = new Bundle();
         result.putString("Address", data.getAddress());
         final String bondState =
-                MbsEnums.bluetoothDeviceBondStateEnum.getString(data.getBondState());
+                MbsEnums.BLUETOOTH_DEVICE_BOND_STATE.getString(data.getBondState());
         result.putString("BondState", bondState);
         result.putString("Name", data.getName());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            String deviceType = MbsEnums.bluetoothDeviceTypeEnum.getString(data.getType());
+            String deviceType = MbsEnums.BLUETOOTH_DEVICE_TYPE.getString(data.getType());
             result.putString("DeviceType", deviceType);
             ParcelUuid[] parcelUuids = data.getUuids();
             if (parcelUuids != null) {
@@ -148,7 +148,7 @@ public class JsonSerializer {
         return result;
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public Bundle serializeBleScanResult(android.bluetooth.le.ScanResult scanResult) {
         Bundle result = new Bundle();
         result.putBundle("Device", serializeBluetoothDevice(scanResult.getDevice()));
@@ -168,27 +168,27 @@ public class JsonSerializer {
      *          "TxPowerLevel", String
      * </pre>
      *
-     * @param record
-     * @return
+     * @param record A {@link ScanRecord} object.
+     * @return A {@link Bundle} object.
      */
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private Bundle serializeBleScanRecord(ScanRecord record) {
         Bundle result = new Bundle();
         result.putString("DeviceName", record.getDeviceName());
         result.putString(
                 "TxPowerLevel",
-                MbsEnums.bleAdvertiseTxPowerEnum.getString(record.getTxPowerLevel()));
+                MbsEnums.BLE_ADVERTISE_TX_POWER.getString(record.getTxPowerLevel()));
         return result;
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public static Bundle serializeBleAdvertisingSettings(AdvertiseSettings advertiseSettings) {
         Bundle result = new Bundle();
         result.putString(
                 "TxPowerLevel",
-                MbsEnums.bleAdvertiseTxPowerEnum.getString(advertiseSettings.getTxPowerLevel()));
+                MbsEnums.BLE_ADVERTISE_TX_POWER.getString(advertiseSettings.getTxPowerLevel()));
         result.putString(
-                "Mode", MbsEnums.bleAdvertiseModeEnum.getString(advertiseSettings.getMode()));
+                "Mode", MbsEnums.BLE_ADVERTISE_MODE.getString(advertiseSettings.getMode()));
         result.putInt("Timeout", advertiseSettings.getTimeout());
         result.putBoolean("IsConnectable", advertiseSettings.isConnectable());
         return result;

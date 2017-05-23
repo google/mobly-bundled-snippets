@@ -110,7 +110,7 @@ public class BluetoothLeScannerSnippet implements Snippet {
             Log.i("Got Bluetooth LE scan result.");
             SnippetEvent event = new SnippetEvent(mCallbackId, "onScanResult");
             String callbackTypeString =
-                    MbsEnums.bleScanResultCallbackTypeEnum.getString(callbackType);
+                    MbsEnums.BLE_SCAN_RESULT_CALLBACK_TYPE.getString(callbackType);
             event.getData().putString("CallbackType", callbackTypeString);
             event.getData().putBundle("result", mJsonSerializer.serializeBleScanResult(result));
             mEventCache.postEvent(event);
@@ -130,7 +130,7 @@ public class BluetoothLeScannerSnippet implements Snippet {
         public void onScanFailed(int errorCode) {
             Log.e("Bluetooth LE scan failed with error code: " + errorCode);
             SnippetEvent event = new SnippetEvent(mCallbackId, "onScanFailed");
-            String errorCodeString = MbsEnums.bleScanFailedErrorCodeEnum.getString(errorCode);
+            String errorCodeString = MbsEnums.BLE_SCAN_FAILED_ERROR_CODE.getString(errorCode);
             event.getData().putString("ErrorCode", errorCodeString);
             mEventCache.postEvent(event);
         }
