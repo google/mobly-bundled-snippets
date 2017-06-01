@@ -22,35 +22,41 @@ import com.google.android.mobly.snippet.rpc.Rpc;
 
 /** Snippet class exposing Android APIs related to logging. */
 public class LogSnippet implements Snippet {
+    private static String mTag = "MBS";
+
+    @Rpc(description = "Set the tag to use for logX Rpcs. Default is 'MBS'.")
+    public void logSetTag(String tag) {
+        mTag = tag;
+    }
 
     @Rpc(description = "Log at info level.")
-    public void logI(String tag, String message) {
-        Log.i(tag, message);
+    public void logI(String message) {
+        Log.i(mTag, message);
     }
 
     @Rpc(description = "Log at debug level.")
-    public void logD(String tag, String message) {
-        Log.d(tag, message);
+    public void logD(String message) {
+        Log.d(mTag, message);
     }
 
     @Rpc(description = "Log at error level.")
-    public void logE(String tag, String message) {
-        Log.e(tag, message);
+    public void logE(String message) {
+        Log.e(mTag, message);
     }
 
     @Rpc(description = "Log at warning level.")
-    public void logW(String tag, String message) {
-        Log.w(tag, message);
+    public void logW(String message) {
+        Log.w(mTag, message);
     }
 
     @Rpc(description = "Log at verbose level.")
-    public void logV(String tag, String message) {
-        Log.v(tag, message);
+    public void logV(String message) {
+        Log.v(mTag, message);
     }
 
     @Rpc(description = "Log at WTF level.")
-    public void logWTF(String tag, String message) {
-        Log.wtf(tag, message);
+    public void logWTF(String message) {
+        Log.wtf(mTag, message);
     }
 
     @Override
