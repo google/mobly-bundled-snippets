@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.google.android.mobly.snippet.bundled;
+package com.google.android.mobly.snippet.bundled.bluetooth;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -204,6 +204,10 @@ public class BluetoothAdapterSnippet implements Snippet {
         if (!(boolean) Utils.invokeByReflection(mBluetoothAdapter, "configHciSnoopLog", false)) {
             throw new BluetoothAdapterSnippetException("Failed to disable HCI snoop log.");
         }
+    }
+
+    public void btConnect(String device) {
+        mDiscoveryResults.get(0);
     }
 
     @Override

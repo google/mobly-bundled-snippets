@@ -23,7 +23,7 @@
             android:name="mobly-snippets"
             android:value="com.google.android.mobly.snippet.bundled.AccountSnippet,
                            com.google.android.mobly.snippet.bundled.AudioSnippet,
-                           com.google.android.mobly.snippet.bundled.BluetoothAdapterSnippet,
+                           com.google.android.mobly.snippet.bundled.bluetooth.BluetoothAdapterSnippet,
                            com.google.android.mobly.snippet.bundled.BluetoothLeAdvertiserSnippet,
                            com.google.android.mobly.snippet.bundled.BluetoothLeScannerSnippet,
                            com.google.android.mobly.snippet.bundled.NotificationSnippet,
