@@ -34,12 +34,12 @@ public class AudioSnippet implements Snippet {
     }
 
     @Rpc(description = "Sets the microphone mute state: True = Muted, False = not muted.")
-    public int setMicrophoneMute(boolean state) {
-        return mAudioManager.setMicrophoneMute(state);
+    public void setMicrophoneMute(boolean state) {
+        mAudioManager.setMicrophoneMute(state);
     }
 
     @Rpc(description = "Returns whether or not the microphone is muted.")
-    public int isMicrophoneMute() {
+    public boolean isMicrophoneMute() {
         return mAudioManager.isMicrophoneMute();
     }
 
