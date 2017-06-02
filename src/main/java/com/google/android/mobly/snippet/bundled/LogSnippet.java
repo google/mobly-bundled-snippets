@@ -22,7 +22,7 @@ import com.google.android.mobly.snippet.rpc.Rpc;
 
 /** Snippet class exposing Android APIs related to logging. */
 public class LogSnippet implements Snippet {
-    private static String mTag = "MBS";
+    private String mTag = "MBS";
 
     @Rpc(description = "Set the tag to use for logX Rpcs. Default is 'MBS'.")
     public void logSetTag(String tag) {
