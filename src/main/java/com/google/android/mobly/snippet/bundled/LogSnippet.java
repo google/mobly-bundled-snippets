@@ -55,7 +55,7 @@ public class LogSnippet implements Snippet {
     }
 
     @Rpc(description = "Log at WTF level.")
-    public void logWTF(String message) {
+    public void logWtf(String message) {
         Log.wtf(mTag, message);
     }
 
