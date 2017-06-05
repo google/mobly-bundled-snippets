@@ -24,7 +24,7 @@ import com.google.android.mobly.snippet.rpc.Rpc;
 public class LogSnippet implements Snippet {
     private String mTag = "MoblyTestLog";
 
-    @Rpc(description = "Set the tag to use for logX Rpcs. Default is 'MBS'.")
+    @Rpc(description = "Set the tag to use for logX Rpcs. Default is 'MoblyTestLog'.")
     public void logSetTag(String tag) {
         mTag = tag;
     }
