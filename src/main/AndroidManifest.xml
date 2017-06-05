@@ -26,6 +26,7 @@
                            com.google.android.mobly.snippet.bundled.BluetoothAdapterSnippet,
                            com.google.android.mobly.snippet.bundled.BluetoothLeAdvertiserSnippet,
                            com.google.android.mobly.snippet.bundled.BluetoothLeScannerSnippet,
+                           com.google.android.mobly.snippet.bundled.LogSnippet,
                            com.google.android.mobly.snippet.bundled.NotificationSnippet,
                            com.google.android.mobly.snippet.bundled.TelephonySnippet,
                            com.google.android.mobly.snippet.bundled.WifiManagerSnippet" />
