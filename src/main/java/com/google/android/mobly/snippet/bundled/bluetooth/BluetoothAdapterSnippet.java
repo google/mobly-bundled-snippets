@@ -46,7 +46,7 @@ public class BluetoothAdapterSnippet implements Snippet {
     }
 
     private final Context mContext;
-    private static BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+    private final static BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
     private static final ConcurrentHashMap<String, BluetoothDevice> mDiscoveryResults =
             new ConcurrentHashMap<>();
