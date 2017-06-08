@@ -31,6 +31,7 @@ import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.rpc.RpcMinSdk;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import org.json.JSONException;
@@ -46,7 +47,7 @@ public class BluetoothAdapterSnippet implements Snippet {
     }
 
     private final Context mContext;
-    private final static BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+    private static final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
     private static final ConcurrentHashMap<String, BluetoothDevice> mDiscoveryResults =
             new ConcurrentHashMap<>();
@@ -146,7 +147,7 @@ public class BluetoothAdapterSnippet implements Snippet {
                 "Start discovery, wait for discovery to complete, and return results, which is a list of "
                         + "serialized BluetoothDevice objects."
     )
-    public ArrayList<Bundle> btDiscoverAndGetResults()
+    public List<Bundle> btDiscoverAndGetResults()
             throws InterruptedException, BluetoothAdapterSnippetException {
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
@@ -201,7 +202,7 @@ public class BluetoothAdapterSnippet implements Snippet {
     }
 
     @Rpc(description = "Get the list of paired bluetooth devices.")
-    public ArrayList<Bundle> btGetPairedDevices()
+    public List<Bundle> btGetPairedDevices()
             throws BluetoothAdapterSnippetException, InterruptedException, JSONException {
         ArrayList<Bundle> pairedDevices = new ArrayList<>();
         for (BluetoothDevice device : mBluetoothAdapter.getBondedDevices()) {
