@@ -34,6 +34,7 @@ import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.rpc.RpcMinSdk;
 import com.google.android.mobly.snippet.util.Log;
 import java.util.ArrayList;
+import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -61,9 +62,15 @@ public class WifiManagerSnippet implements Snippet {
     @Rpc(description = "Clears all configured networks.")
     public void wifiClearConfiguredNetworks() throws WifiManagerSnippetException {
         Log.d("Clearing all configured networks.");
+	List<String> unremovedSsids = new ArrayList();
         for (WifiConfiguration config : mWifiManager.getConfiguredNetworks()) {
-            wifiRemoveNetwork(config.networkId);
+            if (!mWifiManager.removeNetwork(config.networkId)) {
+                unremovedSsids.add(config.SSID);
+	    }
         }
+	if (!unremovedSsids.isEmpty()) {
+	    throw new WifiManagerSnippetException("Failed to remove networks: " + unremovedSsids);
+	}
     }
 
     @Rpc(description = "Turns on Wi-Fi with a 30s timeout.")
@@ -224,8 +231,8 @@ public class WifiManagerSnippet implements Snippet {
                 "Get the list of configured Wi-Fi networks, each is a serialized "
                         + "WifiConfiguration object."
     )
-    public ArrayList<JSONObject> wifiGetConfiguredNetworks() throws JSONException {
-        ArrayList<JSONObject> networks = new ArrayList<>();
+    public List<JSONObject> wifiGetConfiguredNetworks() throws JSONException {
+        List<JSONObject> networks = new ArrayList<>();
         for (WifiConfiguration config : mWifiManager.getConfiguredNetworks()) {
             networks.add(mJsonSerializer.toJson(config));
         }
