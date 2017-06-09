@@ -61,7 +61,7 @@ public class WifiManagerSnippet implements Snippet {
 
     @Rpc(description = "Clears all configured networks.")
     public void wifiClearConfiguredNetworks() throws WifiManagerSnippetException {
-        List<WifiConfiguration> unremovedConfigs = new ArrayList();
+        List<WifiConfiguration> unremovedConfigs = new ArrayList<>();
         for (WifiConfiguration config : mWifiManager.getConfiguredNetworks()) {
             if (!mWifiManager.removeNetwork(config.networkId)) {
                 unremovedConfigs.add(config);
