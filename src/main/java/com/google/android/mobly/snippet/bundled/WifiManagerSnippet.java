@@ -58,6 +58,14 @@ public class WifiManagerSnippet implements Snippet {
         mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
     }
 
+    @Rpc(description = "Clears all configured networks.")
+    public void wifiClearConfiguredNetworks() throws WifiManagerSnippetException {
+        Log.d("Clearing all configured networks.");
+        for (WifiConfiguration config : mWifiManager.getConfiguredNetworks()) {
+            wifiRemoveNetwork(config.networkId);
+        }
+    }
+
     @Rpc(description = "Turns on Wi-Fi with a 30s timeout.")
     public void wifiEnable() throws InterruptedException, WifiManagerSnippetException {
         if (!mWifiManager.setWifiEnabled(true)) {
