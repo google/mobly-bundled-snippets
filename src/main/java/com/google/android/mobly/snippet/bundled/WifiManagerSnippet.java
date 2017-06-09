@@ -62,15 +62,15 @@ public class WifiManagerSnippet implements Snippet {
     @Rpc(description = "Clears all configured networks.")
     public void wifiClearConfiguredNetworks() throws WifiManagerSnippetException {
         Log.d("Clearing all configured networks.");
-	List<String> unremovedSsids = new ArrayList();
+        List<String> unremovedSsids = new ArrayList();
         for (WifiConfiguration config : mWifiManager.getConfiguredNetworks()) {
             if (!mWifiManager.removeNetwork(config.networkId)) {
                 unremovedSsids.add(config.SSID);
-	    }
+            }
         }
-	if (!unremovedSsids.isEmpty()) {
-	    throw new WifiManagerSnippetException("Failed to remove networks: " + unremovedSsids);
-	}
+        if (!unremovedSsids.isEmpty()) {
+            throw new WifiManagerSnippetException("Failed to remove networks: " + unremovedSsids);
+        }
     }
 
     @Rpc(description = "Turns on Wi-Fi with a 30s timeout.")
