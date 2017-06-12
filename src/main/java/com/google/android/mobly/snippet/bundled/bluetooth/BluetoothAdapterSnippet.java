@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.google.android.mobly.snippet.bundled;
+package com.google.android.mobly.snippet.bundled.bluetooth;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -31,7 +31,9 @@ import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.rpc.RpcMinSdk;
 import java.util.ArrayList;
-import org.json.JSONArray;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.concurrent.ConcurrentHashMap;
 import org.json.JSONException;
 
 /** Snippet class exposing Android APIs in BluetoothAdapter. */
@@ -45,14 +47,44 @@ public class BluetoothAdapterSnippet implements Snippet {
     }
 
     private final Context mContext;
-    private final BluetoothAdapter mBluetoothAdapter;
+    private static final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
-    private final ArrayList<BluetoothDevice> mDiscoveryResults = new ArrayList<>();
+    private static final ConcurrentHashMap<String, BluetoothDevice> mDiscoveryResults =
+            new ConcurrentHashMap<>();
     private volatile boolean mIsScanResultAvailable = false;
 
     public BluetoothAdapterSnippet() {
         mContext = InstrumentationRegistry.getContext();
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+    }
+
+    /**
+     * Gets a {@link BluetoothDevice} that has either been paired or discovered.
+     *
+     * @param deviceAddress
+     * @return
+     */
+    public static BluetoothDevice getKnownDeviceByAddress(String deviceAddress) {
+        BluetoothDevice pairedDevice = getPairedDeviceByAddress(deviceAddress);
+        if (pairedDevice != null) {
+            return pairedDevice;
+        }
+        BluetoothDevice discoveredDevice = mDiscoveryResults.get(deviceAddress);
+        if (discoveredDevice != null) {
+            return discoveredDevice;
+        }
+        throw new NoSuchElementException(
+                "No device with address "
+                        + deviceAddress
+                        + " is paired or has been discovered. Cannot proceed.");
+    }
+
+    private static BluetoothDevice getPairedDeviceByAddress(String deviceAddress) {
+        for (BluetoothDevice device : mBluetoothAdapter.getBondedDevices()) {
+            if (device.getAddress().equalsIgnoreCase(deviceAddress)) {
+                return device;
+            }
+        }
+        return null;
     }
 
     @Rpc(description = "Enable bluetooth with a 30s timeout.")
@@ -84,12 +116,8 @@ public class BluetoothAdapterSnippet implements Snippet {
         description =
                 "Get bluetooth discovery results, which is a list of serialized BluetoothDevice objects."
     )
-    public JSONArray btGetCachedScanResults() throws JSONException {
-        JSONArray results = new JSONArray();
-        for (BluetoothDevice result : mDiscoveryResults) {
-            results.put(mJsonSerializer.toJson(result));
-        }
-        return results;
+    public ArrayList<Bundle> btGetCachedScanResults() {
+        return mJsonSerializer.serializeBluetoothDeviceList(mDiscoveryResults.values());
     }
 
     @Rpc(description = "Set the friendly Bluetooth name of the local Bluetooth adapter.")
@@ -119,8 +147,8 @@ public class BluetoothAdapterSnippet implements Snippet {
                 "Start discovery, wait for discovery to complete, and return results, which is a list of "
                         + "serialized BluetoothDevice objects."
     )
-    public JSONArray btDiscoverAndGetResults()
-            throws InterruptedException, JSONException, BluetoothAdapterSnippetException {
+    public List<Bundle> btDiscoverAndGetResults()
+            throws InterruptedException, BluetoothAdapterSnippetException {
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         if (mBluetoothAdapter.isDiscovering()) {
@@ -174,13 +202,53 @@ public class BluetoothAdapterSnippet implements Snippet {
     }
 
     @Rpc(description = "Get the list of paired bluetooth devices.")
-    public ArrayList<Bundle> btGetPairedDevices()
+    public List<Bundle> btGetPairedDevices()
             throws BluetoothAdapterSnippetException, InterruptedException, JSONException {
         ArrayList<Bundle> pairedDevices = new ArrayList<>();
         for (BluetoothDevice device : mBluetoothAdapter.getBondedDevices()) {
             pairedDevices.add(mJsonSerializer.serializeBluetoothDevice(device));
         }
         return pairedDevices;
+    }
+
+    @Rpc(description = "Pair with a bluetooth device.")
+    public void btPairDevice(String deviceAddress) throws Throwable {
+        BluetoothDevice device = mDiscoveryResults.get(deviceAddress);
+        if (device == null) {
+            throw new NoSuchElementException(
+                    "No device with address "
+                            + deviceAddress
+                            + " has been discovered. Cannot proceed.");
+        }
+        mContext.registerReceiver(
+                new PairingBroadcastReceiver(mContext), PairingBroadcastReceiver.filter);
+        if (!(boolean) Utils.invokeByReflection(device, "createBond")) {
+            throw new BluetoothAdapterSnippetException(
+                    "Failed to initiate the pairing process to device: " + deviceAddress);
+        }
+        if (!Utils.waitUntil(() -> device.getBondState() == BluetoothDevice.BOND_BONDED, 120)) {
+            throw new BluetoothAdapterSnippetException(
+                    "Failed to pair with device " + deviceAddress + " after 2min.");
+        }
+    }
+
+    @Rpc(description = "Un-pair a bluetooth device.")
+    public void btUnpairDevice(String deviceAddress) throws Throwable {
+        for (BluetoothDevice device : mBluetoothAdapter.getBondedDevices()) {
+            if (device.getAddress().equalsIgnoreCase(deviceAddress)) {
+                if (!(boolean) Utils.invokeByReflection(device, "removeBond")) {
+                    throw new BluetoothAdapterSnippetException(
+                            "Failed to initiate the un-pairing process for device: "
+                                    + deviceAddress);
+                }
+                if (!Utils.waitUntil(
+                        () -> device.getBondState() == BluetoothDevice.BOND_NONE, 30)) {
+                    throw new BluetoothAdapterSnippetException(
+                            "Failed to un-pair device " + deviceAddress + " after 30s.");
+                }
+            }
+        }
+        throw new NoSuchElementException("No device wih address " + deviceAddress + " is paired.");
     }
 
     /**
@@ -223,7 +291,7 @@ public class BluetoothAdapterSnippet implements Snippet {
             } else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device =
                         (BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                mDiscoveryResults.add(device);
+                mDiscoveryResults.put(device.getAddress(), device);
             }
         }
     }

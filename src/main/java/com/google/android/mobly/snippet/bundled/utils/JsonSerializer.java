@@ -33,6 +33,7 @@ import java.lang.reflect.Modifier;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collection;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -146,6 +147,15 @@ public class JsonSerializer {
             }
         }
         return result;
+    }
+
+    public ArrayList<Bundle> serializeBluetoothDeviceList(
+            Collection<BluetoothDevice> bluetoothDevices) {
+        ArrayList<Bundle> results = new ArrayList<>();
+        for (BluetoothDevice device : bluetoothDevices) {
+            results.add(serializeBluetoothDevice(device));
+        }
+        return results;
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
