@@ -34,6 +34,7 @@ import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.rpc.RpcMinSdk;
 import com.google.android.mobly.snippet.util.Log;
 import java.util.ArrayList;
+import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -56,6 +57,25 @@ public class WifiManagerSnippet implements Snippet {
     public WifiManagerSnippet() {
         mContext = InstrumentationRegistry.getContext();
         mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+    }
+
+    @Rpc(description = "Clears all configured networks. This will only work if all configured "
+        + "networks were added through this MBS instance")
+    public void wifiClearConfiguredNetworks() throws WifiManagerSnippetException {
+        List<WifiConfiguration> unremovedConfigs = mWifiManager.getConfiguredNetworks();
+        List<WifiConfiguration> failedConfigs = new ArrayList<>();
+        if (unremovedConfigs == null) {
+            throw new WifiManagerSnippetException(
+                "Failed to get a list of configured networks. Is wifi disabled?");
+        }
+        for (WifiConfiguration config : unremovedConfigs) {
+            if (!mWifiManager.removeNetwork(config.networkId)) {
+                failedConfigs.add(config);
+            }
+        }
+        if (!failedConfigs.isEmpty()) {
+            throw new WifiManagerSnippetException("Failed to remove networks: " + failedConfigs);
+        }
     }
 
     @Rpc(description = "Turns on Wi-Fi with a 30s timeout.")
@@ -216,8 +236,8 @@ public class WifiManagerSnippet implements Snippet {
                 "Get the list of configured Wi-Fi networks, each is a serialized "
                         + "WifiConfiguration object."
     )
-    public ArrayList<JSONObject> wifiGetConfiguredNetworks() throws JSONException {
-        ArrayList<JSONObject> networks = new ArrayList<>();
+    public List<JSONObject> wifiGetConfiguredNetworks() throws JSONException {
+        List<JSONObject> networks = new ArrayList<>();
         for (WifiConfiguration config : mWifiManager.getConfiguredNetworks()) {
             networks.add(mJsonSerializer.toJson(config));
         }
