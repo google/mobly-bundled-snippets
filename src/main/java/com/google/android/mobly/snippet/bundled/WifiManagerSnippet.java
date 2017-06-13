@@ -59,15 +59,21 @@ public class WifiManagerSnippet implements Snippet {
         mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
     }
 
-    @Rpc(description = "Clears all configured networks.")
+    @Rpc(description = "Clears all configured networks. This will only work if all configured "
+        + "networks were added through this MBS instance")
     public void wifiClearConfiguredNetworks() throws WifiManagerSnippetException {
-        List<WifiConfiguration> unremovedConfigs = new ArrayList<>();
-        for (WifiConfiguration config : mWifiManager.getConfiguredNetworks()) {
+        List<WifiConfiguration> unremovedConfigs = mWifiManager.getConfiguredNetworks();
+        List<WifiConfiguration> failedConfigs = new ArrayList<>();
+        if (unremovedConfigs == null) {
+            throw new WifiManagerSnippetException(
+                "Failed to get a list of configured networks. Is wifi disabled?");
+        }
+        for (WifiConfiguration config : unremovedConfigs) {
             if (!mWifiManager.removeNetwork(config.networkId)) {
-                unremovedConfigs.add(config);
+                failedConfigs.add(config);
             }
         }
-        if (!unremovedConfigs.isEmpty()) {
+        if (!failedConfigs.isEmpty()) {
             throw new WifiManagerSnippetException("Failed to remove networks: " + unremovedConfigs);
         }
     }
