@@ -74,7 +74,7 @@ public class WifiManagerSnippet implements Snippet {
             }
         }
         if (!failedConfigs.isEmpty()) {
-            throw new WifiManagerSnippetException("Failed to remove networks: " + unremovedConfigs);
+            throw new WifiManagerSnippetException("Failed to remove networks: " + failedConfigs);
         }
     }
 
