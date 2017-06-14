@@ -15,6 +15,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.READ_SYNC_SETTINGS"/>
@@ -30,6 +31,7 @@
                            com.google.android.mobly.snippet.bundled.BluetoothLeAdvertiserSnippet,
                            com.google.android.mobly.snippet.bundled.BluetoothLeScannerSnippet,
                            com.google.android.mobly.snippet.bundled.LogSnippet,
+                           com.google.android.mobly.snippet.bundled.MediaSnippet,
                            com.google.android.mobly.snippet.bundled.NotificationSnippet,
                            com.google.android.mobly.snippet.bundled.TelephonySnippet,
                            com.google.android.mobly.snippet.bundled.WifiManagerSnippet" />
