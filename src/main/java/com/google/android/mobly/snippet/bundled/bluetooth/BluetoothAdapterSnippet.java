@@ -246,6 +246,7 @@ public class BluetoothAdapterSnippet implements Snippet {
                     throw new BluetoothAdapterSnippetException(
                             "Failed to un-pair device " + deviceAddress + " after 30s.");
                 }
+                return;
             }
         }
         throw new NoSuchElementException("No device wih address " + deviceAddress + " is paired.");
