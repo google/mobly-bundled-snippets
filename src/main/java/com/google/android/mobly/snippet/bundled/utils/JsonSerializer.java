@@ -16,12 +16,16 @@
 
 package com.google.android.mobly.snippet.bundled.utils;
 
+import android.annotation.TargetApi;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.le.AdvertiseSettings;
+import android.bluetooth.le.ScanRecord;
 import android.net.DhcpInfo;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.ParcelUuid;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -29,6 +33,7 @@ import java.lang.reflect.Modifier;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collection;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -65,9 +70,7 @@ public class JsonSerializer {
     }
 
     public JSONObject toJson(Object object) throws JSONException {
-        if (object instanceof BluetoothDevice) {
-            return serializeBluetoothDevice((BluetoothDevice) object);
-        } else if (object instanceof DhcpInfo) {
+        if (object instanceof DhcpInfo) {
             return serializeDhcpInfo((DhcpInfo) object);
         } else if (object instanceof WifiConfiguration) {
             return serializeWifiConfiguration((WifiConfiguration) object);
@@ -109,13 +112,13 @@ public class JsonSerializer {
     private JSONObject serializeWifiConfiguration(WifiConfiguration data) throws JSONException {
         JSONObject result = new JSONObject(mGson.toJson(data));
         result.put("Status", WifiConfiguration.Status.strings[data.status]);
-        guaranteedPut(result, "SSID", trimQuotationMarks(data.SSID));
+        result.put("SSID", trimQuotationMarks(data.SSID));
         return result;
     }
 
     private JSONObject serializeWifiInfo(WifiInfo data) throws JSONException {
         JSONObject result = new JSONObject(mGson.toJson(data));
-        guaranteedPut(result, "SSID", trimQuotationMarks(data.getSSID()));
+        result.put("SSID", trimQuotationMarks(data.getSSID()));
         for (SupplicantState state : SupplicantState.values()) {
             if (data.getSupplicantState().equals(state)) {
                 result.put("SupplicantState", state.name());
@@ -124,71 +127,80 @@ public class JsonSerializer {
         return result;
     }
 
-    private JSONObject serializeBluetoothDevice(BluetoothDevice data) throws JSONException {
-        JSONObject result = new JSONObject();
-        guaranteedPut(result, "Address", data.getAddress());
-        final String bondStateFieldName = "BondState";
-        switch (data.getBondState()) {
-            case BluetoothDevice.BOND_NONE:
-                result.put(bondStateFieldName, "BOND_NONE");
-                break;
-            case BluetoothDevice.BOND_BONDING:
-                result.put(bondStateFieldName, "BOND_BONDING");
-                break;
-            case BluetoothDevice.BOND_BONDED:
-                result.put(bondStateFieldName, "BOND_BONDED");
-                break;
-        }
-        guaranteedPut(result, "Name", data.getName());
+    public Bundle serializeBluetoothDevice(BluetoothDevice data) {
+        Bundle result = new Bundle();
+        result.putString("Address", data.getAddress());
+        final String bondState =
+                MbsEnums.BLUETOOTH_DEVICE_BOND_STATE.getString(data.getBondState());
+        result.putString("BondState", bondState);
+        result.putString("Name", data.getName());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            final String deviceTypeFieldName = "DeviceType";
-            switch (data.getType()) {
-                case BluetoothDevice.DEVICE_TYPE_CLASSIC:
-                    result.put(deviceTypeFieldName, "DEVICE_TYPE_CLASSIC");
-                    break;
-                case BluetoothDevice.DEVICE_TYPE_LE:
-                    result.put(deviceTypeFieldName, "DEVICE_TYPE_LE");
-                    break;
-                case BluetoothDevice.DEVICE_TYPE_DUAL:
-                    result.put(deviceTypeFieldName, "DEVICE_TYPE_DUAL");
-                    break;
-                case BluetoothDevice.DEVICE_TYPE_UNKNOWN:
-                    result.put(deviceTypeFieldName, "DEVICE_TYPE_UNKNOWN");
-                    break;
-            }
+            String deviceType = MbsEnums.BLUETOOTH_DEVICE_TYPE.getString(data.getType());
+            result.putString("DeviceType", deviceType);
             ParcelUuid[] parcelUuids = data.getUuids();
             if (parcelUuids != null) {
                 ArrayList<String> uuidStrings = new ArrayList<>(parcelUuids.length);
                 for (ParcelUuid parcelUuid : parcelUuids) {
                     uuidStrings.add(parcelUuid.getUuid().toString());
                 }
-                result.put("UUIDs", uuidStrings);
+                result.putStringArrayList("UUIDs", uuidStrings);
             }
         }
         return result;
     }
 
-    /**
-     * Guarantees a field is put into a JSONObject even if it's null.
-     *
-     * <p>By default, if the object of {@link JSONObject#put(String, Object)} is null, the `put`
-     * method would either remove the field or do nothing, causing serialized objects to have
-     * inconsistent fields.
-     *
-     * <p>Use this method to put objects that may be null into the serialized JSONObject so the
-     * serialized objects have a consistent set of critical fields, like the SSID field in
-     * serialized WifiConfiguration objects.
-     *
-     * @param data
-     * @param name
-     * @param object
-     * @throws JSONException
-     */
-    private void guaranteedPut(JSONObject data, String name, Object object) throws JSONException {
-        if (object == null) {
-            data.put(name, JSONObject.NULL);
-        } else {
-            data.put(name, object);
+    public ArrayList<Bundle> serializeBluetoothDeviceList(
+            Collection<BluetoothDevice> bluetoothDevices) {
+        ArrayList<Bundle> results = new ArrayList<>();
+        for (BluetoothDevice device : bluetoothDevices) {
+            results.add(serializeBluetoothDevice(device));
         }
+        return results;
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public Bundle serializeBleScanResult(android.bluetooth.le.ScanResult scanResult) {
+        Bundle result = new Bundle();
+        result.putBundle("Device", serializeBluetoothDevice(scanResult.getDevice()));
+        result.putInt("Rssi", scanResult.getRssi());
+        result.putBundle("ScanRecord", serializeBleScanRecord(scanResult.getScanRecord()));
+        result.putLong("TimestampNanos", scanResult.getTimestampNanos());
+        return result;
+    }
+
+    /**
+     * Serialize ScanRecord for Bluetooth LE.
+     *
+     * <p>Not all fields are serialized here. Will add more as we need.
+     *
+     * <pre>The returned {@link Bundle} has the following info:
+     *          "DeviceName", String
+     *          "TxPowerLevel", String
+     * </pre>
+     *
+     * @param record A {@link ScanRecord} object.
+     * @return A {@link Bundle} object.
+     */
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private Bundle serializeBleScanRecord(ScanRecord record) {
+        Bundle result = new Bundle();
+        result.putString("DeviceName", record.getDeviceName());
+        result.putString(
+                "TxPowerLevel",
+                MbsEnums.BLE_ADVERTISE_TX_POWER.getString(record.getTxPowerLevel()));
+        return result;
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static Bundle serializeBleAdvertisingSettings(AdvertiseSettings advertiseSettings) {
+        Bundle result = new Bundle();
+        result.putString(
+                "TxPowerLevel",
+                MbsEnums.BLE_ADVERTISE_TX_POWER.getString(advertiseSettings.getTxPowerLevel()));
+        result.putString(
+                "Mode", MbsEnums.BLE_ADVERTISE_MODE.getString(advertiseSettings.getMode()));
+        result.putInt("Timeout", advertiseSettings.getTimeout());
+        result.putBoolean("IsConnectable", advertiseSettings.isConnectable());
+        return result;
     }
 }

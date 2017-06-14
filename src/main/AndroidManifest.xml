@@ -8,11 +8,13 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.READ_SYNC_SETTINGS"/>
@@ -23,7 +25,11 @@
             android:name="mobly-snippets"
             android:value="com.google.android.mobly.snippet.bundled.AccountSnippet,
                            com.google.android.mobly.snippet.bundled.AudioSnippet,
-                           com.google.android.mobly.snippet.bundled.BluetoothAdapterSnippet,
+                           com.google.android.mobly.snippet.bundled.bluetooth.BluetoothAdapterSnippet,
+                           com.google.android.mobly.snippet.bundled.bluetooth.profiles.BluetoothA2dpSnippet,
+                           com.google.android.mobly.snippet.bundled.BluetoothLeAdvertiserSnippet,
+                           com.google.android.mobly.snippet.bundled.BluetoothLeScannerSnippet,
+                           com.google.android.mobly.snippet.bundled.LogSnippet,
                            com.google.android.mobly.snippet.bundled.NotificationSnippet,
                            com.google.android.mobly.snippet.bundled.TelephonySnippet,
                            com.google.android.mobly.snippet.bundled.WifiManagerSnippet" />

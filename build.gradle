@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.2'
+        classpath 'com.android.tools.build:gradle:2.3.3'
         classpath 'me.tatarka:gradle-retrolambda:3.5.0'
 
         // NOTE: Do not place your application dependencies here.
@@ -46,6 +46,11 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    lintOptions {
+        abortOnError true
+        checkAllWarnings true
+        warningsAsErrors true
+    }
 }
 
 // Produces a jar of source files. Needed for compliance reasons.
@@ -66,7 +71,7 @@ artifacts {
 
 dependencies {
     compile 'com.android.support.test:runner:0.5'
-    compile 'com.google.android.mobly:mobly-snippet-lib:1.0.0'
+    compile 'com.google.android.mobly:mobly-snippet-lib:1.1.0'
     compile 'com.google.code.gson:gson:2.6.2'
     compile 'com.google.guava:guava:20.0'
 
