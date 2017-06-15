@@ -26,9 +26,7 @@ import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import java.io.IOException;
 
-/**
- * Snippet class to control media playback.  
- */
+/* Snippet class to control media playback. */
 public class MediaSnippet implements Snippet {
 
   private final MediaPlayer mPlayer;
