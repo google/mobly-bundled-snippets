@@ -26,7 +26,9 @@ import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import java.io.IOException;
 
-/* Snippet class to control audio */
+/**
+ * Snippet class to control media playback.  
+ */
 public class MediaSnippet implements Snippet {
 
   private final MediaPlayer mPlayer;
@@ -35,13 +37,13 @@ public class MediaSnippet implements Snippet {
     mPlayer = new MediaPlayer();
   }
 
-  @Rpc(description = "Resets the snippet media player to an idle state.")
+  @Rpc(description = "Resets snippet media player to an idle state, regardless of current state.")
   public void mediaReset() {
     mPlayer.reset();
   }
 
-  @Rpc(description = "Play an audio file at the specified file path.")
-  public void mediaPlayAudioFile(String mediaFile) throws IOException {
+  @Rpc(description = "Play an audio file stored at a specified file path in external storage.")
+  public void mediaPlayAudioFile(String mediaFilePath) throws IOException {
     mediaReset();
     if (Build.VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
       mPlayer.setAudioAttributes(
@@ -53,12 +55,12 @@ public class MediaSnippet implements Snippet {
     } else {
       mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
     }
-    mPlayer.setDataSource(mediaFile);
+    mPlayer.setDataSource(mediaFilePath);
     mPlayer.prepare(); // Synchronous call blocks until the player is ready for playback.
     mPlayer.start();
   }
 
-  @Rpc(description = "Stops playback.")
+  @Rpc(description = "Stops media playback.")
   public void mediaStop() throws IOException {
     mPlayer.stop();
   }
