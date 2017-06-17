@@ -32,6 +32,7 @@ public class MbsEnums {
         return builder.add("DEVICE_TYPE_CLASSIC", BluetoothDevice.DEVICE_TYPE_CLASSIC)
                 .add("DEVICE_TYPE_LE", BluetoothDevice.DEVICE_TYPE_LE)
                 .add("DEVICE_TYPE_DUAL", BluetoothDevice.DEVICE_TYPE_DUAL)
+                .add("DEVICE_TYPE_UNKNOWN", BluetoothDevice.DEVICE_TYPE_UNKNOWN)
                 .build();
     }
 
