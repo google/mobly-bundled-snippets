@@ -10,6 +10,10 @@ Note: this is not an official Google product.
 
 ## Usage
 
+1.  Get the source either by dowloading or cloning the project repo:
+
+        git clone git@github.com:google/mobly-bundled-snippets.git
+
 1.  Compile and install the bundled snippets
 
         ./gradlew assembleDebug
