@@ -59,6 +59,13 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
         mAdvertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
     }
 
+    @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP)
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @Rpc(description = "Whether multiple advertisement is supported.")
+    public boolean bleIsMultipleAdvertisementSupported() {
+        return BluetoothAdapter.getDefaultAdapter().isMultipleAdvertisementSupported();
+    }
+
     /**
      * Start Bluetooth LE advertising.
      *
