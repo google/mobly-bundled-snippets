@@ -16,6 +16,7 @@
 
 package com.google.android.mobly.snippet.bundled.bluetooth;
 
+import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
@@ -273,6 +274,13 @@ public class BluetoothAdapterSnippet implements Snippet {
         if (!(boolean) Utils.invokeByReflection(mBluetoothAdapter, "configHciSnoopLog", false)) {
             throw new BluetoothAdapterSnippetException("Failed to disable HCI snoop log.");
         }
+    }
+
+    @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP)
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @Rpc(description = "Whether multiple advertisement is supported.")
+    public boolean btIsMultipleAdvertisementSupported() {
+        return mBluetoothAdapter.isMultipleAdvertisementSupported();
     }
 
     @Override
