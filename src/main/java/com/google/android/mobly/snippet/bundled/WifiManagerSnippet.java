@@ -59,14 +59,17 @@ public class WifiManagerSnippet implements Snippet {
         mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
     }
 
-    @Rpc(description = "Clears all configured networks. This will only work if all configured "
-        + "networks were added through this MBS instance")
+    @Rpc(
+        description =
+                "Clears all configured networks. This will only work if all configured "
+                        + "networks were added through this MBS instance"
+    )
     public void wifiClearConfiguredNetworks() throws WifiManagerSnippetException {
         List<WifiConfiguration> unremovedConfigs = mWifiManager.getConfiguredNetworks();
         List<WifiConfiguration> failedConfigs = new ArrayList<>();
         if (unremovedConfigs == null) {
             throw new WifiManagerSnippetException(
-                "Failed to get a list of configured networks. Is wifi disabled?");
+                    "Failed to get a list of configured networks. Is wifi disabled?");
         }
         for (WifiConfiguration config : unremovedConfigs) {
             if (!mWifiManager.removeNetwork(config.networkId)) {
@@ -98,6 +101,11 @@ public class WifiManagerSnippet implements Snippet {
                 () -> mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED, 30)) {
             throw new WifiManagerSnippetException("Failed to disable Wi-Fi after 30s, timeout!");
         }
+    }
+
+    @Rpc(description = "Checks if Wi-Fi is enabled.")
+    public boolean wifiIsEnabled() {
+        return mWifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED;
     }
 
     @Rpc(description = "Trigger Wi-Fi scan.")
