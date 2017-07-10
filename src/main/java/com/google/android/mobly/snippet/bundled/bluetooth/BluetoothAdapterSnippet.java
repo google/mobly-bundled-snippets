@@ -22,14 +22,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
-import com.google.android.mobly.snippet.rpc.RpcMinSdk;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -250,29 +248,6 @@ public class BluetoothAdapterSnippet implements Snippet {
             }
         }
         throw new NoSuchElementException("No device wih address " + deviceAddress + " is paired.");
-    }
-
-    /**
-     * Enable Bluetooth HCI snoop log collection.
-     *
-     * <p>The file can be pulled from `/sdcard/btsnoop_hci.log`.
-     *
-     * @throws Throwable
-     */
-    @RpcMinSdk(Build.VERSION_CODES.KITKAT)
-    @Rpc(description = "Enable Bluetooth HCI snoop log for debugging.")
-    public void btEnableHciSnoopLog() throws Throwable {
-        if (!(boolean) Utils.invokeByReflection(mBluetoothAdapter, "configHciSnoopLog", true)) {
-            throw new BluetoothAdapterSnippetException("Failed to enable HCI snoop log.");
-        }
-    }
-
-    @RpcMinSdk(Build.VERSION_CODES.KITKAT)
-    @Rpc(description = "Disable Bluetooth HCI snoop log.")
-    public void btDisableHciSnoopLog() throws Throwable {
-        if (!(boolean) Utils.invokeByReflection(mBluetoothAdapter, "configHciSnoopLog", false)) {
-            throw new BluetoothAdapterSnippetException("Failed to disable HCI snoop log.");
-        }
     }
 
     @Override
