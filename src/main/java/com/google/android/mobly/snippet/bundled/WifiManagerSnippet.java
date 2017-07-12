@@ -192,19 +192,30 @@ public class WifiManagerSnippet implements Snippet {
             throws InterruptedException, JSONException, WifiManagerSnippetException {
         Log.d("Got network config: " + wifiNetworkConfig);
         WifiConfiguration wifiConfig = JsonDeserializer.jsonToWifiConfig(wifiNetworkConfig);
+        String SSID = wifiConfig.SSID;
         // Return directly if network is already connected.
         String connectedSsid = mWifiManager.getConnectionInfo().getSSID();
         if (connectedSsid.equals(wifiConfig.SSID)) {
             Log.d("Network " + connectedSsid + " is already connected.");
             return;
         }
-        // If the network is already added but not connected, update the configuration first.
+        int networkId;
+        // If this is a network with a known SSID, connect with the existing config.
+        // We have to do this because in N+, network configs can only be modified by the UID that
+        // created the network. So any attempt to modify a network config that does not belong to us
+        // would result in error.
         WifiConfiguration existingConfig = getExistingConfiguredNetwork(wifiConfig.SSID);
         if (existingConfig != null) {
-            Log.d("Update the configuration of network " + existingConfig.SSID + ".");
-            mWifiManager.removeNetwork(existingConfig.networkId);
+            Log.w(
+                    "Connecting to network \""
+                            + existingConfig.SSID
+                            + "\" with its existing configuration");
+            wifiConfig = existingConfig;
+            networkId = wifiConfig.networkId;
+        } else {
+            // If this is a network with a new SSID, add the network.
+            networkId = mWifiManager.addNetwork(wifiConfig);
         }
-        int networkId = mWifiManager.addNetwork(wifiConfig);
         mWifiManager.disconnect();
         if (!mWifiManager.enableNetwork(networkId, true)) {
             throw new WifiManagerSnippetException(
@@ -214,8 +225,7 @@ public class WifiManagerSnippet implements Snippet {
             throw new WifiManagerSnippetException(
                     "Failed to reconnect to Wi-Fi network of ID: " + networkId);
         }
-        if (!Utils.waitUntil(
-                () -> mWifiManager.getConnectionInfo().getSSID().equals(wifiConfig.SSID), 90)) {
+        if (!Utils.waitUntil(() -> mWifiManager.getConnectionInfo().getSSID().equals(SSID), 90)) {
             throw new WifiManagerSnippetException(
                     "Failed to connect to Wi-Fi network "
                             + wifiNetworkConfig.toString()
