@@ -17,10 +17,13 @@
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.READ_SYNC_SETTINGS"/>
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
     <application>
         <meta-data
             android:name="mobly-snippets"
@@ -34,6 +37,7 @@
                            com.google.android.mobly.snippet.bundled.MediaSnippet,
                            com.google.android.mobly.snippet.bundled.NotificationSnippet,
                            com.google.android.mobly.snippet.bundled.TelephonySnippet,
+                           com.google.android.mobly.snippet.bundled.SmsSnippet,
                            com.google.android.mobly.snippet.bundled.WifiManagerSnippet" />
     </application>
 
