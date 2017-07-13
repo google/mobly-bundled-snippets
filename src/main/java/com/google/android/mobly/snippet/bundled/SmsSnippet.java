@@ -46,8 +46,6 @@ public class SmsSnippet implements Snippet {
         } else {
             mSmsManager.sendTextMessage(phoneNumber, null, message, null, null);
         }
-
-        Thread.sleep(3000);
     }
 
     @AsyncRpc(description = "Wait for incoming SMS message.")
