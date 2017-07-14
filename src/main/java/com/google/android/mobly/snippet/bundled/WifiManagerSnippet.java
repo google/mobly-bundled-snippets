@@ -209,8 +209,8 @@ public class WifiManagerSnippet implements Snippet {
             Log.w(
                     "Connecting to network \""
                             + existingConfig.SSID
-                            + "\" with its existing configuration, ignoring newly passed config: "
-                            + wifiNetworkConfig.toString());
+                            + "\" with its existing configuration: "
+                            + existingConfig.toString());
             wifiConfig = existingConfig;
             networkId = wifiConfig.networkId;
         } else {
