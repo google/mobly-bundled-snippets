@@ -52,7 +52,7 @@ public class SmsSnippet implements Snippet {
     }
 
     @AsyncRpc(description = "Async send SMS to a specified phone number.")
-    public void sendSms(String callbackId, String phoneNumber, String message)
+    public void asyncSendSms(String callbackId, String phoneNumber, String message)
             throws InterruptedException {
         OutboundSmsReceiver receiver = new OutboundSmsReceiver(mContext, callbackId);
 
