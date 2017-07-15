@@ -37,8 +37,6 @@ import com.google.android.mobly.snippet.rpc.AsyncRpc;
 
 import java.util.ArrayList;
 
-import java.util.ArrayList;
-
 /** Snippet class for SMS RPCs. */
 public class SmsSnippet implements Snippet {
 
@@ -75,10 +73,6 @@ public class SmsSnippet implements Snippet {
             mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION));
             mSmsManager.sendTextMessage(phoneNumber, null, message, sentIntent, null);
         }
-    }
-
-    private void sendMultiPartMessage(String phoneNumber, ArrayList<String> parts) {
-
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
