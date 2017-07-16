@@ -22,6 +22,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.support.annotation.Nullable;
@@ -193,9 +194,10 @@ public class WifiManagerSnippet implements Snippet {
         Log.d("Got network config: " + wifiNetworkConfig);
         WifiConfiguration wifiConfig = JsonDeserializer.jsonToWifiConfig(wifiNetworkConfig);
         // Return directly if network is already connected.
-        String connectedSsid = mWifiManager.getConnectionInfo().getSSID();
-        if (connectedSsid.equals(wifiConfig.SSID)) {
-            Log.d("Network " + connectedSsid + " is already connected.");
+        WifiInfo connectionInfo = mWifiManager.getConnectionInfo();
+        if (connectionInfo.getNetworkId() != -1 && connectionInfo.getSSID().equals(wifiConfig.SSID))
+        {
+            Log.d("Network " + connectionInfo.getSSID() + " is already connected.");
             return;
         }
         // If the network is already added but not connected, update the configuration first.
