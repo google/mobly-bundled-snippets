@@ -156,12 +156,12 @@ public class SmsSnippet implements Snippet {
 
                     SmsMessage sms = msgs[0];
                     String sender = sms.getOriginatingAddress();
-                    event.getData().putString("sender", sender);
+                    event.getData().putString("OriginatingAddress", sender);
 
                     for (SmsMessage msg : msgs) {
                         smsMsg.append(msg.getMessageBody());
                     }
-                    event.getData().putString("message", smsMsg.toString());
+                    event.getData().putString("MessageBody", smsMsg.toString());
                     mEventCache.postEvent(event);
                     mContext.unregisterReceiver(this);
                 }
