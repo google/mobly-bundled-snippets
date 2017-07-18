@@ -34,14 +34,34 @@ import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.event.EventCache;
 import com.google.android.mobly.snippet.event.SnippetEvent;
 import com.google.android.mobly.snippet.rpc.AsyncRpc;
+import com.google.android.mobly.snippet.rpc.Rpc;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 
 /** Snippet class for SMS RPCs. */
 public class SmsSnippet implements Snippet {
 
+    private static class EventSnippetException extends Exception {
+        private static final long serialVersionUID = 1L;
+
+        public EventSnippetException(String msg) {
+            super(msg);
+        }
+    }
+
     private static final int MAX_CHAR_COUNT_PER_SMS  = 160;
     private static final String SMS_SENT_ACTION = ".SMS_SENT";
+    private static final int DEFAULT_TIMEOUT_MILLISECOND = 60 * 1000;
+    private static final String SMS_RECEIVED_EVENT_NAME = "ReceivedSms";
+    private static final String SMS_SENT_EVENT_NAME = "SentSms";
+    private static final String SMS_CALLBACK_ID_PREFIX = "sendSms-";
+
+    private static int mCallbackCounter = 0;
 
     private final Context mContext;
     private final SmsManager mSmsManager;
@@ -51,9 +71,11 @@ public class SmsSnippet implements Snippet {
         this.mSmsManager = SmsManager.getDefault();
     }
 
-    @AsyncRpc(description = "Async send SMS to a specified phone number.")
-    public void asyncSendSms(String callbackId, String phoneNumber, String message)
-            throws InterruptedException {
+    @Rpc(description = "Send SMS to a specified phone number.")
+    public JSONObject sendSms(String phoneNumber, String message)
+            throws InterruptedException, EventSnippetException, JSONException {
+        String callbackId = new StringBuilder().append(SMS_CALLBACK_ID_PREFIX)
+                .append(++mCallbackCounter).toString();
         OutboundSmsReceiver receiver = new OutboundSmsReceiver(mContext, callbackId);
 
         if (message.length() > MAX_CHAR_COUNT_PER_SMS) {
@@ -73,6 +95,14 @@ public class SmsSnippet implements Snippet {
             mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION));
             mSmsManager.sendTextMessage(phoneNumber, null, message, sentIntent, null);
         }
+
+        String qId = EventCache.getQueueId(callbackId, SMS_SENT_EVENT_NAME);
+        LinkedBlockingDeque<SnippetEvent> q = EventCache.getInstance().getEventDeque(qId);
+        SnippetEvent result = q.pollFirst(DEFAULT_TIMEOUT_MILLISECOND, TimeUnit.MILLISECONDS);
+        if (result == null) {
+            throw new EventSnippetException("Timed out waiting for SMS sent confirmation.");
+        }
+        return result.toJson();
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
@@ -105,7 +135,7 @@ public class SmsSnippet implements Snippet {
             String action = intent.getAction();
 
             if (SMS_SENT_ACTION.equals(action)) {
-                SnippetEvent event = new SnippetEvent(mCallbackId, "SentSms");
+                SnippetEvent event = new SnippetEvent(mCallbackId, SMS_SENT_EVENT_NAME);
                 switch(getResultCode()) {
                     case Activity.RESULT_OK:
                         if (mExpectedMessageCount == 1) {
@@ -133,7 +163,6 @@ public class SmsSnippet implements Snippet {
     }
 
     private class SmsReceiver extends BroadcastReceiver {
-
         private final String mCallbackId;
         private Context mContext;
         private final EventCache mEventCache;
@@ -148,7 +177,7 @@ public class SmsSnippet implements Snippet {
         @Override
         public void onReceive(Context receivedContext, Intent intent) {
             if (Intents.SMS_RECEIVED_ACTION.equals(intent.getAction())) {
-                SnippetEvent event = new SnippetEvent(mCallbackId, "ReceivedSms");
+                SnippetEvent event = new SnippetEvent(mCallbackId, SMS_RECEIVED_EVENT_NAME);
                 Bundle extras = intent.getExtras();
                 if (extras != null) {
                     SmsMessage[] msgs = Intents.getMessagesFromIntent(intent);
