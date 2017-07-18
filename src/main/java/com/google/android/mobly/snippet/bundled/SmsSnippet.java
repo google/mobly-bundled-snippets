@@ -34,6 +34,7 @@ import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.event.EventCache;
 import com.google.android.mobly.snippet.event.SnippetEvent;
 import com.google.android.mobly.snippet.rpc.AsyncRpc;
+import com.google.android.mobly.snippet.rpc.JsonBuilder;
 import com.google.android.mobly.snippet.rpc.Rpc;
 
 import org.json.JSONException;
@@ -46,10 +47,10 @@ import java.util.concurrent.TimeUnit;
 /** Snippet class for SMS RPCs. */
 public class SmsSnippet implements Snippet {
 
-    private static class EventSnippetException extends Exception {
+    private static class SmsSnippetException extends Exception {
         private static final long serialVersionUID = 1L;
 
-        public EventSnippetException(String msg) {
+        public SmsSnippetException(String msg) {
             super(msg);
         }
     }
@@ -71,9 +72,12 @@ public class SmsSnippet implements Snippet {
         this.mSmsManager = SmsManager.getDefault();
     }
 
-    @Rpc(description = "Send SMS to a specified phone number.")
+    @Rpc(description = "Send SMS to a specified phone number. Returns a JSONObject with a field " +
+            "'sent' which will indicate if the SMS was sent successfully. If there was an error, " +
+            "'sent' will be set to false, and the field 'error_code' will be set with an int that" +
+            " represents a SmsManager result error code (ie 2 -> RESULT_ERROR_RADIO_OFF).")
     public JSONObject sendSms(String phoneNumber, String message)
-            throws InterruptedException, EventSnippetException, JSONException {
+            throws InterruptedException, SmsSnippetException, JSONException {
         String callbackId = new StringBuilder().append(SMS_CALLBACK_ID_PREFIX)
                 .append(++mCallbackCounter).toString();
         OutboundSmsReceiver receiver = new OutboundSmsReceiver(mContext, callbackId);
@@ -100,9 +104,10 @@ public class SmsSnippet implements Snippet {
         LinkedBlockingDeque<SnippetEvent> q = EventCache.getInstance().getEventDeque(qId);
         SnippetEvent result = q.pollFirst(DEFAULT_TIMEOUT_MILLISECOND, TimeUnit.MILLISECONDS);
         if (result == null) {
-            throw new EventSnippetException("Timed out waiting for SMS sent confirmation.");
+            throw new SmsSnippetException("Timed out waiting for SMS sent confirmation.");
         }
-        return result.toJson();
+
+        return result.toJson().getJSONObject("data");
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
