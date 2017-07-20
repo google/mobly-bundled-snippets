@@ -72,11 +72,17 @@ public class SmsSnippet implements Snippet {
         this.mSmsManager = SmsManager.getDefault();
     }
 
-    @Rpc(description = "Send SMS to a specified phone number. Returns a JSONObject with a field " +
-            "'sent' which will indicate if the SMS was sent successfully. If there was an error, " +
-            "'sent' will be set to false, and the field 'error_code' will be set with an int that" +
-            " represents a SmsManager result error code (ie 2 -> RESULT_ERROR_RADIO_OFF).")
-    public JSONObject sendSms(String phoneNumber, String message)
+    /**
+     * Send SMS and wait for confirmation before returning.
+     *
+     * @param phoneNumber A String representing  phone number with country code.
+     * @param message A String representing the message to send.
+     * @throws InterruptedException
+     * @throws SmsSnippetException
+     * @throws JSONException
+     */
+    @Rpc(description = "Send SMS to a specified phone number.")
+    public void sendSms(String phoneNumber, String message)
             throws InterruptedException, SmsSnippetException, JSONException {
         String callbackId = new StringBuilder().append(SMS_CALLBACK_ID_PREFIX)
                 .append(++mCallbackCounter).toString();
@@ -105,9 +111,10 @@ public class SmsSnippet implements Snippet {
         SnippetEvent result = q.pollFirst(DEFAULT_TIMEOUT_MILLISECOND, TimeUnit.MILLISECONDS);
         if (result == null) {
             throw new SmsSnippetException("Timed out waiting for SMS sent confirmation.");
+        } else if (result.getData().containsKey("error")) {
+            throw new SmsSnippetException(
+                    "Failed to send SMS, error code: " + result.getData().getInt("error"));
         }
-
-        return result.toJson().getJSONObject("data");
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
