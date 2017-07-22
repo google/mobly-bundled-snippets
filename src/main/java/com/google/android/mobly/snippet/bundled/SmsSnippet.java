@@ -73,7 +73,7 @@ public class SmsSnippet implements Snippet {
     }
 
     /**
-     * Send SMS and wait for confirmation before returning.
+     * Send SMS and return after waiting for send confirmation (with a timeout of 60 seconds).
      *
      * @param phoneNumber A String representing  phone number with country code.
      * @param message A String representing the message to send.
