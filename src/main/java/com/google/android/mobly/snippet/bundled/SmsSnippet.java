@@ -34,11 +34,7 @@ import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.event.EventCache;
 import com.google.android.mobly.snippet.event.SnippetEvent;
 import com.google.android.mobly.snippet.rpc.AsyncRpc;
-import com.google.android.mobly.snippet.rpc.JsonBuilder;
 import com.google.android.mobly.snippet.rpc.Rpc;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -77,13 +73,12 @@ public class SmsSnippet implements Snippet {
      *
      * @param phoneNumber A String representing  phone number with country code.
      * @param message A String representing the message to send.
-     * @throws InterruptedException
-     * @throws SmsSnippetException
-     * @throws JSONException
+     * @throws InterruptedException if there is an
+     * @throws SmsSnippetException on SMS send error.
      */
     @Rpc(description = "Send SMS to a specified phone number.")
     public void sendSms(String phoneNumber, String message)
-            throws InterruptedException, SmsSnippetException, JSONException {
+            throws InterruptedException, SmsSnippetException {
         String callbackId = new StringBuilder().append(SMS_CALLBACK_ID_PREFIX)
                 .append(++mCallbackCounter).toString();
         OutboundSmsReceiver receiver = new OutboundSmsReceiver(mContext, callbackId);
@@ -91,7 +86,7 @@ public class SmsSnippet implements Snippet {
         if (message.length() > MAX_CHAR_COUNT_PER_SMS) {
             ArrayList<String> parts = mSmsManager.divideMessage(message);
             ArrayList<PendingIntent> sIntents = new ArrayList<>();
-            for (String part : parts) {
+            for (int i = 0; i < parts.size(); i++) {
                 sIntents.add(PendingIntent.getBroadcast(
                         mContext, 0, new Intent(SMS_SENT_ACTION), 0));
             }
@@ -127,7 +122,7 @@ public class SmsSnippet implements Snippet {
     @Override
     public void shutdown() {}
 
-    private class OutboundSmsReceiver extends BroadcastReceiver {
+    private static class OutboundSmsReceiver extends BroadcastReceiver {
         private final String mCallbackId;
         private Context mContext;
         private final EventCache mEventCache;
@@ -169,12 +164,18 @@ public class SmsSnippet implements Snippet {
                         mEventCache.postEvent(event);
                         mContext.unregisterReceiver(this);
                         break;
+                    default:
+                        event.getData().putBoolean("sent", false);
+                        event.getData().putInt("error_code", -1 /* Unknown */);
+                        mEventCache.postEvent(event);
+                        mContext.unregisterReceiver(this);
+                        break;
                 }
             }
         }
     }
 
-    private class SmsReceiver extends BroadcastReceiver {
+    private static class SmsReceiver extends BroadcastReceiver {
         private final String mCallbackId;
         private Context mContext;
         private final EventCache mEventCache;
