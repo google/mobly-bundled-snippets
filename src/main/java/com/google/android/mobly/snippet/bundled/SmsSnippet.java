@@ -73,7 +73,7 @@ public class SmsSnippet implements Snippet {
      *
      * @param phoneNumber A String representing  phone number with country code.
      * @param message A String representing the message to send.
-     * @throws InterruptedException if there is an
+     * @throws InterruptedException if there is an issue while polling for event.
      * @throws SmsSnippetException on SMS send error.
      */
     @Rpc(description = "Send SMS to a specified phone number.")
