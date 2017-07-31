@@ -86,6 +86,7 @@ public class SmsSnippet implements Snippet {
         if (message.length() > MAX_CHAR_COUNT_PER_SMS) {
             ArrayList<String> parts = mSmsManager.divideMessage(message);
             ArrayList<PendingIntent> sIntents = new ArrayList<>();
+
             for (int i = 0; i < parts.size(); i++) {
                 sIntents.add(PendingIntent.getBroadcast(
                         mContext, 0, new Intent(SMS_SENT_ACTION), 0));
