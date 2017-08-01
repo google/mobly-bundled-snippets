@@ -78,8 +78,7 @@ public class SmsSnippet implements Snippet {
     @Rpc(description = "Send SMS to a specified phone number.")
     public void sendSms(String phoneNumber, String message)
             throws SmsSnippetException {
-        String callbackId = new StringBuilder().append(SMS_CALLBACK_ID_PREFIX)
-                .append(++mCallbackCounter).toString();
+        String callbackId = SMS_CALLBACK_ID_PREFIX + (++mCallbackCounter);
         OutboundSmsReceiver receiver = new OutboundSmsReceiver(mContext, callbackId);
 
         if (message.length() > MAX_CHAR_COUNT_PER_SMS) {
