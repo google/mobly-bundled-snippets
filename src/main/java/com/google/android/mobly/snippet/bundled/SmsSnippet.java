@@ -73,12 +73,11 @@ public class SmsSnippet implements Snippet {
      *
      * @param phoneNumber A String representing  phone number with country code.
      * @param message A String representing the message to send.
-     * @throws InterruptedException if there is an issue while polling for event.
      * @throws SmsSnippetException on SMS send error.
      */
     @Rpc(description = "Send SMS to a specified phone number.")
     public void sendSms(String phoneNumber, String message)
-            throws InterruptedException, SmsSnippetException {
+            throws SmsSnippetException {
         String callbackId = new StringBuilder().append(SMS_CALLBACK_ID_PREFIX)
                 .append(++mCallbackCounter).toString();
         OutboundSmsReceiver receiver = new OutboundSmsReceiver(mContext, callbackId);
@@ -103,9 +102,16 @@ public class SmsSnippet implements Snippet {
 
         String qId = EventCache.getQueueId(callbackId, SMS_SENT_EVENT_NAME);
         LinkedBlockingDeque<SnippetEvent> q = EventCache.getInstance().getEventDeque(qId);
-        SnippetEvent result = q.pollFirst(DEFAULT_TIMEOUT_MILLISECOND, TimeUnit.MILLISECONDS);
+        SnippetEvent result;
+
+        try {
+            result = q.pollFirst(DEFAULT_TIMEOUT_MILLISECOND, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            throw new SmsSnippetException("Did not receive SMS sent confirmation event.");
+        }
+
         if (result == null) {
-            throw new SmsSnippetException("Timed out waiting for SMS sent confirmation.");
+            throw new SmsSnippetException("Timed out waiting for SMS sent confirmation event.");
         } else if (result.getData().containsKey("error")) {
             throw new SmsSnippetException(
                     "Failed to send SMS, error code: " + result.getData().getInt("error"));
