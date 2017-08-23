@@ -18,6 +18,7 @@ package com.google.android.mobly.snippet.bundled.utils;
 
 import android.support.annotation.Nullable;
 
+import com.google.android.mobly.snippet.bundled.SmsSnippet;
 import com.google.android.mobly.snippet.event.EventCache;
 import com.google.android.mobly.snippet.event.SnippetEvent;
 import com.google.common.primitives.Primitives;
@@ -63,15 +64,33 @@ public final class Utils {
         return false;
     }
 
+    /**
+     * Wait on a specific snippet event.
+     *
+     * This allows a snippet to wait on another SnippetEvent as long as they know the name and
+     * callback id. Commonly used to make async calls synchronous, see
+     * {@link SmsSnippet#waitForSms()} waitForSms} for example usage.
+     *
+     * @param callbackId String callbackId that we want to wait on.
+     * @param eventName String event name that we are waiting on.
+     * @param timeout int timeout in milliseconds for how long it will wait for the event.
+     * @return SnippetEvent if one was received.
+     * @throws Throwable if the wait times out or if it is interrupted while polling for event.
+     */
     public static SnippetEvent waitForSnippetEvent(
-            String callbackId, String eventName, @Nullable Integer timeout)
-            throws InterruptedException {
+            String callbackId, String eventName, @Nullable Integer timeout) throws Throwable {
         if (timeout == null) {
             timeout = DEFAULT_TIMEOUT_MILLISECOND;
         }
         String qId = EventCache.getQueueId(callbackId, eventName);
         LinkedBlockingDeque<SnippetEvent> q =  EventCache.getInstance().getEventDeque(qId);
-        return q.pollFirst(timeout, TimeUnit.MILLISECONDS);
+        SnippetEvent result;
+        try {
+          result = q.pollFirst(timeout, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            throw e.getCause();
+        }
+        return result;
     }
 
     /**

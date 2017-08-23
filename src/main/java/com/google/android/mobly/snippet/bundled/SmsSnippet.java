@@ -79,7 +79,7 @@ public class SmsSnippet implements Snippet {
      */
     @Rpc(description = "Send SMS to a specified phone number.")
     public void sendSms(String phoneNumber, String message)
-            throws SmsSnippetException {
+            throws Throwable {
         String callbackId = SMS_CALLBACK_ID_PREFIX + (++mCallbackCounter);
         OutboundSmsReceiver receiver = new OutboundSmsReceiver(mContext, callbackId);
 
@@ -101,12 +101,7 @@ public class SmsSnippet implements Snippet {
             mSmsManager.sendTextMessage(phoneNumber, null, message, sentIntent, null);
         }
 
-        SnippetEvent result;
-        try {
-            result = Utils.waitForSnippetEvent(callbackId, SMS_SENT_EVENT_NAME, null);
-        } catch (InterruptedException e) {
-            throw new SmsSnippetException("Did not receive SMS sent confirmation event.");
-        }
+        SnippetEvent result = Utils.waitForSnippetEvent(callbackId, SMS_SENT_EVENT_NAME, null);
 
         if (result == null) {
             throw new SmsSnippetException("Timed out waiting for SMS sent confirmation event.");
@@ -125,17 +120,12 @@ public class SmsSnippet implements Snippet {
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
     @Rpc(description = "Wait for incoming SMS message.")
-    public JSONObject waitForSms() throws SmsSnippetException, JSONException {
+    public JSONObject waitForSms() throws Throwable {
         String callbackId = SMS_CALLBACK_ID_PREFIX + (++mCallbackCounter);
         SmsReceiver receiver = new SmsReceiver(mContext, callbackId);
         mContext.registerReceiver(receiver, new IntentFilter(Intents.SMS_RECEIVED_ACTION));
 
-        SnippetEvent result;
-        try {
-            result = Utils.waitForSnippetEvent(callbackId, SMS_RECEIVED_EVENT_NAME, null);
-        } catch (InterruptedException e) {
-            throw new SmsSnippetException("Did not receive SMS received event.");
-        }
+        SnippetEvent result = Utils.waitForSnippetEvent(callbackId, SMS_RECEIVED_EVENT_NAME, null);
 
         if (result == null) {
             throw new SmsSnippetException("Timed out waiting for SMS received event.");
