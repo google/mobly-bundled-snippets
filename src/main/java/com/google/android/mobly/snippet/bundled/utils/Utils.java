@@ -16,12 +16,20 @@
 
 package com.google.android.mobly.snippet.bundled.utils;
 
+import android.support.annotation.Nullable;
+
+import com.google.android.mobly.snippet.event.EventCache;
+import com.google.android.mobly.snippet.event.SnippetEvent;
 import com.google.common.primitives.Primitives;
 import com.google.common.reflect.TypeToken;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 
 public final class Utils {
+
+    private static final int DEFAULT_TIMEOUT_MILLISECOND = 60 * 1000;
 
     private Utils() {}
 
@@ -53,6 +61,17 @@ public final class Utils {
             throw new RuntimeException(e);
         }
         return false;
+    }
+
+    public static SnippetEvent waitForSnippetEvent(
+            String callbackId, String eventName, @Nullable Integer timeout)
+            throws InterruptedException {
+        if (timeout == null) {
+            timeout = DEFAULT_TIMEOUT_MILLISECOND;
+        }
+        String qId = EventCache.getQueueId(callbackId, eventName);
+        LinkedBlockingDeque<SnippetEvent> q =  EventCache.getInstance().getEventDeque(qId);
+        return q.pollFirst(timeout, TimeUnit.MILLISECONDS);
     }
 
     /**

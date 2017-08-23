@@ -31,14 +31,16 @@ import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 
 import com.google.android.mobly.snippet.Snippet;
+import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.event.EventCache;
 import com.google.android.mobly.snippet.event.SnippetEvent;
 import com.google.android.mobly.snippet.rpc.AsyncRpc;
 import com.google.android.mobly.snippet.rpc.Rpc;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
 
 /** Snippet class for SMS RPCs. */
 public class SmsSnippet implements Snippet {
@@ -46,7 +48,7 @@ public class SmsSnippet implements Snippet {
     private static class SmsSnippetException extends Exception {
         private static final long serialVersionUID = 1L;
 
-        public SmsSnippetException(String msg) {
+        SmsSnippetException(String msg) {
             super(msg);
         }
     }
@@ -99,12 +101,9 @@ public class SmsSnippet implements Snippet {
             mSmsManager.sendTextMessage(phoneNumber, null, message, sentIntent, null);
         }
 
-        String qId = EventCache.getQueueId(callbackId, SMS_SENT_EVENT_NAME);
-        LinkedBlockingDeque<SnippetEvent> q = EventCache.getInstance().getEventDeque(qId);
         SnippetEvent result;
-
         try {
-            result = q.pollFirst(DEFAULT_TIMEOUT_MILLISECOND, TimeUnit.MILLISECONDS);
+            result = Utils.waitForSnippetEvent(callbackId, SMS_SENT_EVENT_NAME, null);
         } catch (InterruptedException e) {
             throw new SmsSnippetException("Did not receive SMS sent confirmation event.");
         }
@@ -122,6 +121,27 @@ public class SmsSnippet implements Snippet {
     public void asyncWaitForSms(String callbackId) {
         SmsReceiver receiver = new SmsReceiver(mContext, callbackId);
         mContext.registerReceiver(receiver, new IntentFilter(Intents.SMS_RECEIVED_ACTION));
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    @Rpc(description = "Wait for incoming SMS message.")
+    public JSONObject waitForSms() throws SmsSnippetException, JSONException {
+        String callbackId = SMS_CALLBACK_ID_PREFIX + (++mCallbackCounter);
+        SmsReceiver receiver = new SmsReceiver(mContext, callbackId);
+        mContext.registerReceiver(receiver, new IntentFilter(Intents.SMS_RECEIVED_ACTION));
+
+        SnippetEvent result;
+        try {
+            result = Utils.waitForSnippetEvent(callbackId, SMS_RECEIVED_EVENT_NAME, null);
+        } catch (InterruptedException e) {
+            throw new SmsSnippetException("Did not receive SMS received event.");
+        }
+
+        if (result == null) {
+            throw new SmsSnippetException("Timed out waiting for SMS received event.");
+        }
+
+        return result.toJson();
     }
 
     @Override
