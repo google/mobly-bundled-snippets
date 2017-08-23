@@ -30,8 +30,6 @@ import java.util.concurrent.TimeUnit;
 
 public final class Utils {
 
-    private static final int DEFAULT_TIMEOUT_MILLISECOND = 60 * 1000;
-
     private Utils() {}
 
     /**
@@ -73,20 +71,21 @@ public final class Utils {
      *
      * @param callbackId String callbackId that we want to wait on.
      * @param eventName String event name that we are waiting on.
-     * @param timeout int timeout in milliseconds for how long it will wait for the event.
+     * @param timeout int if not null will use this as the timeout for waiting for the event.
      * @return SnippetEvent if one was received.
      * @throws Throwable if the wait times out or if it is interrupted while polling for event.
      */
     public static SnippetEvent waitForSnippetEvent(
             String callbackId, String eventName, @Nullable Integer timeout) throws Throwable {
-        if (timeout == null) {
-            timeout = DEFAULT_TIMEOUT_MILLISECOND;
-        }
         String qId = EventCache.getQueueId(callbackId, eventName);
         LinkedBlockingDeque<SnippetEvent> q =  EventCache.getInstance().getEventDeque(qId);
         SnippetEvent result;
         try {
-          result = q.pollFirst(timeout, TimeUnit.MILLISECONDS);
+            if (timeout == null) {
+                result = q.pollFirst();
+            } else {
+                result = q.pollFirst(timeout, TimeUnit.MILLISECONDS);
+            }
         } catch (InterruptedException e) {
             throw e.getCause();
         }
