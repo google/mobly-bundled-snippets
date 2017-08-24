@@ -71,21 +71,17 @@ public final class Utils {
      *
      * @param callbackId String callbackId that we want to wait on.
      * @param eventName String event name that we are waiting on.
-     * @param timeout int if not null will use this as the timeout for waiting for the event.
+     * @param timeout int timeout in milliseconds for how long it will wait for the event.
      * @return SnippetEvent if one was received.
-     * @throws Throwable if the wait times out or if it is interrupted while polling for event.
+     * @throws Throwable if interrupted while polling for event completion.
      */
     public static SnippetEvent waitForSnippetEvent(
-            String callbackId, String eventName, @Nullable Integer timeout) throws Throwable {
+            String callbackId, String eventName, Integer timeout) throws Throwable {
         String qId = EventCache.getQueueId(callbackId, eventName);
         LinkedBlockingDeque<SnippetEvent> q =  EventCache.getInstance().getEventDeque(qId);
         SnippetEvent result;
         try {
-            if (timeout == null) {
-                result = q.pollFirst();
-            } else {
-                result = q.pollFirst(timeout, TimeUnit.MILLISECONDS);
-            }
+          result = q.pollFirst(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             throw e.getCause();
         }

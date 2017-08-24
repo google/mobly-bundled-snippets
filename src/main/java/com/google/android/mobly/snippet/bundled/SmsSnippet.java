@@ -37,7 +37,6 @@ import com.google.android.mobly.snippet.event.SnippetEvent;
 import com.google.android.mobly.snippet.rpc.AsyncRpc;
 import com.google.android.mobly.snippet.rpc.Rpc;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -101,7 +100,8 @@ public class SmsSnippet implements Snippet {
             mSmsManager.sendTextMessage(phoneNumber, null, message, sentIntent, null);
         }
 
-        SnippetEvent result = Utils.waitForSnippetEvent(callbackId, SMS_SENT_EVENT_NAME, null);
+        SnippetEvent result = Utils.waitForSnippetEvent(
+                callbackId, SMS_SENT_EVENT_NAME,DEFAULT_TIMEOUT_MILLISECOND);
 
         if (result == null) {
             throw new SmsSnippetException("Timed out waiting for SMS sent confirmation event.");
@@ -125,7 +125,8 @@ public class SmsSnippet implements Snippet {
         SmsReceiver receiver = new SmsReceiver(mContext, callbackId);
         mContext.registerReceiver(receiver, new IntentFilter(Intents.SMS_RECEIVED_ACTION));
 
-        SnippetEvent result = Utils.waitForSnippetEvent(callbackId, SMS_RECEIVED_EVENT_NAME, null);
+        SnippetEvent result = Utils.waitForSnippetEvent(
+                callbackId, SMS_RECEIVED_EVENT_NAME, DEFAULT_TIMEOUT_MILLISECOND);
 
         if (result == null) {
             throw new SmsSnippetException("Timed out waiting for SMS received event.");
