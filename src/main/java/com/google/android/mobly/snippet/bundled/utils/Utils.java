@@ -23,6 +23,7 @@ import com.google.common.primitives.Primitives;
 import com.google.common.reflect.TypeToken;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Locale;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
@@ -93,7 +94,12 @@ public final class Utils {
         }
 
         if (result == null) {
-            throw new UtilsException("Timed out waitinng for SnippetEvent: " + callbackId);
+            throw new UtilsException(
+                    String.format(
+                            Locale.ROOT,
+                            "Timed out waiting(%d millis) for SnippetEvent: %s",
+                            timeout,
+                            callbackId));
         }
         return result;
     }
