@@ -26,16 +26,9 @@ import java.lang.reflect.Method;
 import java.util.Locale;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public final class Utils {
-
-    private static class UtilsException extends Exception {
-        private static final long serialVersionUID = 1L;
-
-        UtilsException(String msg) {
-            super(msg);
-        }
-    }
 
     private Utils() {}
 
@@ -80,7 +73,8 @@ public final class Utils {
      * @param eventName String event name that we are waiting on.
      * @param timeout int timeout in milliseconds for how long it will wait for the event.
      * @return SnippetEvent if one was received.
-     * @throws Throwable if interrupted while polling for event completion.
+     * @throws Throwable if interrupted while polling for event completion. Throws TimeoutException
+     *     if no snippet event is received.
      */
     public static SnippetEvent waitForSnippetEvent(
             String callbackId, String eventName, Integer timeout) throws Throwable {
@@ -94,7 +88,7 @@ public final class Utils {
         }
 
         if (result == null) {
-            throw new UtilsException(
+            throw new TimeoutException(
                     String.format(
                             Locale.ROOT,
                             "Timed out waiting(%d millis) for SnippetEvent: %s",
