@@ -29,17 +29,14 @@ import android.provider.Telephony.Sms.Intents;
 import android.support.test.InstrumentationRegistry;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
-
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.event.EventCache;
 import com.google.android.mobly.snippet.event.SnippetEvent;
 import com.google.android.mobly.snippet.rpc.AsyncRpc;
 import com.google.android.mobly.snippet.rpc.Rpc;
-
-import org.json.JSONObject;
-
 import java.util.ArrayList;
+import org.json.JSONObject;
 
 /** Snippet class for SMS RPCs. */
 public class SmsSnippet implements Snippet {
@@ -52,7 +49,7 @@ public class SmsSnippet implements Snippet {
         }
     }
 
-    private static final int MAX_CHAR_COUNT_PER_SMS  = 160;
+    private static final int MAX_CHAR_COUNT_PER_SMS = 160;
     private static final String SMS_SENT_ACTION = ".SMS_SENT";
     private static final int DEFAULT_TIMEOUT_MILLISECOND = 60 * 1000;
     private static final String SMS_RECEIVED_EVENT_NAME = "ReceivedSms";
@@ -72,13 +69,12 @@ public class SmsSnippet implements Snippet {
     /**
      * Send SMS and return after waiting for send confirmation (with a timeout of 60 seconds).
      *
-     * @param phoneNumber A String representing  phone number with country code.
+     * @param phoneNumber A String representing phone number with country code.
      * @param message A String representing the message to send.
      * @throws SmsSnippetException on SMS send error.
      */
     @Rpc(description = "Send SMS to a specified phone number.")
-    public void sendSms(String phoneNumber, String message)
-            throws Throwable {
+    public void sendSms(String phoneNumber, String message) throws Throwable {
         String callbackId = SMS_CALLBACK_ID_PREFIX + (++mCallbackCounter);
         OutboundSmsReceiver receiver = new OutboundSmsReceiver(mContext, callbackId);
 
@@ -86,26 +82,25 @@ public class SmsSnippet implements Snippet {
             ArrayList<String> parts = mSmsManager.divideMessage(message);
             ArrayList<PendingIntent> sIntents = new ArrayList<>();
             for (int i = 0; i < parts.size(); i++) {
-                sIntents.add(PendingIntent.getBroadcast(
-                        mContext, 0, new Intent(SMS_SENT_ACTION), 0));
+                sIntents.add(
+                        PendingIntent.getBroadcast(mContext, 0, new Intent(SMS_SENT_ACTION), 0));
             }
             receiver.setExpectedMessageCount(parts.size());
             mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION));
             mSmsManager.sendMultipartTextMessage(phoneNumber, null, parts, sIntents, null);
         } else {
-            PendingIntent sentIntent = PendingIntent.getBroadcast(
-                    mContext, 0, new Intent(SMS_SENT_ACTION), 0);
+            PendingIntent sentIntent =
+                    PendingIntent.getBroadcast(mContext, 0, new Intent(SMS_SENT_ACTION), 0);
             receiver.setExpectedMessageCount(1);
             mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION));
             mSmsManager.sendTextMessage(phoneNumber, null, message, sentIntent, null);
         }
 
-        SnippetEvent result = Utils.waitForSnippetEvent(
-                callbackId, SMS_SENT_EVENT_NAME,DEFAULT_TIMEOUT_MILLISECOND);
+        SnippetEvent result =
+                Utils.waitForSnippetEvent(
+                        callbackId, SMS_SENT_EVENT_NAME, DEFAULT_TIMEOUT_MILLISECOND);
 
-        if (result == null) {
-            throw new SmsSnippetException("Timed out waiting for SMS sent confirmation event.");
-        } else if (result.getData().containsKey("error")) {
+        if (result.getData().containsKey("error")) {
             throw new SmsSnippetException(
                     "Failed to send SMS, error code: " + result.getData().getInt("error"));
         }
@@ -124,15 +119,9 @@ public class SmsSnippet implements Snippet {
         String callbackId = SMS_CALLBACK_ID_PREFIX + (++mCallbackCounter);
         SmsReceiver receiver = new SmsReceiver(mContext, callbackId);
         mContext.registerReceiver(receiver, new IntentFilter(Intents.SMS_RECEIVED_ACTION));
-
-        SnippetEvent result = Utils.waitForSnippetEvent(
-                callbackId, SMS_RECEIVED_EVENT_NAME, DEFAULT_TIMEOUT_MILLISECOND);
-
-        if (result == null) {
-            throw new SmsSnippetException("Timed out waiting for SMS received event.");
-        }
-
-        return result.toJson();
+        return Utils.waitForSnippetEvent(
+                        callbackId, SMS_RECEIVED_EVENT_NAME, DEFAULT_TIMEOUT_MILLISECOND)
+                .toJson();
     }
 
     @Override
@@ -151,7 +140,9 @@ public class SmsSnippet implements Snippet {
             mExpectedMessageCount = 0;
         }
 
-        public void setExpectedMessageCount(int count) { mExpectedMessageCount = count; }
+        public void setExpectedMessageCount(int count) {
+            mExpectedMessageCount = count;
+        }
 
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -159,7 +150,7 @@ public class SmsSnippet implements Snippet {
 
             if (SMS_SENT_ACTION.equals(action)) {
                 SnippetEvent event = new SnippetEvent(mCallbackId, SMS_SENT_EVENT_NAME);
-                switch(getResultCode()) {
+                switch (getResultCode()) {
                     case Activity.RESULT_OK:
                         if (mExpectedMessageCount == 1) {
                             event.getData().putBoolean("sent", true);
@@ -167,7 +158,7 @@ public class SmsSnippet implements Snippet {
                             mContext.unregisterReceiver(this);
                         }
 
-                        if (mExpectedMessageCount > 0 ) {
+                        if (mExpectedMessageCount > 0) {
                             mExpectedMessageCount--;
                         }
                         break;
