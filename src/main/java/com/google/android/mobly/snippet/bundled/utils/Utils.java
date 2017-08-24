@@ -16,10 +16,17 @@
 
 package com.google.android.mobly.snippet.bundled.utils;
 
+import com.google.android.mobly.snippet.bundled.SmsSnippet;
+import com.google.android.mobly.snippet.event.EventCache;
+import com.google.android.mobly.snippet.event.SnippetEvent;
 import com.google.common.primitives.Primitives;
 import com.google.common.reflect.TypeToken;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Locale;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public final class Utils {
 
@@ -53,6 +60,42 @@ public final class Utils {
             throw new RuntimeException(e);
         }
         return false;
+    }
+
+    /**
+     * Wait on a specific snippet event.
+     *
+     * <p>This allows a snippet to wait on another SnippetEvent as long as they know the name and
+     * callback id. Commonly used to make async calls synchronous, see {@link
+     * SmsSnippet#waitForSms()} waitForSms} for example usage.
+     *
+     * @param callbackId String callbackId that we want to wait on.
+     * @param eventName String event name that we are waiting on.
+     * @param timeout int timeout in milliseconds for how long it will wait for the event.
+     * @return SnippetEvent if one was received.
+     * @throws Throwable if interrupted while polling for event completion. Throws TimeoutException
+     *     if no snippet event is received.
+     */
+    public static SnippetEvent waitForSnippetEvent(
+            String callbackId, String eventName, Integer timeout) throws Throwable {
+        String qId = EventCache.getQueueId(callbackId, eventName);
+        LinkedBlockingDeque<SnippetEvent> q = EventCache.getInstance().getEventDeque(qId);
+        SnippetEvent result;
+        try {
+            result = q.pollFirst(timeout, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            throw e.getCause();
+        }
+
+        if (result == null) {
+            throw new TimeoutException(
+                    String.format(
+                            Locale.ROOT,
+                            "Timed out waiting(%d millis) for SnippetEvent: %s",
+                            timeout,
+                            callbackId));
+        }
+        return result;
     }
 
     /**
