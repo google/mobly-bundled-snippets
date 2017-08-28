@@ -51,6 +51,18 @@ public class TelephonySnippet implements Snippet {
         return mTelephonyManager.getCallState();
     }
 
+    @Rpc(
+        description =
+                "Returns the current Service State information. Service state values are "
+                        + "0: STATE_IN_SERVICE, "
+                        + "1: STATE_OUT_OF_SERVICE, "
+                        + "2: STATE_EMERGENCY_ONLY, "
+                        + "3: STATE_POWER_OFF"
+    )
+    public int getTelephonyServiceState() {
+        return mTelephonyManager.getServiceState().getState();
+    }
+
     @Override
     public void shutdown() {}
 }
