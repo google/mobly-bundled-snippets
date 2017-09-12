@@ -22,19 +22,18 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
+import com.google.android.mobly.snippet.util.Log;
 
 /** Snippet class for networking RPCs. */
 public class NetworkingSnippet implements Snippet {
 
-    public NetworkingSnippet() {
-    }
-
     @Rpc(description = "Check if a host and port are connectable using a TCP connection attempt.")
-    public boolean Connectable(String host, int port) {
+    public boolean isTcpConnectable(String host, int port) {
         InetAddress addr;
         try {
             addr = InetAddress.getByName(host);
         } catch (UnknownHostException uherr) {
+            Log.d("Host name lookup failure: " + uherr.getMessage());
             return false;
         }
 
@@ -42,9 +41,9 @@ public class NetworkingSnippet implements Snippet {
             Socket sock = new Socket(addr, port);
             sock.close();
         } catch (IOException ioerr) {
+            Log.d("Did not make connection to host: " + ioerr.getMessage());
             return false;
         }
-
         return true;
     }
 
