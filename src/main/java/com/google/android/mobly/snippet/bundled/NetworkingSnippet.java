@@ -28,7 +28,7 @@ import com.google.android.mobly.snippet.util.Log;
 public class NetworkingSnippet implements Snippet {
 
     @Rpc(description = "Check if a host and port are connectable using a TCP connection attempt.")
-    public boolean isTcpConnectable(String host, int port) {
+    public boolean networkIsTcpConnectable(String host, int port) {
         InetAddress addr;
         try {
             addr = InetAddress.getByName(host);
