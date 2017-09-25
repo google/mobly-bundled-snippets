@@ -19,13 +19,18 @@ package com.google.android.mobly.snippet.bundled;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.net.UnknownHostException;
+import java.security.MessageDigest;
+import java.security.DigestInputStream;
+import java.security.NoSuchAlgorithmException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
 import android.app.DownloadManager;
 import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
@@ -38,6 +43,7 @@ public class NetworkingSnippet implements Snippet {
 
     private final DownloadManager mDownloadManager;
     private final Context mContext;
+    private final static char[] hexArray = "0123456789abcdef".toCharArray();
     private volatile boolean mIsDownloadComplete = false;
 
     public NetworkingSnippet() {
@@ -66,8 +72,11 @@ public class NetworkingSnippet implements Snippet {
     }
 
     @Rpc(description = "Download a file using HTTP.")
-    public String networkHTTPDownload(String url, String destination) {
+    public String networkHTTPDownload(String url, String destination) throws IOException {
         long reqid = 0;
+        MessageDigest md;
+        ParcelFileDescriptor pfd;
+
         Uri uri = Uri.parse(url);
         DownloadManager.Request request = new DownloadManager.Request(uri);
         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, destination);
@@ -85,14 +94,34 @@ public class NetworkingSnippet implements Snippet {
             mContext.unregisterReceiver(receiver);
         }
 
+        // Now compute the MD5 hash of downloaded file and return it.
         Uri resp = mDownloadManager.getUriForDownloadedFile(reqid);
         if (resp != null) {
             Log.d(String.format("networkHTTPDownload completed to %s", resp.toString()));
-            return resp.toString();
+
+            try {
+                md = MessageDigest.getInstance("MD5");
+            // This should never happen, but we have to make Java happy.
+            } catch (NoSuchAlgorithmException algerr) {
+                return "";
+            }
+            pfd = mDownloadManager.openDownloadedFile(reqid);
+            ParcelFileDescriptor.AutoCloseInputStream stream = new ParcelFileDescriptor.AutoCloseInputStream(pfd);
+            int length = (int) pfd.getStatSize();
+            DigestInputStream dis = new DigestInputStream(stream, md);
+            byte[] buf = new byte[length];
+            dis.read(buf, 0, length);
+            String hexdigest = bytesToHex(md.digest());
+            dis.close();
+            stream.close();
+            // return resp.toString(); TODO(dart) return the tuple of resp Uri
+            // and hexdigest.
+            return hexdigest;
         } else {
             return "";
         }
     }
+
 
     private class DownloadReceiver extends BroadcastReceiver {
 
@@ -104,6 +133,17 @@ public class NetworkingSnippet implements Snippet {
             }
         }
     }
+
+
+    public static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for ( int j = 0; j < bytes.length; j++ ) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+}
 
     @Override
     public void shutdown() {}
