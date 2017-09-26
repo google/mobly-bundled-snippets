@@ -16,11 +16,12 @@
 
 package com.google.android.mobly.snippet.bundled;
 
-import java.util.*;
+import java.util.Map;
+import java.util.List;
+import java.util.HashMap;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.io.IOException;
-import java.io.FileNotFoundException;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.DigestInputStream;
@@ -44,7 +45,6 @@ public class NetworkingSnippet implements Snippet {
 
     private final DownloadManager mDownloadManager;
     private final Context mContext;
-    private final static char[] hexArray = "0123456789abcdef".toCharArray();
     private volatile boolean mIsDownloadComplete = false;
 
     public NetworkingSnippet() {
@@ -73,14 +73,20 @@ public class NetworkingSnippet implements Snippet {
     }
 
     @Rpc(description = "Download a file using HTTP. Return content Uri and MD5 hash value.")
-    public Map<String, String> networkHTTPDownload(String url, String destination) throws IOException {
+    public Map<String, String> networkHTTPDownload(String url) throws IOException {
         long reqid = 0;
         MessageDigest md;
         ParcelFileDescriptor pfd;
 
         Uri uri = Uri.parse(url);
+        List<String> pathsegments = uri.getPathSegments();
+        if (pathsegments.size() < 1) {
+            Log.d(String.format("The Uri %s does not have a path.", uri.toString()));
+            return null;
+        }
         DownloadManager.Request request = new DownloadManager.Request(uri);
-        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, destination);
+        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,
+                                                  pathsegments.get(pathsegments.size() - 1));
         mIsDownloadComplete = false;
         IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
         BroadcastReceiver receiver = new DownloadReceiver();
@@ -88,14 +94,15 @@ public class NetworkingSnippet implements Snippet {
         try {
             reqid = mDownloadManager.enqueue(request);
             Log.d(String.format("networkHTTPDownload download of %s with id %d", url, reqid));
-            if (!Utils.waitUntil(() -> mIsDownloadComplete, 240)) {
+            if (!Utils.waitUntil(() -> mIsDownloadComplete, 30)) {
+                Log.d(String.format("networkHTTPDownload timed out waiting for completion"));
                 return null;
             }
         } finally {
             mContext.unregisterReceiver(receiver);
         }
-
-        // Now compute the MD5 hash of downloaded file and return it.
+        // Now compute the MD5 hash of downloaded file and return it with the
+        // destination Uri (which is an abstract content Uri).
         Uri resp = mDownloadManager.getUriForDownloadedFile(reqid);
         if (resp != null) {
             Log.d(String.format("networkHTTPDownload completed to %s", resp.toString()));
@@ -112,7 +119,7 @@ public class NetworkingSnippet implements Snippet {
             DigestInputStream dis = new DigestInputStream(stream, md);
             byte[] buf = new byte[length];
             dis.read(buf, 0, length);
-            String hexdigest = bytesToHex(md.digest());
+            String hexdigest = Utils.bytesToHex(md.digest());
             dis.close();
             stream.close();
             Map<String, String> rv = new HashMap<String, String>();
@@ -134,17 +141,6 @@ public class NetworkingSnippet implements Snippet {
             }
         }
     }
-
-
-    public static String bytesToHex(byte[] bytes) {
-        char[] hexChars = new char[bytes.length * 2];
-        for ( int j = 0; j < bytes.length; j++ ) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexChars);
-}
 
     @Override
     public void shutdown() {}

@@ -30,6 +30,8 @@ import java.util.concurrent.TimeoutException;
 
 public final class Utils {
 
+    private final static char[] hexArray = "0123456789abcdef".toCharArray();
+
     private Utils() {}
 
     /**
@@ -190,4 +192,24 @@ public final class Utils {
             throw e.getCause();
         }
     }
+
+    /**
+     * Convert a byte array (binary data) to a hexadecimal string (ASCII)
+     * representation.
+
+     * [\x01\x02] -&gt; "0102"
+     *
+     * @param bytes The array of byte to convert.
+     * @return a String with the ASCII hex representation.
+     */
+    public static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for ( int j = 0; j < bytes.length; j++ ) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+
 }
