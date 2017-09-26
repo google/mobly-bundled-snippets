@@ -16,6 +16,7 @@
 
 package com.google.android.mobly.snippet.bundled;
 
+import java.util.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.io.IOException;
@@ -71,8 +72,8 @@ public class NetworkingSnippet implements Snippet {
         return true;
     }
 
-    @Rpc(description = "Download a file using HTTP.")
-    public String networkHTTPDownload(String url, String destination) throws IOException {
+    @Rpc(description = "Download a file using HTTP. Return content Uri and MD5 hash value.")
+    public Map<String, String> networkHTTPDownload(String url, String destination) throws IOException {
         long reqid = 0;
         MessageDigest md;
         ParcelFileDescriptor pfd;
@@ -88,7 +89,7 @@ public class NetworkingSnippet implements Snippet {
             reqid = mDownloadManager.enqueue(request);
             Log.d(String.format("networkHTTPDownload download of %s with id %d", url, reqid));
             if (!Utils.waitUntil(() -> mIsDownloadComplete, 240)) {
-                return "";
+                return null;
             }
         } finally {
             mContext.unregisterReceiver(receiver);
@@ -103,7 +104,7 @@ public class NetworkingSnippet implements Snippet {
                 md = MessageDigest.getInstance("MD5");
             // This should never happen, but we have to make Java happy.
             } catch (NoSuchAlgorithmException algerr) {
-                return "";
+                return null;
             }
             pfd = mDownloadManager.openDownloadedFile(reqid);
             ParcelFileDescriptor.AutoCloseInputStream stream = new ParcelFileDescriptor.AutoCloseInputStream(pfd);
@@ -114,14 +115,14 @@ public class NetworkingSnippet implements Snippet {
             String hexdigest = bytesToHex(md.digest());
             dis.close();
             stream.close();
-            // return resp.toString(); TODO(dart) return the tuple of resp Uri
-            // and hexdigest.
-            return hexdigest;
+            Map<String, String> rv = new HashMap<String, String>();
+            rv.put("Uri", resp.toString());
+            rv.put("md5", hexdigest);
+            return rv;
         } else {
-            return "";
+            return null;
         }
     }
-
 
     private class DownloadReceiver extends BroadcastReceiver {
 
