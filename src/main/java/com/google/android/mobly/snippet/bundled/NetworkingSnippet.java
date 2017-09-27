@@ -16,9 +16,7 @@
 
 package com.google.android.mobly.snippet.bundled;
 
-import java.util.Map;
 import java.util.List;
-import java.util.HashMap;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.io.IOException;
@@ -26,8 +24,8 @@ import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.DigestInputStream;
 import java.security.NoSuchAlgorithmException;
-import android.content.Context;
 import android.content.Intent;
+import android.content.Context;
 import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
 import android.net.Uri;
@@ -43,13 +41,22 @@ import com.google.android.mobly.snippet.util.Log;
 /** Snippet class for networking RPCs. */
 public class NetworkingSnippet implements Snippet {
 
-    private final DownloadManager mDownloadManager;
     private final Context mContext;
+    private final DownloadManager mDownloadManager;
     private volatile boolean mIsDownloadComplete = false;
 
     public NetworkingSnippet() {
         mContext = InstrumentationRegistry.getContext();
         mDownloadManager = (DownloadManager) mContext.getSystemService(Context.DOWNLOAD_SERVICE);
+    }
+
+    private static class NetworkingSnippetException extends Exception {
+
+        private static final long serialVersionUID = 8080L;
+
+        public NetworkingSnippetException(String msg) {
+            super(msg);
+        }
     }
 
     @Rpc(description = "Check if a host and port are connectable using a TCP connection attempt.")
@@ -73,16 +80,15 @@ public class NetworkingSnippet implements Snippet {
     }
 
     @Rpc(description = "Download a file using HTTP. Return content Uri and MD5 hash value.")
-    public Map<String, String> networkHTTPDownload(String url) throws IOException {
+    public String networkHTTPDownload(String url) throws IllegalArgumentException, NetworkingSnippetException {
         long reqid = 0;
-        MessageDigest md;
-        ParcelFileDescriptor pfd;
 
         Uri uri = Uri.parse(url);
         List<String> pathsegments = uri.getPathSegments();
         if (pathsegments.size() < 1) {
-            Log.d(String.format("The Uri %s does not have a path.", uri.toString()));
-            return null;
+            String msg = String.format("The Uri %s does not have a path.", uri.toString());
+            Log.d(msg);
+            throw new IllegalArgumentException(msg);
         }
         DownloadManager.Request request = new DownloadManager.Request(uri);
         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,
@@ -96,39 +102,42 @@ public class NetworkingSnippet implements Snippet {
             Log.d(String.format("networkHTTPDownload download of %s with id %d", url, reqid));
             if (!Utils.waitUntil(() -> mIsDownloadComplete, 30)) {
                 Log.d(String.format("networkHTTPDownload timed out waiting for completion"));
-                return null;
+                throw new NetworkingSnippetException("networkHTTPDownload timed out.");
             }
         } finally {
             mContext.unregisterReceiver(receiver);
         }
-        // Now compute the MD5 hash of downloaded file and return it with the
-        // destination Uri (which is an abstract content Uri).
         Uri resp = mDownloadManager.getUriForDownloadedFile(reqid);
         if (resp != null) {
             Log.d(String.format("networkHTTPDownload completed to %s", resp.toString()));
+            return resp.toString();
+        } else {
+            Log.d(String.format("networkHTTPDownload Failed to download %s", uri.toString()));
+            throw new NetworkingSnippetException("networkHTTPDownload didn't get downloaded file.");
+        }
+    }
 
-            try {
-                md = MessageDigest.getInstance("MD5");
-            // This should never happen, but we have to make Java happy.
-            } catch (NoSuchAlgorithmException algerr) {
-                return null;
-            }
-            pfd = mDownloadManager.openDownloadedFile(reqid);
-            ParcelFileDescriptor.AutoCloseInputStream stream = new ParcelFileDescriptor.AutoCloseInputStream(pfd);
-            int length = (int) pfd.getStatSize();
-            DigestInputStream dis = new DigestInputStream(stream, md);
-            byte[] buf = new byte[length];
+    @Rpc(description = "Compute MD5 hash on a content URI.")
+    public String networkMD5Hash(String url) throws IOException, NoSuchAlgorithmException  {
+        ParcelFileDescriptor pfd;
+        MessageDigest md;
+        String hexdigest = "";
+
+        Uri uri = Uri.parse(url);
+        pfd = mContext.getContentResolver().openFileDescriptor(uri, "r");
+        md = MessageDigest.getInstance("MD5");
+        int length = (int) pfd.getStatSize();
+        byte[] buf = new byte[length];
+        ParcelFileDescriptor.AutoCloseInputStream stream = new ParcelFileDescriptor.AutoCloseInputStream(pfd);
+        DigestInputStream dis = new DigestInputStream(stream, md);
+        try {
             dis.read(buf, 0, length);
-            String hexdigest = Utils.bytesToHex(md.digest());
+            hexdigest = Utils.bytesToHexString(md.digest());
+        } finally {
             dis.close();
             stream.close();
-            Map<String, String> rv = new HashMap<String, String>();
-            rv.put("Uri", resp.toString());
-            rv.put("md5", hexdigest);
-            return rv;
-        } else {
-            return null;
         }
+        return hexdigest;
     }
 
     private class DownloadReceiver extends BroadcastReceiver {

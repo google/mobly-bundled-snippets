@@ -202,7 +202,7 @@ public final class Utils {
      * @param bytes The array of byte to convert.
      * @return a String with the ASCII hex representation.
      */
-    public static String bytesToHex(byte[] bytes) {
+    public static String bytesToHexString(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
         for ( int j = 0; j < bytes.length; j++ ) {
             int v = bytes[j] & 0xFF;
