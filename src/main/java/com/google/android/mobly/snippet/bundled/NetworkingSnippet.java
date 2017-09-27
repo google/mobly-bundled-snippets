@@ -44,6 +44,7 @@ public class NetworkingSnippet implements Snippet {
     private final Context mContext;
     private final DownloadManager mDownloadManager;
     private volatile boolean mIsDownloadComplete = false;
+    private volatile long mReqid = 0;
 
     public NetworkingSnippet() {
         mContext = InstrumentationRegistry.getContext();
@@ -79,27 +80,26 @@ public class NetworkingSnippet implements Snippet {
         return true;
     }
 
-    @Rpc(description = "Download a file using HTTP. Return content Uri and MD5 hash value.")
+    @Rpc(description = "Download a file using HTTP. Return content Uri (file remains on device). "
+                       + "The Uri should be treated as an opaque handle for further operations.")
     public String networkHTTPDownload(String url) throws IllegalArgumentException, NetworkingSnippetException {
-        long reqid = 0;
 
         Uri uri = Uri.parse(url);
         List<String> pathsegments = uri.getPathSegments();
         if (pathsegments.size() < 1) {
-            String msg = String.format("The Uri %s does not have a path.", uri.toString());
-            Log.d(msg);
-            throw new IllegalArgumentException(msg);
+            throw new IllegalArgumentException(String.format("The Uri %s does not have a path.", uri.toString()));
         }
         DownloadManager.Request request = new DownloadManager.Request(uri);
         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,
                                                   pathsegments.get(pathsegments.size() - 1));
         mIsDownloadComplete = false;
+        mReqid = 0;
         IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
         BroadcastReceiver receiver = new DownloadReceiver();
         mContext.registerReceiver(receiver, filter);
         try {
-            reqid = mDownloadManager.enqueue(request);
-            Log.d(String.format("networkHTTPDownload download of %s with id %d", url, reqid));
+            mReqid = mDownloadManager.enqueue(request);
+            Log.d(String.format("networkHTTPDownload download of %s with id %d", url, mReqid));
             if (!Utils.waitUntil(() -> mIsDownloadComplete, 30)) {
                 Log.d(String.format("networkHTTPDownload timed out waiting for completion"));
                 throw new NetworkingSnippetException("networkHTTPDownload timed out.");
@@ -107,7 +107,7 @@ public class NetworkingSnippet implements Snippet {
         } finally {
             mContext.unregisterReceiver(receiver);
         }
-        Uri resp = mDownloadManager.getUriForDownloadedFile(reqid);
+        Uri resp = mDownloadManager.getUriForDownloadedFile(mReqid);
         if (resp != null) {
             Log.d(String.format("networkHTTPDownload completed to %s", resp.toString()));
             return resp.toString();
@@ -117,27 +117,25 @@ public class NetworkingSnippet implements Snippet {
         }
     }
 
-    @Rpc(description = "Compute MD5 hash on a content URI.")
-    public String networkMD5Hash(String url) throws IOException, NoSuchAlgorithmException  {
-        ParcelFileDescriptor pfd;
-        MessageDigest md;
-        String hexdigest = "";
+    @Rpc(description = "Compute MD5 hash on a content URI. Return the MD5 has has a hex string.")
+    public String networkMD5Hash(String uri) throws IOException, NoSuchAlgorithmException  {
+        String md5string = "";
 
-        Uri uri = Uri.parse(url);
-        pfd = mContext.getContentResolver().openFileDescriptor(uri, "r");
-        md = MessageDigest.getInstance("MD5");
+        Uri uri_ = Uri.parse(uri);
+        ParcelFileDescriptor pfd = mContext.getContentResolver().openFileDescriptor(uri_, "r");
+        MessageDigest md = MessageDigest.getInstance("MD5");
         int length = (int) pfd.getStatSize();
         byte[] buf = new byte[length];
         ParcelFileDescriptor.AutoCloseInputStream stream = new ParcelFileDescriptor.AutoCloseInputStream(pfd);
         DigestInputStream dis = new DigestInputStream(stream, md);
         try {
             dis.read(buf, 0, length);
-            hexdigest = Utils.bytesToHexString(md.digest());
+            md5string = Utils.bytesToHexString(md.digest());
         } finally {
             dis.close();
             stream.close();
         }
-        return hexdigest;
+        return md5string;
     }
 
     private class DownloadReceiver extends BroadcastReceiver {
@@ -145,7 +143,9 @@ public class NetworkingSnippet implements Snippet {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)) {
+            long gotid = (long) intent.getExtras().get("extra_download_id");
+            if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)
+                            && gotid == mReqid) {
                 mIsDownloadComplete = true;
             }
         }
