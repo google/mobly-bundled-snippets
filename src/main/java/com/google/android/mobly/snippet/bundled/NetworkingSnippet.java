@@ -107,6 +107,7 @@ public class NetworkingSnippet implements Snippet {
         Uri resp = mDownloadManager.getUriForDownloadedFile(mReqid);
         if (resp != null) {
             Log.d(String.format("networkHttpDownload completed to %s", resp.toString()));
+            mReqid = 0;
             return resp.toString();
         } else {
             Log.d(String.format("networkHttpDownload Failed to download %s", uri.toString()));
@@ -128,5 +129,9 @@ public class NetworkingSnippet implements Snippet {
     }
 
     @Override
-    public void shutdown() {}
+    public void shutdown() {
+        if (mReqid != 0) {
+            mDownloadManager.remove(mReqid);
+        }
+    }
 }

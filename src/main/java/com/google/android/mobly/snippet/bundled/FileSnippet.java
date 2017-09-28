@@ -64,6 +64,13 @@ public class FileSnippet implements Snippet {
         }
     }
 
+    @Rpc(description = "Remove a file pointed to by the content URI. Return "
+            + "number deleted (should always be one)")
+    public int fileDeleteContent(String uri) {
+        Uri uri_ = Uri.parse(uri);
+        return mContext.getContentResolver().delete(uri_, null, null);
+    }
+
     @Override
     public void shutdown() {}
 }
