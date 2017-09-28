@@ -27,7 +27,6 @@ import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
-import com.google.android.mobly.snippet.util.Log;
 
 /** Snippet class for File and abstract storage URI operation RPCs. */
 public class FileSnippet implements Snippet {

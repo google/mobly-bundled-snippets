@@ -96,21 +96,21 @@ public class NetworkingSnippet implements Snippet {
         mContext.registerReceiver(receiver, filter);
         try {
             mReqid = mDownloadManager.enqueue(request);
-            Log.d(String.format("networkHTTPDownload download of %s with id %d", url, mReqid));
+            Log.d(String.format("networkHttpDownload download of %s with id %d", url, mReqid));
             if (!Utils.waitUntil(() -> mIsDownloadComplete, 30)) {
-                Log.d(String.format("networkHTTPDownload timed out waiting for completion"));
-                throw new NetworkingSnippetException("networkHTTPDownload timed out.");
+                Log.d(String.format("networkHttpDownload timed out waiting for completion"));
+                throw new NetworkingSnippetException("networkHttpDownload timed out.");
             }
         } finally {
             mContext.unregisterReceiver(receiver);
         }
         Uri resp = mDownloadManager.getUriForDownloadedFile(mReqid);
         if (resp != null) {
-            Log.d(String.format("networkHTTPDownload completed to %s", resp.toString()));
+            Log.d(String.format("networkHttpDownload completed to %s", resp.toString()));
             return resp.toString();
         } else {
-            Log.d(String.format("networkHTTPDownload Failed to download %s", uri.toString()));
-            throw new NetworkingSnippetException("networkHTTPDownload didn't get downloaded file.");
+            Log.d(String.format("networkHttpDownload Failed to download %s", uri.toString()));
+            throw new NetworkingSnippetException("networkHttpDownload didn't get downloaded file.");
         }
     }
 
