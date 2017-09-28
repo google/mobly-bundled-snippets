@@ -39,6 +39,7 @@
                            com.google.android.mobly.snippet.bundled.NotificationSnippet,
                            com.google.android.mobly.snippet.bundled.TelephonySnippet,
                            com.google.android.mobly.snippet.bundled.NetworkingSnippet,
+                           com.google.android.mobly.snippet.bundled.FileSnippet,
                            com.google.android.mobly.snippet.bundled.SmsSnippet,
                            com.google.android.mobly.snippet.bundled.WifiManagerSnippet" />
     </application>

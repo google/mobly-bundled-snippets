@@ -21,9 +21,6 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.security.MessageDigest;
-import java.security.DigestInputStream;
-import java.security.NoSuchAlgorithmException;
 import android.content.Intent;
 import android.content.Context;
 import android.content.IntentFilter;
@@ -82,7 +79,7 @@ public class NetworkingSnippet implements Snippet {
 
     @Rpc(description = "Download a file using HTTP. Return content Uri (file remains on device). "
                        + "The Uri should be treated as an opaque handle for further operations.")
-    public String networkHTTPDownload(String url) throws IllegalArgumentException, NetworkingSnippetException {
+    public String networkHttpDownload(String url) throws IllegalArgumentException, NetworkingSnippetException {
 
         Uri uri = Uri.parse(url);
         List<String> pathsegments = uri.getPathSegments();
@@ -115,27 +112,6 @@ public class NetworkingSnippet implements Snippet {
             Log.d(String.format("networkHTTPDownload Failed to download %s", uri.toString()));
             throw new NetworkingSnippetException("networkHTTPDownload didn't get downloaded file.");
         }
-    }
-
-    @Rpc(description = "Compute MD5 hash on a content URI. Return the MD5 has has a hex string.")
-    public String networkMD5Hash(String uri) throws IOException, NoSuchAlgorithmException  {
-        String md5string = "";
-
-        Uri uri_ = Uri.parse(uri);
-        ParcelFileDescriptor pfd = mContext.getContentResolver().openFileDescriptor(uri_, "r");
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        int length = (int) pfd.getStatSize();
-        byte[] buf = new byte[length];
-        ParcelFileDescriptor.AutoCloseInputStream stream = new ParcelFileDescriptor.AutoCloseInputStream(pfd);
-        DigestInputStream dis = new DigestInputStream(stream, md);
-        try {
-            dis.read(buf, 0, length);
-            md5string = Utils.bytesToHexString(md.digest());
-        } finally {
-            dis.close();
-            stream.close();
-        }
-        return md5string;
     }
 
     private class DownloadReceiver extends BroadcastReceiver {
