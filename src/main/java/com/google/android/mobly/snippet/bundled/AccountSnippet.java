@@ -112,7 +112,8 @@ public class AccountSnippet implements Snippet {
         Bundle result = future.getResult();
         if (result.containsKey(AccountManager.KEY_ERROR_CODE)) {
             throw new AccountSnippetException(
-                    String.format(Locale.US,
+                    String.format(
+                            Locale.US,
                             "Failed to add account due to code %d: %s",
                             result.getInt(AccountManager.KEY_ERROR_CODE),
                             result.getString(AccountManager.KEY_ERROR_MESSAGE)));

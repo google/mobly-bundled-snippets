@@ -16,10 +16,6 @@
 
 package com.google.android.mobly.snippet.bundled;
 
-import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.DigestInputStream;
-import java.security.NoSuchAlgorithmException;
 import android.content.Context;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
@@ -27,6 +23,10 @@ import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
+import java.io.IOException;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /** Snippet class for File and abstract storage URI operation RPCs. */
 public class FileSnippet implements Snippet {
@@ -47,13 +47,14 @@ public class FileSnippet implements Snippet {
     }
 
     @Rpc(description = "Compute MD5 hash on a content URI. Return the MD5 has has a hex string.")
-    public String fileMd5Hash(String uri) throws IOException, NoSuchAlgorithmException  {
+    public String fileMd5Hash(String uri) throws IOException, NoSuchAlgorithmException {
         Uri uri_ = Uri.parse(uri);
         ParcelFileDescriptor pfd = mContext.getContentResolver().openFileDescriptor(uri_, "r");
         MessageDigest md = MessageDigest.getInstance("MD5");
         int length = (int) pfd.getStatSize();
         byte[] buf = new byte[length];
-        ParcelFileDescriptor.AutoCloseInputStream stream = new ParcelFileDescriptor.AutoCloseInputStream(pfd);
+        ParcelFileDescriptor.AutoCloseInputStream stream =
+                new ParcelFileDescriptor.AutoCloseInputStream(pfd);
         DigestInputStream dis = new DigestInputStream(stream, md);
         try {
             dis.read(buf, 0, length);
