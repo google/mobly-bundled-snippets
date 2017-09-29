@@ -50,7 +50,7 @@ android {
         abortOnError true
         checkAllWarnings true
         warningsAsErrors true
-	disable 'HardwareIds','MissingApplicationIcon','GoogleAppIndexingWarning','InvalidPackage','OldTargetApi'
+        disable 'HardwareIds','MissingApplicationIcon','GoogleAppIndexingWarning','InvalidPackage','OldTargetApi'
     }
 }
 

@@ -57,7 +57,6 @@ public class WifiManagerSnippet implements Snippet {
 
     public WifiManagerSnippet() {
         mContext = InstrumentationRegistry.getContext();
-        // mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
         mWifiManager = (WifiManager) mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     }
 
