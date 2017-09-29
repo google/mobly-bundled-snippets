@@ -17,6 +17,7 @@
 package com.google.android.mobly.snippet.bundled;
 
 import java.util.List;
+import java.util.Locale;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.io.IOException;
@@ -27,7 +28,6 @@ import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
 import android.net.Uri;
 import android.os.Environment;
-import android.os.ParcelFileDescriptor;
 import android.app.DownloadManager;
 import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
@@ -84,7 +84,8 @@ public class NetworkingSnippet implements Snippet {
         Uri uri = Uri.parse(url);
         List<String> pathsegments = uri.getPathSegments();
         if (pathsegments.size() < 1) {
-            throw new IllegalArgumentException(String.format("The Uri %s does not have a path.", uri.toString()));
+            throw new IllegalArgumentException(String.format(Locale.US,
+                        "The Uri %s does not have a path.", uri.toString()));
         }
         DownloadManager.Request request = new DownloadManager.Request(uri);
         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,
@@ -96,9 +97,11 @@ public class NetworkingSnippet implements Snippet {
         mContext.registerReceiver(receiver, filter);
         try {
             mReqid = mDownloadManager.enqueue(request);
-            Log.d(String.format("networkHttpDownload download of %s with id %d", url, mReqid));
+            Log.d(String.format(Locale.US,
+                                "networkHttpDownload download of %s with id %d", url, mReqid));
             if (!Utils.waitUntil(() -> mIsDownloadComplete, 30)) {
-                Log.d(String.format("networkHttpDownload timed out waiting for completion"));
+                Log.d(String.format(Locale.US,
+                                    "networkHttpDownload timed out waiting for completion"));
                 throw new NetworkingSnippetException("networkHttpDownload timed out.");
             }
         } finally {
@@ -106,11 +109,13 @@ public class NetworkingSnippet implements Snippet {
         }
         Uri resp = mDownloadManager.getUriForDownloadedFile(mReqid);
         if (resp != null) {
-            Log.d(String.format("networkHttpDownload completed to %s", resp.toString()));
+            Log.d(String.format(Locale.US,
+                                "networkHttpDownload completed to %s", resp.toString()));
             mReqid = 0;
             return resp.toString();
         } else {
-            Log.d(String.format("networkHttpDownload Failed to download %s", uri.toString()));
+            Log.d(String.format(Locale.US,
+                                "networkHttpDownload Failed to download %s", uri.toString()));
             throw new NetworkingSnippetException("networkHttpDownload didn't get downloaded file.");
         }
     }

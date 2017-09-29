@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -111,7 +112,7 @@ public class AccountSnippet implements Snippet {
         Bundle result = future.getResult();
         if (result.containsKey(AccountManager.KEY_ERROR_CODE)) {
             throw new AccountSnippetException(
-                    String.format(
+                    String.format(Locale.US,
                             "Failed to add account due to code %d: %s",
                             result.getInt(AccountManager.KEY_ERROR_CODE),
                             result.getString(AccountManager.KEY_ERROR_MESSAGE)));
