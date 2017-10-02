@@ -74,7 +74,7 @@ dependencies {
     compile 'com.android.support.test:runner:0.5'
     compile 'com.google.android.mobly:mobly-snippet-lib:1.2.0'
     compile 'com.google.code.gson:gson:2.8.2'
-    compile 'com.google.guava:guava:20.0'
+    compile 'com.google.guava:guava:22.0-android'
 
     testCompile 'com.google.truth:truth:0.36'
     testCompile 'junit:junit:4.12'
@@ -83,3 +83,21 @@ dependencies {
 googleJavaFormat {
     options style: 'AOSP'
 }
+
+task open_lint_report(type: Exec) {
+    def lint_report = "build/reports/lint-results.html"
+    def cmd = ""
+    def platform = System.getProperty('os.name').toLowerCase(Locale.ROOT)
+    if (platform.contains("linux")) {
+        cmd = "xdg-open"
+    } else {
+        cmd = "open"  // Assume MacOS
+    }
+    commandLine cmd, lint_report
+}
+
+task validate {
+    dependsOn { ['googleJavaFormat', 'lint', 'open_lint_report'] }
+    println "Fix any lint issues you see. When it looks good, submit the pull request."
+}
+

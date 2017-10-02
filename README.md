@@ -38,6 +38,19 @@ Note: this is not an official Google product.
       self.ad.api.wifiEnable()
     ```
 
+## Develop
+
+If you want to contribute, use the usual github method of forking and asking
+for a pull request.
+
+Before asking for a pull request, run the `validate` target to format and run
+lint over the code. Fix any issues it indidates. When complete, ask for the
+pull request.
+
+```sh
+./gradlew validate
+```
+
 
 ## Other resources
 
