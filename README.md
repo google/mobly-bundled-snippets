@@ -48,7 +48,7 @@ lint over the code. Fix any issues it indidates. When complete, ask for the
 pull request.
 
 ```sh
-./gradlew validate
+./gradlew presubmit
 ```
 
 

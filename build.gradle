@@ -84,20 +84,25 @@ googleJavaFormat {
     options style: 'AOSP'
 }
 
-task open_lint_report(type: Exec) {
+// Open lint's HTML report in your default browser or viewer.
+task openLintReport(type: Exec) {
     def lint_report = "build/reports/lint-results.html"
-    def cmd = ""
+    def cmd = "cat"
     def platform = System.getProperty('os.name').toLowerCase(Locale.ROOT)
     if (platform.contains("linux")) {
         cmd = "xdg-open"
-    } else {
-        cmd = "open"  // Assume MacOS
+    } else if (platform.contains("darwin")) {
+        cmd = "open"
+    } else if (platform.contains("windows")) {
+        cmd = "launch"
     }
     commandLine cmd, lint_report
 }
 
-task validate {
-    dependsOn { ['googleJavaFormat', 'lint', 'open_lint_report'] }
-    println "Fix any lint issues you see. When it looks good, submit the pull request."
+task presubmit {
+    dependsOn { ['googleJavaFormat', 'lint', 'openLintReport'] }
+    doLast {
+        println "Fix any lint issues you see. When it looks good, submit the pull request."
+    }
 }
 
