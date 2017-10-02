@@ -40,10 +40,10 @@ Note: this is not an official Google product.
 
 ## Develop
 
-If you want to contribute, use the usual github method of forking and asking
-for a pull request.
+If you want to contribute, use the usual github method of forking and sending
+a pull request.
 
-Before asking for a pull request, run the `validate` target to format and run
+Before asking for a pull request, run the `presubmit` target to format and run
 lint over the code. Fix any issues it indidates. When complete, ask for the
 pull request.
 
