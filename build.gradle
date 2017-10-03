@@ -4,7 +4,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.3.3'
-        classpath 'me.tatarka:gradle-retrolambda:3.5.0'
+        classpath 'me.tatarka:gradle-retrolambda:3.7.0'
 
         // NOTE: Do not place your application dependencies here.
     }
@@ -31,7 +31,7 @@ allprojects {
 
 android {
     compileSdkVersion 24
-    buildToolsVersion '25.0.0'
+    buildToolsVersion '25.0.3'
 
     defaultConfig {
         applicationId "com.google.android.mobly.snippet.bundled"
@@ -50,6 +50,7 @@ android {
         abortOnError true
         checkAllWarnings true
         warningsAsErrors true
+        disable 'HardwareIds','MissingApplicationIcon','GoogleAppIndexingWarning','InvalidPackage','OldTargetApi'
     }
 }
 
@@ -72,13 +73,36 @@ artifacts {
 dependencies {
     compile 'com.android.support.test:runner:0.5'
     compile 'com.google.android.mobly:mobly-snippet-lib:1.2.0'
-    compile 'com.google.code.gson:gson:2.6.2'
-    compile 'com.google.guava:guava:20.0'
+    compile 'com.google.code.gson:gson:2.8.2'
+    compile 'com.google.guava:guava:22.0-android'
 
-    testCompile 'com.google.truth:truth:0.32'
+    testCompile 'com.google.truth:truth:0.36'
     testCompile 'junit:junit:4.12'
 }
 
 googleJavaFormat {
     options style: 'AOSP'
 }
+
+// Open lint's HTML report in your default browser or viewer.
+task openLintReport(type: Exec) {
+    def lint_report = "build/reports/lint-results.html"
+    def cmd = "cat"
+    def platform = System.getProperty('os.name').toLowerCase(Locale.ROOT)
+    if (platform.contains("linux")) {
+        cmd = "xdg-open"
+    } else if (platform.contains("darwin")) {
+        cmd = "open"
+    } else if (platform.contains("windows")) {
+        cmd = "launch"
+    }
+    commandLine cmd, lint_report
+}
+
+task presubmit {
+    dependsOn { ['googleJavaFormat', 'lint', 'openLintReport'] }
+    doLast {
+        println "Fix any lint issues you see. When it looks good, submit the pull request."
+    }
+}
+

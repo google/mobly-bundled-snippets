@@ -57,7 +57,9 @@ public class WifiManagerSnippet implements Snippet {
 
     public WifiManagerSnippet() {
         mContext = InstrumentationRegistry.getContext();
-        mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+        mWifiManager =
+                (WifiManager)
+                        mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     }
 
     @Rpc(
@@ -196,8 +198,8 @@ public class WifiManagerSnippet implements Snippet {
         String SSID = wifiConfig.SSID;
         // Return directly if network is already connected.
         WifiInfo connectionInfo = mWifiManager.getConnectionInfo();
-        if (connectionInfo.getNetworkId() != -1 && connectionInfo.getSSID().equals(wifiConfig.SSID))
-        {
+        if (connectionInfo.getNetworkId() != -1
+                && connectionInfo.getSSID().equals(wifiConfig.SSID)) {
             Log.d("Network " + connectionInfo.getSSID() + " is already connected.");
             return;
         }
