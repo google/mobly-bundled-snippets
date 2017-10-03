@@ -44,8 +44,8 @@ If you want to contribute, use the usual github method of forking and sending
 a pull request.
 
 Before sending a pull request, run the `presubmit` target to format and run
-lint over the code. Fix any issues it indicates. When complete, ask for the
-pull request.
+lint over the code. Fix any issues it indicates. When complete, send the pull
+request.
 
 ```shell
 ./gradlew presubmit
