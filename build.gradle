@@ -74,8 +74,11 @@ dependencies {
     compile 'com.android.support.test:runner:0.5'
     compile 'com.google.android.mobly:mobly-snippet-lib:1.2.0'
     compile 'com.google.code.gson:gson:2.8.2'
-    compile 'com.google.guava:guava:22.0-android'
+    compile 'com.google.guava:guava:23.1-android'
+    compile 'com.google.errorprone:error_prone_annotations:2.1.1'
 
+    testCompile 'com.google.errorprone:error_prone_annotations:2.1.1'
+    testCompile 'com.google.guava:guava:23.1-android'
     testCompile 'com.google.truth:truth:0.36'
     testCompile 'junit:junit:4.12'
 }
