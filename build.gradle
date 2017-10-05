@@ -97,7 +97,7 @@ task openLintReport(type: Exec) {
     def platform = System.getProperty('os.name').toLowerCase(Locale.ROOT)
     if (platform.contains("linux")) {
         cmd = "xdg-open"
-    } else if (platform.contains("darwin")) {
+    } else if (platform.contains("mac os x")) {
         cmd = "open"
     } else if (platform.contains("windows")) {
         cmd = "launch"
