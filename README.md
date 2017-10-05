@@ -1,5 +1,5 @@
 Mobly Bundled Snippets is a set of Snippets to allow Mobly tests to control
-Android devices by exposing a simplified verison of the public Android API
+Android devices by exposing a simplified version of the public Android API
 suitable for testing.
 
 We are adding more APIs as we go. If you have specific needs for certain groups
