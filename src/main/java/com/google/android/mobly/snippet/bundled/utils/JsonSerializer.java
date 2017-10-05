@@ -185,9 +185,7 @@ public class JsonSerializer {
     private Bundle serializeBleScanRecord(ScanRecord record) {
         Bundle result = new Bundle();
         result.putString("DeviceName", record.getDeviceName());
-        result.putString(
-                "TxPowerLevel",
-                MbsEnums.BLE_ADVERTISE_TX_POWER.getString(record.getTxPowerLevel()));
+        result.putInt("TxPowerLevel", record.getTxPowerLevel());
         return result;
     }
 
