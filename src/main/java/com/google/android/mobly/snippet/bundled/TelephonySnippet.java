@@ -17,10 +17,12 @@
 package com.google.android.mobly.snippet.bundled;
 
 import android.content.Context;
+import android.os.Build;
 import android.support.test.InstrumentationRegistry;
 import android.telephony.TelephonyManager;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
+import com.google.android.mobly.snippet.rpc.RpcMinSdk;
 
 /** Snippet class for telephony RPCs. */
 public class TelephonySnippet implements Snippet {
@@ -49,6 +51,16 @@ public class TelephonySnippet implements Snippet {
     )
     public int getTelephonyCallState() {
         return mTelephonyManager.getCallState();
+    }
+
+    /**
+     * @see <a href="https://developer.android.com/reference/android/telephony/ServiceState.html">
+     *     Service States</a>
+     */
+    @Rpc(description = "Returns the current Service State information")
+    @RpcMinSdk(Build.VERSION_CODES.O)
+    public int getTelephonyServiceState() {
+        return mTelephonyManager.getServiceState().getState();
     }
 
     @Override
