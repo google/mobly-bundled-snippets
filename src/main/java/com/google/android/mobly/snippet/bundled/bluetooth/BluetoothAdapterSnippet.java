@@ -28,6 +28,7 @@ import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
+import com.google.android.mobly.snippet.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -44,6 +45,8 @@ public class BluetoothAdapterSnippet implements Snippet {
         }
     }
 
+    // Default timeout in seconds.
+    private static final int TIMEOUT_TOGGLE_STATE = 30;
     private final Context mContext;
     private static final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
@@ -87,21 +90,45 @@ public class BluetoothAdapterSnippet implements Snippet {
 
     @Rpc(description = "Enable bluetooth with a 30s timeout.")
     public void btEnable() throws BluetoothAdapterSnippetException, InterruptedException {
+        if (mBluetoothAdapter.getState() == BluetoothAdapter.STATE_ON) {
+            return;
+        }
+        // If bt is trying to turn off, wait for that to finish before continuing.
+        if (mBluetoothAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF) {
+            if (!Utils.waitUntil(
+                    () -> mBluetoothAdapter.getState() == BluetoothAdapter.STATE_OFF,
+                    TIMEOUT_TOGGLE_STATE)) {
+                Log.e(String.format("BT failed to stabilize after %ss.", TIMEOUT_TOGGLE_STATE));
+            }
+        }
         if (!mBluetoothAdapter.enable()) {
             throw new BluetoothAdapterSnippetException("Failed to start enabling bluetooth");
         }
-        if (!Utils.waitUntil(() -> mBluetoothAdapter.isEnabled(), 30)) {
-            throw new BluetoothAdapterSnippetException("Bluetooth did not turn on within 30s.");
+        if (!Utils.waitUntil(() -> mBluetoothAdapter.isEnabled(), TIMEOUT_TOGGLE_STATE)) {
+            throw new BluetoothAdapterSnippetException(
+                    String.format("Bluetooth did not turn on within %ss.", TIMEOUT_TOGGLE_STATE));
         }
     }
 
     @Rpc(description = "Disable bluetooth with a 30s timeout.")
     public void btDisable() throws BluetoothAdapterSnippetException, InterruptedException {
+        if (mBluetoothAdapter.getState() == BluetoothAdapter.STATE_OFF) {
+            return;
+        }
+        // If bt is trying to turn on, wait for that to finish before continuing.
+        if (mBluetoothAdapter.getState() == BluetoothAdapter.STATE_TURNING_ON) {
+            if (!Utils.waitUntil(
+                    () -> mBluetoothAdapter.getState() == BluetoothAdapter.STATE_ON,
+                    TIMEOUT_TOGGLE_STATE)) {
+                Log.e(String.format("BT failed to stabilize after %ss.", TIMEOUT_TOGGLE_STATE));
+            }
+        }
         if (!mBluetoothAdapter.disable()) {
             throw new BluetoothAdapterSnippetException("Failed to start disabling bluetooth");
         }
-        if (!Utils.waitUntil(() -> !mBluetoothAdapter.isEnabled(), 30)) {
-            throw new BluetoothAdapterSnippetException("Bluetooth did not turn off within 30s.");
+        if (!Utils.waitUntil(() -> !mBluetoothAdapter.isEnabled(), TIMEOUT_TOGGLE_STATE)) {
+            throw new BluetoothAdapterSnippetException(
+                    String.format("Bluetooth did not turn off within %ss.", TIMEOUT_TOGGLE_STATE));
         }
     }
 

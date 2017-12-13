@@ -50,6 +50,7 @@ public class WifiManagerSnippet implements Snippet {
         }
     }
 
+    private static final int TIMEOUT_TOGGLE_STATE = 30;
     private final WifiManager mWifiManager;
     private final Context mContext;
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
@@ -86,23 +87,51 @@ public class WifiManagerSnippet implements Snippet {
 
     @Rpc(description = "Turns on Wi-Fi with a 30s timeout.")
     public void wifiEnable() throws InterruptedException, WifiManagerSnippetException {
+        if (mWifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED) {
+            return;
+        }
+        // If Wi-Fi is trying to turn off, wait for that to complete before continuing.
+        if (mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLING) {
+            if (!Utils.waitUntil(
+                    () -> mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED,
+                    TIMEOUT_TOGGLE_STATE)) {
+                Log.e(String.format("Wi-Fi failed to stabilize after %ss.", TIMEOUT_TOGGLE_STATE));
+            }
+        }
         if (!mWifiManager.setWifiEnabled(true)) {
             throw new WifiManagerSnippetException("Failed to initiate enabling Wi-Fi.");
         }
         if (!Utils.waitUntil(
-                () -> mWifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED, 30)) {
-            throw new WifiManagerSnippetException("Failed to enable Wi-Fi after 30s, timeout!");
+                () -> mWifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED,
+                TIMEOUT_TOGGLE_STATE)) {
+            throw new WifiManagerSnippetException(
+                    String.format(
+                            "Failed to enable Wi-Fi after %ss, timeout!", TIMEOUT_TOGGLE_STATE));
         }
     }
 
     @Rpc(description = "Turns off Wi-Fi with a 30s timeout.")
     public void wifiDisable() throws InterruptedException, WifiManagerSnippetException {
+        if (mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED) {
+            return;
+        }
+        // If Wi-Fi is trying to turn on, wait for that to complete before continuing.
+        if (mWifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLING) {
+            if (!Utils.waitUntil(
+                    () -> mWifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED,
+                    TIMEOUT_TOGGLE_STATE)) {
+                Log.e(String.format("Wi-Fi failed to stabilize after %ss.", TIMEOUT_TOGGLE_STATE));
+            }
+        }
         if (!mWifiManager.setWifiEnabled(false)) {
             throw new WifiManagerSnippetException("Failed to initiate disabling Wi-Fi.");
         }
         if (!Utils.waitUntil(
-                () -> mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED, 30)) {
-            throw new WifiManagerSnippetException("Failed to disable Wi-Fi after 30s, timeout!");
+                () -> mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED,
+                TIMEOUT_TOGGLE_STATE)) {
+            throw new WifiManagerSnippetException(
+                    String.format(
+                            "Failed to disable Wi-Fi after %ss, timeout!", TIMEOUT_TOGGLE_STATE));
         }
     }
 
