@@ -65,5 +65,5 @@ in your browser.
 
 ## Other resources
 
-  * [Mobly multi-device test framework](http://github.com/google/mobly)
-  * [Mobly Snippet Lib](http://github.com/google/mobly-snippet-lib)
+  * [Mobly multi-device test framework](https://github.com/google/mobly)
+  * [Mobly Snippet Lib](https://github.com/google/mobly-snippet-lib)
