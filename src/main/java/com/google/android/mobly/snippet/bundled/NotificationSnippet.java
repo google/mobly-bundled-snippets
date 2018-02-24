@@ -22,6 +22,7 @@ import android.support.test.InstrumentationRegistry;
 import android.widget.Toast;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
+import com.google.android.mobly.snippet.rpc.RunOnUiThread;
 
 /** Snippet class exposing Android APIs related to creating notification on screen. */
 public class NotificationSnippet implements Snippet {
@@ -38,9 +39,10 @@ public class NotificationSnippet implements Snippet {
         mHandler = new Handler(mContext.getMainLooper());
     }
 
+    @RunOnUiThread
     @Rpc(description = "Make a toast on screen.")
     public void makeToast(String message) {
-        mHandler.post(() -> Toast.makeText(mContext, message, Toast.LENGTH_LONG).show());
+        Toast.makeText(mContext, message, Toast.LENGTH_LONG).show();
     }
 
     @Override
