@@ -263,7 +263,7 @@ public class WifiManagerSnippet implements Snippet {
                 () ->
                         mWifiManager.getConnectionInfo().getSSID().equals(SSID)
                                 && connectionInfo.getNetworkId() != -1,
-                120)) {
+                90)) {
             throw new WifiManagerSnippetException(
                     "Failed to connect to Wi-Fi network "
                             + wifiNetworkConfig.toString()
