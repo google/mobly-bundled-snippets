@@ -16,8 +16,6 @@
 
 package com.google.android.mobly.snippet.bundled;
 
-import android.content.Context;
-import android.os.Handler;
 import android.support.test.InstrumentationRegistry;
 import android.widget.Toast;
 import com.google.android.mobly.snippet.Snippet;
@@ -27,22 +25,10 @@ import com.google.android.mobly.snippet.rpc.RunOnUiThread;
 /** Snippet class exposing Android APIs related to creating notification on screen. */
 public class NotificationSnippet implements Snippet {
 
-    private final Context mContext;
-    /**
-     * Since the APIs here deal with UI, most of them have to be called in a thread that has called
-     * looper.
-     */
-    private final Handler mHandler;
-
-    public NotificationSnippet() {
-        mContext = InstrumentationRegistry.getContext();
-        mHandler = new Handler(mContext.getMainLooper());
-    }
-
     @RunOnUiThread
     @Rpc(description = "Make a toast on screen.")
     public void makeToast(String message) {
-        Toast.makeText(mContext, message, Toast.LENGTH_LONG).show();
+        Toast.makeText(InstrumentationRegistry.getContext(), message, Toast.LENGTH_LONG).show();
     }
 
     @Override
