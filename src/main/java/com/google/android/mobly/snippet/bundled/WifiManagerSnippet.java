@@ -259,7 +259,11 @@ public class WifiManagerSnippet implements Snippet {
             throw new WifiManagerSnippetException(
                     "Failed to reconnect to Wi-Fi network of ID: " + networkId);
         }
-        if (!Utils.waitUntil(() -> mWifiManager.getConnectionInfo().getSSID().equals(SSID), 90)) {
+        if (!Utils.waitUntil(
+                () ->
+                        mWifiManager.getConnectionInfo().getSSID().equals(SSID)
+                                && connectionInfo.getNetworkId() != -1,
+                90)) {
             throw new WifiManagerSnippetException(
                     "Failed to connect to Wi-Fi network "
                             + wifiNetworkConfig.toString()
