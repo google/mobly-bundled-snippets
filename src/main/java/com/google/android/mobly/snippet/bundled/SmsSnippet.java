@@ -115,12 +115,11 @@ public class SmsSnippet implements Snippet {
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
     @Rpc(description = "Wait for incoming SMS message.")
-    public JSONObject waitForSms() throws Throwable {
+    public JSONObject waitForSms(int timeoutMillis) throws Throwable {
         String callbackId = SMS_CALLBACK_ID_PREFIX + (++mCallbackCounter);
         SmsReceiver receiver = new SmsReceiver(mContext, callbackId);
         mContext.registerReceiver(receiver, new IntentFilter(Intents.SMS_RECEIVED_ACTION));
-        return Utils.waitForSnippetEvent(
-                        callbackId, SMS_RECEIVED_EVENT_NAME, DEFAULT_TIMEOUT_MILLISECOND)
+        return Utils.waitForSnippetEvent(callbackId, SMS_RECEIVED_EVENT_NAME, timeoutMillis)
                 .toJson();
     }
 
