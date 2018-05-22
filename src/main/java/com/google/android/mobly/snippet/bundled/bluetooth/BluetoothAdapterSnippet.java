@@ -214,6 +214,30 @@ public class BluetoothAdapterSnippet implements Snippet {
         }
     }
 
+    @Rpc(description = "Cancel ongoing bluetooth discovery.")
+    public void btCancelDiscovery() throws BluetoothAdapterSnippetException {
+        if (!mBluetoothAdapter.isDiscovering()) {
+            Log.d("No ongoing bluetooth discovery.");
+            return;
+        }
+        IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        mIsScanResultAvailable = false;
+        BroadcastReceiver receiver = new BluetoothScanReceiver();
+        mContext.registerReceiver(receiver, filter);
+        try {
+            if (!mBluetoothAdapter.cancelDiscovery()) {
+                throw new BluetoothAdapterSnippetException(
+                        "Failed to initiate to cancel bluetooth discovery.");
+            }
+            if (!Utils.waitUntil(() -> mIsScanResultAvailable, 120)) {
+                throw new BluetoothAdapterSnippetException(
+                        "Failed to get discovery results after 2 mins, timeout!");
+            }
+        } finally {
+            mContext.unregisterReceiver(receiver);
+        }
+    }
+
     @Rpc(description = "Stop being discoverable in Bluetooth.")
     public void btStopBeingDiscoverable() throws Throwable {
         if (!(boolean)
