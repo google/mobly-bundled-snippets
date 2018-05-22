@@ -52,7 +52,7 @@ public class BluetoothAdapterSnippet implements Snippet {
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
     private static final ConcurrentHashMap<String, BluetoothDevice> mDiscoveryResults =
             new ConcurrentHashMap<>();
-    private volatile boolean mIsScanResultAvailable = false;
+    private volatile boolean mIsDiscoveryFinished = false;
 
     public BluetoothAdapterSnippet() {
         mContext = InstrumentationRegistry.getContext();
@@ -180,7 +180,7 @@ public class BluetoothAdapterSnippet implements Snippet {
             mBluetoothAdapter.cancelDiscovery();
         }
         mDiscoveryResults.clear();
-        mIsScanResultAvailable = false;
+        mIsDiscoveryFinished = false;
         BroadcastReceiver receiver = new BluetoothScanReceiver();
         mContext.registerReceiver(receiver, filter);
         try {
@@ -188,7 +188,7 @@ public class BluetoothAdapterSnippet implements Snippet {
                 throw new BluetoothAdapterSnippetException(
                         "Failed to initiate Bluetooth Discovery.");
             }
-            if (!Utils.waitUntil(() -> mIsScanResultAvailable, 120)) {
+            if (!Utils.waitUntil(() -> mIsDiscoveryFinished, 120)) {
                 throw new BluetoothAdapterSnippetException(
                         "Failed to get discovery results after 2 mins, timeout!");
             }
@@ -221,7 +221,7 @@ public class BluetoothAdapterSnippet implements Snippet {
             return;
         }
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        mIsScanResultAvailable = false;
+        mIsDiscoveryFinished = false;
         BroadcastReceiver receiver = new BluetoothScanReceiver();
         mContext.registerReceiver(receiver, filter);
         try {
@@ -229,7 +229,7 @@ public class BluetoothAdapterSnippet implements Snippet {
                 throw new BluetoothAdapterSnippetException(
                         "Failed to initiate to cancel bluetooth discovery.");
             }
-            if (!Utils.waitUntil(() -> mIsScanResultAvailable, 120)) {
+            if (!Utils.waitUntil(() -> mIsDiscoveryFinished, 120)) {
                 throw new BluetoothAdapterSnippetException(
                         "Failed to get discovery results after 2 mins, timeout!");
             }
@@ -314,7 +314,7 @@ public class BluetoothAdapterSnippet implements Snippet {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                mIsScanResultAvailable = true;
+                mIsDiscoveryFinished = true;
             } else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device =
                         (BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
