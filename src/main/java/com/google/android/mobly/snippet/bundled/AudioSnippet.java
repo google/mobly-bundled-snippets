@@ -94,7 +94,7 @@ public class AudioSnippet implements Snippet {
 
     @Rpc(
         description =
-                "Sets the voice call stream volume. The minimum value is 0. Use getCallMaxVolume"
+                "Sets the voice call stream volume. The minimum value is 0. Use getVoiceCallMaxVolume"
                         + "to determine the maximum."
     )
     public void setVoiceCallVolume(Integer value) {
