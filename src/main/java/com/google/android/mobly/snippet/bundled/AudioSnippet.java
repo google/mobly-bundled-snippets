@@ -55,8 +55,8 @@ public class AudioSnippet implements Snippet {
 
     @Rpc(
         description =
-                "Sets the music stream volume. The minimum value is 0. Use getMusicMaxVolume"
-                        + "to determine the maximum."
+                "Sets the music stream volume. The minimum value is 0. Use 'getMusicMaxVolume'"
+                        + " to determine the maximum."
     )
     public void setMusicVolume(Integer value) {
         mAudioManager.setStreamVolume(
@@ -75,8 +75,8 @@ public class AudioSnippet implements Snippet {
 
     @Rpc(
         description =
-                "Sets the ringer stream volume. The minimum value is 0. Use getRingMaxVolume"
-                        + "to determine the maximum."
+                "Sets the ringer stream volume. The minimum value is 0. Use 'getRingMaxVolume'"
+                        + " to determine the maximum."
     )
     public void setRingVolume(Integer value) {
         mAudioManager.setStreamVolume(AudioManager.STREAM_RING, value, 0 /* flags, 0 = no flags */);
@@ -94,8 +94,8 @@ public class AudioSnippet implements Snippet {
 
     @Rpc(
         description =
-                "Sets the voice call stream volume. The minimum value is 0. Use getVoiceCallMaxVolume"
-                        + "to determine the maximum."
+                "Sets the voice call stream volume. The minimum value is 0. Use"
+                        + " 'getVoiceCallMaxVolume' to determine the maximum."
     )
     public void setVoiceCallVolume(Integer value) {
         mAudioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL,
