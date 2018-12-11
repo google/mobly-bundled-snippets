@@ -13,7 +13,7 @@ Note: this is not an official Google product.
 1.  Compile and install the bundled snippets
 
         ./gradlew assembleDebug
-        adb install -d -r -g ./build/outputs/apk/mobly-bundled-snippets-debug.apk
+        adb install -d -r -g ./build/outputs/apk/debug/mobly-bundled-snippets-debug.apk
 
 1.  Use the Mobly snippet shell to interact with the bundled snippets
 
