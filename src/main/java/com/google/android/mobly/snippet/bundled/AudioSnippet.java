@@ -81,6 +81,26 @@ public class AudioSnippet implements Snippet {
     public void setRingVolume(Integer value) {
         mAudioManager.setStreamVolume(AudioManager.STREAM_RING, value, 0 /* flags, 0 = no flags */);
     }
+    
+    @Rpc(description = "Gets the voice call volume.")
+    public int getVoiceCallVolume() {
+        return mAudioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL);
+    }
+
+    @Rpc(description = "Gets the maximum voice call volume value.")
+    public int getVoiceCallMaxVolume() {
+        return mAudioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL);
+    }
+
+    @Rpc(
+        description =
+                "Sets the voice call stream volume. The minimum value is 0. Use getVoiceCallMaxVolume"
+                        + "to determine the maximum."
+    )
+    public void setVoiceCallVolume(Integer value) {
+        mAudioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL,
+            value, 0 /* flags, 0 = no flags */);
+    }
 
     @Rpc(description = "Silences all audio streams.")
     public void muteAll() throws Exception {
