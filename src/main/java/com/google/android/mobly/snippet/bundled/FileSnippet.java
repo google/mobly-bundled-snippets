@@ -18,6 +18,7 @@ package com.google.android.mobly.snippet.bundled;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
@@ -69,6 +70,11 @@ public class FileSnippet implements Snippet {
     public void fileDeleteContent(String uri) {
         Uri uri_ = Uri.parse(uri);
         mContext.getContentResolver().delete(uri_, null, null);
+    }
+
+    @Rpc(description = "Return the primary shared/external storage directory.")
+    public String fileGetExternalStorageDirectory() {
+        return Environment.getExternalStorageDirectory().getAbsolutePath();
     }
 
     @Override
