@@ -29,6 +29,11 @@ public class StorageSnippet implements Snippet {
         return Environment.getExternalStorageDirectory().getAbsolutePath();
     }
 
+    @Rpc(description = "Return the root of the \"system\" directory.")
+    public String storageGetRootDirectory() {
+    	return Environment.getRootDirectory().getAbsolutePath();
+    }
+
     @Override
     public void shutdown() {}
 }
