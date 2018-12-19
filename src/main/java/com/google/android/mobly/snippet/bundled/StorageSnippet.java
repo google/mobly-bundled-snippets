@@ -16,9 +16,7 @@
 
 package com.google.android.mobly.snippet.bundled;
 
-import android.content.Context;
 import android.os.Environment;
-import android.support.test.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
 
@@ -31,7 +29,7 @@ public class StorageSnippet implements Snippet {
 
     @Rpc(description = "Return the root of the \"system\" directory.")
     public String storageGetRootDirectory() {
-    	return Environment.getRootDirectory().getAbsolutePath();
+        return Environment.getRootDirectory().getAbsolutePath();
     }
 
     @Override
