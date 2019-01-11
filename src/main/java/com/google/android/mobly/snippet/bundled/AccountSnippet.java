@@ -24,7 +24,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SyncAdapterType;
 import android.os.Bundle;
-import android.support.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.util.Log;
@@ -68,7 +68,7 @@ public class AccountSnippet implements Snippet {
     private final ReentrantReadWriteLock mLock;
 
     public AccountSnippet() {
-        Context context = InstrumentationRegistry.getContext();
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
         mAccountManager = AccountManager.get(context);
         mSyncStatusObserverHandles = new LinkedList<>();
         mSyncWhitelist = new HashMap<>();
@@ -86,8 +86,8 @@ public class AccountSnippet implements Snippet {
      * @param password Password of the account to add.
      */
     @Rpc(
-        description = "Add a Google (GMail) account to the device, with account data sync disabled."
-    )
+            description =
+                    "Add a Google (GMail) account to the device, with account data sync disabled.")
     public void addAccount(String username, String password)
             throws AccountSnippetException, AccountsException, IOException {
         // Check for existing account. If we try to re-add an existing account, Android throws an

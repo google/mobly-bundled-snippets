@@ -19,7 +19,7 @@ package com.google.android.mobly.snippet.bundled;
 import android.content.Context;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
-import android.support.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
@@ -34,7 +34,7 @@ public class FileSnippet implements Snippet {
     private final Context mContext;
 
     public FileSnippet() {
-        mContext = InstrumentationRegistry.getContext();
+        mContext = InstrumentationRegistry.getInstrumentation().getContext();
     }
 
     private static class FileSnippetException extends Exception {

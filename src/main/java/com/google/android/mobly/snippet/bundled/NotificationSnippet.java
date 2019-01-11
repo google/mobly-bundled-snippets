@@ -16,8 +16,8 @@
 
 package com.google.android.mobly.snippet.bundled;
 
-import android.support.test.InstrumentationRegistry;
 import android.widget.Toast;
+import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.rpc.RunOnUiThread;
@@ -28,7 +28,11 @@ public class NotificationSnippet implements Snippet {
     @RunOnUiThread
     @Rpc(description = "Make a toast on screen.")
     public void makeToast(String message) {
-        Toast.makeText(InstrumentationRegistry.getContext(), message, Toast.LENGTH_LONG).show();
+        Toast.makeText(
+                        InstrumentationRegistry.getInstrumentation().getContext(),
+                        message,
+                        Toast.LENGTH_LONG)
+                .show();
     }
 
     @Override

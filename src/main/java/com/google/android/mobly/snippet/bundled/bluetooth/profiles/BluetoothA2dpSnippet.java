@@ -9,7 +9,7 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.bluetooth.BluetoothAdapterSnippet;
 import com.google.android.mobly.snippet.bundled.bluetooth.PairingBroadcastReceiver;
@@ -34,7 +34,7 @@ public class BluetoothA2dpSnippet implements Snippet {
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
 
     public BluetoothA2dpSnippet() {
-        mContext = InstrumentationRegistry.getContext();
+        mContext = InstrumentationRegistry.getInstrumentation().getContext();
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         bluetoothAdapter.getProfileProxy(
                 mContext, new A2dpServiceListener(), BluetoothProfile.A2DP);
@@ -55,10 +55,9 @@ public class BluetoothA2dpSnippet implements Snippet {
     @TargetApi(Build.VERSION_CODES.KITKAT)
     @RpcMinSdk(Build.VERSION_CODES.KITKAT)
     @Rpc(
-        description =
-                "Connects to a paired or discovered device with A2DP profile."
-                        + "If a device has been discovered but not paired, this will pair it."
-    )
+            description =
+                    "Connects to a paired or discovered device with A2DP profile."
+                            + "If a device has been discovered but not paired, this will pair it.")
     public void btA2dpConnect(String deviceAddress) throws Throwable {
         BluetoothDevice device = BluetoothAdapterSnippet.getKnownDeviceByAddress(deviceAddress);
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_PAIRING_REQUEST);

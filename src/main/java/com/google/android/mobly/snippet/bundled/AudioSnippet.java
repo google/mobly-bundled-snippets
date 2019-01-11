@@ -18,7 +18,7 @@ package com.google.android.mobly.snippet.bundled;
 
 import android.content.Context;
 import android.media.AudioManager;
-import android.support.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import java.lang.reflect.Method;
@@ -29,7 +29,7 @@ public class AudioSnippet implements Snippet {
     private final AudioManager mAudioManager;
 
     public AudioSnippet() {
-        Context context = InstrumentationRegistry.getContext();
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
     }
 
@@ -115,10 +115,9 @@ public class AudioSnippet implements Snippet {
     }
 
     @Rpc(
-        description =
-                "Puts the ringer volume at the lowest setting, but does not set it to "
-                        + "DO NOT DISTURB; the phone will vibrate when receiving a call."
-    )
+            description =
+                    "Puts the ringer volume at the lowest setting, but does not set it to "
+                            + "DO NOT DISTURB; the phone will vibrate when receiving a call.")
     public void muteRing() {
         setRingVolume(0);
     }
