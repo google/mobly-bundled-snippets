@@ -44,7 +44,7 @@ public class AudioSnippet implements Snippet {
     }
 
     @Rpc(description = "Gets the music stream volume.")
-    public int getMusicVolume() {
+    public Integer getMusicVolume() {
         return mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
     }
 
@@ -54,17 +54,16 @@ public class AudioSnippet implements Snippet {
     }
 
     @Rpc(
-        description =
-                "Sets the music stream volume. The minimum value is 0. Use 'getMusicMaxVolume'"
-                        + " to determine the maximum."
-    )
+            description =
+                    "Sets the music stream volume. The minimum value is 0. Use 'getMusicMaxVolume'"
+                            + " to determine the maximum.")
     public void setMusicVolume(Integer value) {
         mAudioManager.setStreamVolume(
                 AudioManager.STREAM_MUSIC, value, 0 /* flags, 0 = no flags */);
     }
 
     @Rpc(description = "Gets the ringer volume.")
-    public int getRingVolume() {
+    public Integer getRingVolume() {
         return mAudioManager.getStreamVolume(AudioManager.STREAM_RING);
     }
 
@@ -74,16 +73,15 @@ public class AudioSnippet implements Snippet {
     }
 
     @Rpc(
-        description =
-                "Sets the ringer stream volume. The minimum value is 0. Use 'getRingMaxVolume'"
-                        + " to determine the maximum."
-    )
+            description =
+                    "Sets the ringer stream volume. The minimum value is 0. Use 'getRingMaxVolume'"
+                            + " to determine the maximum.")
     public void setRingVolume(Integer value) {
         mAudioManager.setStreamVolume(AudioManager.STREAM_RING, value, 0 /* flags, 0 = no flags */);
     }
-    
+
     @Rpc(description = "Gets the voice call volume.")
-    public int getVoiceCallVolume() {
+    public Integer getVoiceCallVolume() {
         return mAudioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL);
     }
 
@@ -93,13 +91,12 @@ public class AudioSnippet implements Snippet {
     }
 
     @Rpc(
-        description =
-                "Sets the voice call stream volume. The minimum value is 0. Use"
-                        + " 'getVoiceCallMaxVolume' to determine the maximum."
-    )
+            description =
+                    "Sets the voice call stream volume. The minimum value is 0. Use"
+                            + " 'getVoiceCallMaxVolume' to determine the maximum.")
     public void setVoiceCallVolume(Integer value) {
-        mAudioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL,
-            value, 0 /* flags, 0 = no flags */);
+        mAudioManager.setStreamVolume(
+                AudioManager.STREAM_VOICE_CALL, value, 0 /* flags, 0 = no flags */);
     }
 
     @Rpc(description = "Silences all audio streams.")
