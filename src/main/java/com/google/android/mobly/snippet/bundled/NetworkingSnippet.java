@@ -23,7 +23,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Environment;
-import android.support.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
@@ -44,7 +44,7 @@ public class NetworkingSnippet implements Snippet {
     private volatile long mReqid = 0;
 
     public NetworkingSnippet() {
-        mContext = InstrumentationRegistry.getContext();
+        mContext = InstrumentationRegistry.getInstrumentation().getContext();
         mDownloadManager = (DownloadManager) mContext.getSystemService(Context.DOWNLOAD_SERVICE);
     }
 
@@ -78,10 +78,9 @@ public class NetworkingSnippet implements Snippet {
     }
 
     @Rpc(
-        description =
-                "Download a file using HTTP. Return content Uri (file remains on device). "
-                        + "The Uri should be treated as an opaque handle for further operations."
-    )
+            description =
+                    "Download a file using HTTP. Return content Uri (file remains on device). "
+                            + "The Uri should be treated as an opaque handle for further operations.")
     public String networkHttpDownload(String url)
             throws IllegalArgumentException, NetworkingSnippetException {
 

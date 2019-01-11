@@ -25,8 +25,8 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
-import android.support.annotation.Nullable;
-import android.support.test.InstrumentationRegistry;
+import androidx.annotation.Nullable;
+import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.JsonDeserializer;
 import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
@@ -57,17 +57,16 @@ public class WifiManagerSnippet implements Snippet {
     private volatile boolean mIsScanResultAvailable = false;
 
     public WifiManagerSnippet() {
-        mContext = InstrumentationRegistry.getContext();
+        mContext = InstrumentationRegistry.getInstrumentation().getContext();
         mWifiManager =
                 (WifiManager)
                         mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     }
 
     @Rpc(
-        description =
-                "Clears all configured networks. This will only work if all configured "
-                        + "networks were added through this MBS instance"
-    )
+            description =
+                    "Clears all configured networks. This will only work if all configured "
+                            + "networks were added through this MBS instance")
     public void wifiClearConfiguredNetworks() throws WifiManagerSnippetException {
         List<WifiConfiguration> unremovedConfigs = mWifiManager.getConfiguredNetworks();
         List<WifiConfiguration> failedConfigs = new ArrayList<>();
@@ -148,9 +147,8 @@ public class WifiManagerSnippet implements Snippet {
     }
 
     @Rpc(
-        description =
-                "Get Wi-Fi scan results, which is a list of serialized WifiScanResult objects."
-    )
+            description =
+                    "Get Wi-Fi scan results, which is a list of serialized WifiScanResult objects.")
     public JSONArray wifiGetCachedScanResults() throws JSONException {
         JSONArray results = new JSONArray();
         for (ScanResult result : mWifiManager.getScanResults()) {
@@ -160,10 +158,9 @@ public class WifiManagerSnippet implements Snippet {
     }
 
     @Rpc(
-        description =
-                "Start scan, wait for scan to complete, and return results, which is a list of "
-                        + "serialized WifiScanResult objects."
-    )
+            description =
+                    "Start scan, wait for scan to complete, and return results, which is a list of "
+                            + "serialized WifiScanResult objects.")
     public JSONArray wifiScanAndGetResults()
             throws InterruptedException, JSONException, WifiManagerSnippetException {
         mContext.registerReceiver(
@@ -179,10 +176,9 @@ public class WifiManagerSnippet implements Snippet {
     }
 
     @Rpc(
-        description =
-                "Connects to a Wi-Fi network. This covers the common network types like open and "
-                        + "WPA2."
-    )
+            description =
+                    "Connects to a Wi-Fi network. This covers the common network types like open and "
+                            + "WPA2.")
     public void wifiConnectSimple(String ssid, @Nullable String password)
             throws InterruptedException, JSONException, WifiManagerSnippetException {
         JSONObject config = new JSONObject();
@@ -277,10 +273,9 @@ public class WifiManagerSnippet implements Snippet {
     }
 
     @Rpc(
-        description =
-                "Forget a configured Wi-Fi network by its network ID, which is part of the"
-                        + " WifiConfiguration."
-    )
+            description =
+                    "Forget a configured Wi-Fi network by its network ID, which is part of the"
+                            + " WifiConfiguration.")
     public void wifiRemoveNetwork(Integer networkId) throws WifiManagerSnippetException {
         if (!mWifiManager.removeNetwork(networkId)) {
             throw new WifiManagerSnippetException("Failed to remove network of ID: " + networkId);
@@ -288,10 +283,9 @@ public class WifiManagerSnippet implements Snippet {
     }
 
     @Rpc(
-        description =
-                "Get the list of configured Wi-Fi networks, each is a serialized "
-                        + "WifiConfiguration object."
-    )
+            description =
+                    "Get the list of configured Wi-Fi networks, each is a serialized "
+                            + "WifiConfiguration object.")
     public List<JSONObject> wifiGetConfiguredNetworks() throws JSONException {
         List<JSONObject> networks = new ArrayList<>();
         for (WifiConfiguration config : mWifiManager.getConfiguredNetworks()) {
@@ -307,19 +301,17 @@ public class WifiManagerSnippet implements Snippet {
     }
 
     @Rpc(
-        description =
-                "Get the information about the active Wi-Fi connection, which is a serialized "
-                        + "WifiInfo object."
-    )
+            description =
+                    "Get the information about the active Wi-Fi connection, which is a serialized "
+                            + "WifiInfo object.")
     public JSONObject wifiGetConnectionInfo() throws JSONException {
         return mJsonSerializer.toJson(mWifiManager.getConnectionInfo());
     }
 
     @Rpc(
-        description =
-                "Get the info from last successful DHCP request, which is a serialized DhcpInfo "
-                        + "object."
-    )
+            description =
+                    "Get the info from last successful DHCP request, which is a serialized DhcpInfo "
+                            + "object.")
     public JSONObject wifiGetDhcpInfo() throws JSONException {
         return mJsonSerializer.toJson(mWifiManager.getDhcpInfo());
     }

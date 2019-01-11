@@ -23,7 +23,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.support.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
@@ -55,7 +55,7 @@ public class BluetoothAdapterSnippet implements Snippet {
     private volatile boolean mIsDiscoveryFinished = false;
 
     public BluetoothAdapterSnippet() {
-        mContext = InstrumentationRegistry.getContext();
+        mContext = InstrumentationRegistry.getInstrumentation().getContext();
     }
 
     /**
@@ -138,9 +138,8 @@ public class BluetoothAdapterSnippet implements Snippet {
     }
 
     @Rpc(
-        description =
-                "Get bluetooth discovery results, which is a list of serialized BluetoothDevice objects."
-    )
+            description =
+                    "Get bluetooth discovery results, which is a list of serialized BluetoothDevice objects.")
     public ArrayList<Bundle> btGetCachedScanResults() {
         return mJsonSerializer.serializeBluetoothDeviceList(mDiscoveryResults.values());
     }
@@ -168,10 +167,9 @@ public class BluetoothAdapterSnippet implements Snippet {
     }
 
     @Rpc(
-        description =
-                "Start discovery, wait for discovery to complete, and return results, which is a list of "
-                        + "serialized BluetoothDevice objects."
-    )
+            description =
+                    "Start discovery, wait for discovery to complete, and return results, which is a list of "
+                            + "serialized BluetoothDevice objects.")
     public List<Bundle> btDiscoverAndGetResults()
             throws InterruptedException, BluetoothAdapterSnippetException {
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);

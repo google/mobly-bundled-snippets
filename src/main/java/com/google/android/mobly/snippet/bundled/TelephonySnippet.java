@@ -17,8 +17,8 @@
 package com.google.android.mobly.snippet.bundled;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 import android.telephony.TelephonyManager;
+import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
 
@@ -28,7 +28,7 @@ public class TelephonySnippet implements Snippet {
     private final TelephonyManager mTelephonyManager;
 
     public TelephonySnippet() {
-        Context context = InstrumentationRegistry.getContext();
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
         mTelephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
     }
 
@@ -43,10 +43,9 @@ public class TelephonySnippet implements Snippet {
     }
 
     @Rpc(
-        description =
-                "Gets the call state for the default subscription. Call state values are"
-                        + "0: IDLE, 1: RINGING, 2: OFFHOOK"
-    )
+            description =
+                    "Gets the call state for the default subscription. Call state values are"
+                            + "0: IDLE, 1: RINGING, 2: OFFHOOK")
     public int getTelephonyCallState() {
         return mTelephonyManager.getCallState();
     }

@@ -26,9 +26,9 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony.Sms.Intents;
-import android.support.test.InstrumentationRegistry;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
+import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.event.EventCache;
@@ -62,7 +62,7 @@ public class SmsSnippet implements Snippet {
     private final SmsManager mSmsManager;
 
     public SmsSnippet() {
-        this.mContext = InstrumentationRegistry.getContext();
+        this.mContext = InstrumentationRegistry.getInstrumentation().getContext();
         this.mSmsManager = SmsManager.getDefault();
     }
 
