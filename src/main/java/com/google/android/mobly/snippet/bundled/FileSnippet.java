@@ -37,15 +37,6 @@ public class FileSnippet implements Snippet {
         mContext = InstrumentationRegistry.getInstrumentation().getContext();
     }
 
-    private static class FileSnippetException extends Exception {
-
-        private static final long serialVersionUID = 8081L;
-
-        public FileSnippetException(String msg) {
-            super(msg);
-        }
-    }
-
     @Rpc(description = "Compute MD5 hash on a content URI. Return the MD5 has has a hex string.")
     public String fileMd5Hash(String uri) throws IOException, NoSuchAlgorithmException {
         Uri uri_ = Uri.parse(uri);
