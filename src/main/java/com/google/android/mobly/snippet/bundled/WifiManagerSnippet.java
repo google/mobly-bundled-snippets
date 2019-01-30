@@ -26,6 +26,7 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.JsonDeserializer;
@@ -319,6 +320,16 @@ public class WifiManagerSnippet implements Snippet {
     @Rpc(description = "Check whether Wi-Fi Soft AP (hotspot) is enabled.")
     public boolean wifiIsApEnabled() throws Throwable {
         return (boolean) Utils.invokeByReflection(mWifiManager, "isWifiApEnabled");
+    }
+
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP)
+    @Rpc(
+            description =
+                    "Check whether this device supports 5 GHz band Wi-Fi. "
+                            + "Turn on Wi-Fi before calling.")
+    public boolean wifiIs5GHzBandSupported() {
+        return mWifiManager.is5GHzBandSupported();
     }
 
     /**
