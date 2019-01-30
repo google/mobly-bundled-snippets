@@ -26,6 +26,7 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.JsonDeserializer;
@@ -321,6 +322,7 @@ public class WifiManagerSnippet implements Snippet {
         return (boolean) Utils.invokeByReflection(mWifiManager, "isWifiApEnabled");
     }
 
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP)
     @Rpc(
             description =
