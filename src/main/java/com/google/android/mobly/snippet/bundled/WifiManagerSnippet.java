@@ -321,6 +321,15 @@ public class WifiManagerSnippet implements Snippet {
         return (boolean) Utils.invokeByReflection(mWifiManager, "isWifiApEnabled");
     }
 
+    @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP)
+    @Rpc(
+            description =
+                    "Check whether this device supports 5 GHz band Wi-Fi. "
+                            + "Turn on Wi-Fi before calling.")
+    public boolean wifiIs5GHzBandSupported() {
+        return mWifiManager.is5GHzBandSupported();
+    }
+
     /**
      * Enable Wi-Fi Soft AP (hotspot).
      *
