@@ -150,6 +150,14 @@ public class AccountSnippet implements Snippet {
         mSyncStatusObserverHandles.add(handle);
     }
 
+    /**
+     * Removes an account from the device.
+     *
+     * <p>The account has to be Google account.
+     *
+     * @param username the username of the account to remove.
+     * @throws AccountSnippetException if removing the account failed.
+     */
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP_MR1)
     @Rpc(description = "Remove a Google account.")
     public void removeAccount(String username) throws AccountSnippetException {
@@ -158,6 +166,15 @@ public class AccountSnippet implements Snippet {
         }
     }
 
+    /**
+     * Get an existing account by its username.
+     *
+     * <p>Google account only.
+     *
+     * @param username the username of the account to remove.
+     * @return tHe account with the username.
+     * @throws AccountSnippetException if no account has the given username.
+     */
     private Account getAccountByName(String username) throws AccountSnippetException {
         Account[] accounts = mAccountManager.getAccountsByType(GOOGLE_ACCOUNT_TYPE);
         for (Account account : accounts) {
