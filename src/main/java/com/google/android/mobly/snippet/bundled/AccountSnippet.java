@@ -23,7 +23,9 @@ import android.accounts.AccountsException;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SyncAdapterType;
+import android.os.Build;
 import android.os.Bundle;
+import androidx.annotation.RequiresApi;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
@@ -77,10 +79,6 @@ public class AccountSnippet implements Snippet {
 
     /**
      * Adds a Google account to the device.
-     *
-     * <p>TODO(adorokhine): Support adding accounts of other types with an optional 'type' kwarg.
-     *
-     * <p>TODO(adorokhine): Allow users to choose whether to enable/disable sync with a kwarg.
      *
      * @param username Username of the account to add (including @gmail.com).
      * @param password Password of the account to add.
@@ -150,6 +148,42 @@ public class AccountSnippet implements Snippet {
                             }
                         });
         mSyncStatusObserverHandles.add(handle);
+    }
+
+    /**
+     * Removes an account from the device.
+     *
+     * <p>The account has to be Google account.
+     *
+     * @param username the username of the account to remove.
+     * @throws AccountSnippetException if removing the account failed.
+     */
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP_MR1)
+    @Rpc(description = "Remove a Google account.")
+    public void removeAccount(String username) throws AccountSnippetException {
+        if (!mAccountManager.removeAccountExplicitly(getAccountByName(username))) {
+            throw new AccountSnippetException("Failed to remove account '" + username + "'.");
+        }
+    }
+
+    /**
+     * Get an existing account by its username.
+     *
+     * <p>Google account only.
+     *
+     * @param username the username of the account to remove.
+     * @return tHe account with the username.
+     * @throws AccountSnippetException if no account has the given username.
+     */
+    private Account getAccountByName(String username) throws AccountSnippetException {
+        Account[] accounts = mAccountManager.getAccountsByType(GOOGLE_ACCOUNT_TYPE);
+        for (Account account : accounts) {
+            if (account.name.equals(username)) {
+                return account;
+            }
+        }
+        throw new AccountSnippetException(
+                "Account '" + username + "' does not exist on the device.");
     }
 
     /**
