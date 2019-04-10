@@ -199,7 +199,11 @@ public class WifiManagerSnippet implements Snippet {
      * WifiManager#addNetwork(WifiConfiguration)}.
      */
     private WifiConfiguration getExistingConfiguredNetwork(String ssid) {
-        for (WifiConfiguration config : mWifiManager.getConfiguredNetworks()) {
+        List<WifiConfiguration> wifiConfigs = mWifiManager.getConfiguredNetworks();
+        if (wifiConfigs == null) {
+            return null;
+        }
+        for (WifiConfiguration config : wifiConfigs) {
             if (config.SSID.equals(ssid)) {
                 return config;
             }
@@ -262,9 +266,10 @@ public class WifiManagerSnippet implements Snippet {
                                 && mWifiManager.getConnectionInfo().getNetworkId() != -1,
                 90)) {
             throw new WifiManagerSnippetException(
-                    "Failed to connect to Wi-Fi network "
-                            + wifiNetworkConfig.toString()
-                            + ", timeout!");
+                    String.format(
+                            "Failed to connect to '%s', timeout! Current connection: '%s'",
+                            wifiNetworkConfig.toString(),
+                            mWifiManager.getConnectionInfo().getSSID()));
         }
         Log.d(
                 "Connected to network '"
