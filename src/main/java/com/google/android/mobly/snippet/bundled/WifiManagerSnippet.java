@@ -268,8 +268,7 @@ public class WifiManagerSnippet implements Snippet {
             throw new WifiManagerSnippetException(
                     String.format(
                             "Failed to connect to '%s', timeout! Current connection: '%s'",
-                            wifiNetworkConfig.toString(),
-                            mWifiManager.getConnectionInfo().getSSID()));
+                            wifiNetworkConfig, mWifiManager.getConnectionInfo().getSSID()));
         }
         Log.d(
                 "Connected to network '"
