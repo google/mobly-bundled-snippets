@@ -62,6 +62,11 @@ public class WifiManagerSnippet implements Snippet {
         mWifiManager =
                 (WifiManager)
                         mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        if (Build.VERSION.SDK_INT >= 29) {
+            InstrumentationRegistry.getInstrumentation()
+                    .getUiAutomation()
+                    .adoptShellPermissionIdentity();
+        }
     }
 
     @Rpc(
