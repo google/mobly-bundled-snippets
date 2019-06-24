@@ -16,6 +16,7 @@
 
 package com.google.android.mobly.snippet.bundled;
 
+import android.app.UiAutomation;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -35,6 +36,8 @@ import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.rpc.RpcMinSdk;
 import com.google.android.mobly.snippet.util.Log;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
@@ -49,6 +52,10 @@ public class WifiManagerSnippet implements Snippet {
         public WifiManagerSnippetException(String msg) {
             super(msg);
         }
+
+        public WifiManagerSnippetException(String msg, Throwable err) {
+            super(msg, err);
+        }
     }
 
     private static final int TIMEOUT_TOGGLE_STATE = 30;
@@ -57,15 +64,24 @@ public class WifiManagerSnippet implements Snippet {
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
     private volatile boolean mIsScanResultAvailable = false;
 
-    public WifiManagerSnippet() {
+    public WifiManagerSnippet() throws WifiManagerSnippetException {
         mContext = InstrumentationRegistry.getInstrumentation().getContext();
         mWifiManager =
                 (WifiManager)
                         mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         if (Build.VERSION.SDK_INT >= 29) {
-            InstrumentationRegistry.getInstrumentation()
-                    .getUiAutomation()
-                    .adoptShellPermissionIdentity();
+            UiAutomation uia = InstrumentationRegistry.getInstrumentation().getUiAutomation();
+            uia.adoptShellPermissionIdentity();
+            try {
+                Class cls = Class.forName("android.app.UiAutomation");
+                Method destroyMethod = cls.getDeclaredMethod("destroy");
+                destroyMethod.invoke(uia);
+            } catch (NoSuchMethodException
+                  | IllegalAccessException
+                  | ClassNotFoundException
+                  | InvocationTargetException e) {
+                      throw new WifiManagerSnippetException("Failed to cleaup Ui Automation", e);
+            }
         }
     }
 
