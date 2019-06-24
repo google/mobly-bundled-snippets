@@ -63,9 +63,18 @@ public class WifiManagerSnippet implements Snippet {
                 (WifiManager)
                         mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         if (Build.VERSION.SDK_INT >= 29) {
-            InstrumentationRegistry.getInstrumentation()
-                    .getUiAutomation()
-                    .adoptShellPermissionIdentity();
+            UiAutomation uia = InstrumentationRegistry.getInstrumentation().getUiAutomation();
+            uia.adoptShellPermissionIdentity();
+            try {
+                Class cls = Class.forName("android.app.UiAutomation");
+                Method destroyMethod = cls.getDeclaredMethod("destroy");
+                destroyMethod.invoke(uia);
+            } catch (NoSuchMethodException
+                  | IllegalAccessException
+                  | ClassNotFoundException
+                  | InvocationTargetException e) {
+                      throw new WifiManagerSnippetException("Failed to cleaup Ui Automation", e);
+            }
         }
     }
 
