@@ -69,7 +69,7 @@ public class WifiManagerSnippet implements Snippet {
         mWifiManager =
                 (WifiManager)
                         mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        if (Build.VERSION.SDK_INT >= 29) {
+        if (mContext.getApplicationContext().getApplicationInfo().targetSdkVersion >= 29) {
             UiAutomation uia = InstrumentationRegistry.getInstrumentation().getUiAutomation();
             uia.adoptShellPermissionIdentity();
             try {
@@ -77,10 +77,10 @@ public class WifiManagerSnippet implements Snippet {
                 Method destroyMethod = cls.getDeclaredMethod("destroy");
                 destroyMethod.invoke(uia);
             } catch (NoSuchMethodException
-                  | IllegalAccessException
-                  | ClassNotFoundException
-                  | InvocationTargetException e) {
-                      throw new WifiManagerSnippetException("Failed to cleaup Ui Automation", e);
+                    | IllegalAccessException
+                    | ClassNotFoundException
+                    | InvocationTargetException e) {
+                throw new WifiManagerSnippetException("Failed to cleaup Ui Automation", e);
             }
         }
     }
