@@ -64,24 +64,17 @@ public class WifiManagerSnippet implements Snippet {
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
     private volatile boolean mIsScanResultAvailable = false;
 
-    public WifiManagerSnippet() throws WifiManagerSnippetException {
+    public WifiManagerSnippet() throws Throwable {
         mContext = InstrumentationRegistry.getInstrumentation().getContext();
         mWifiManager =
                 (WifiManager)
                         mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+
+        // Starting in Android Q (29), additional restrictions are added for wifi operation. See
+        // below Android Q privacy changes for additional details.
+        // https://developer.android.com/preview/privacy/camera-connectivity
         if (mContext.getApplicationContext().getApplicationInfo().targetSdkVersion >= 29) {
-            UiAutomation uia = InstrumentationRegistry.getInstrumentation().getUiAutomation();
-            uia.adoptShellPermissionIdentity();
-            try {
-                Class cls = Class.forName("android.app.UiAutomation");
-                Method destroyMethod = cls.getDeclaredMethod("destroy");
-                destroyMethod.invoke(uia);
-            } catch (NoSuchMethodException
-                    | IllegalAccessException
-                    | ClassNotFoundException
-                    | InvocationTargetException e) {
-                throw new WifiManagerSnippetException("Failed to cleaup Ui Automation", e);
-            }
+            adoptShellPermissionIdentity();
         }
     }
 
@@ -404,6 +397,26 @@ public class WifiManagerSnippet implements Snippet {
 
     @Override
     public void shutdown() {}
+
+    /**
+     * Elevate permission by adopting shell's identity.
+     *
+     * @throws Throwable
+     */
+    private void adoptShellPermissionIdentity() throws Throwable {
+        UiAutomation uia = InstrumentationRegistry.getInstrumentation().getUiAutomation();
+        uia.adoptShellPermissionIdentity();
+        try {
+          Class cls = Class.forName("android.app.UiAutomation");
+          Method destroyMethod = cls.getDeclaredMethod("destroy");
+          destroyMethod.invoke(uia);
+        } catch (NoSuchMethodException
+            | IllegalAccessException
+            | ClassNotFoundException
+            | InvocationTargetException e) {
+                throw new WifiManagerSnippetException("Failed to cleaup Ui Automation", e);
+        }
+    }
 
     private class WifiScanReceiver extends BroadcastReceiver {
 
