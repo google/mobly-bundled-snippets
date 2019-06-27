@@ -69,13 +69,7 @@ public class WifiManagerSnippet implements Snippet {
         mWifiManager =
                 (WifiManager)
                         mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-
-        // Starting in Android Q (29), additional restrictions are added for wifi operation. See
-        // below Android Q privacy changes for additional details.
-        // https://developer.android.com/preview/privacy/camera-connectivity
-        if (mContext.getApplicationContext().getApplicationInfo().targetSdkVersion >= 29) {
-            adoptShellPermissionIdentity();
-        }
+        elevatePermissionIfRequired();
     }
 
     @Rpc(
@@ -399,22 +393,29 @@ public class WifiManagerSnippet implements Snippet {
     public void shutdown() {}
 
     /**
-     * Elevate permission by adopting shell's identity.
+     * Elevates permission as require for proper wifi controls.
      *
      * @throws Throwable
      */
-    private void adoptShellPermissionIdentity() throws Throwable {
-        UiAutomation uia = InstrumentationRegistry.getInstrumentation().getUiAutomation();
-        uia.adoptShellPermissionIdentity();
-        try {
-          Class cls = Class.forName("android.app.UiAutomation");
-          Method destroyMethod = cls.getDeclaredMethod("destroy");
-          destroyMethod.invoke(uia);
-        } catch (NoSuchMethodException
-            | IllegalAccessException
-            | ClassNotFoundException
-            | InvocationTargetException e) {
-                throw new WifiManagerSnippetException("Failed to cleaup Ui Automation", e);
+    private void elevatePermissionIfRequired() throws Throwable {
+        // Starting in Android Q (29), additional restrictions are added for wifi operation. See
+        // below Android Q privacy changes for additional details.
+        // https://developer.android.com/preview/privacy/camera-connectivity
+        if (mContext.getApplicationContext().getApplicationInfo().targetSdkVersion >= 29
+            && Build.VERSION.SDK_INT >= 29) {
+          Log.d("Elevating permission require to enable support for wifi operation in Android Q+");
+          UiAutomation uia = InstrumentationRegistry.getInstrumentation().getUiAutomation();
+          uia.adoptShellPermissionIdentity();
+          try {
+            Class cls = Class.forName("android.app.UiAutomation");
+            Method destroyMethod = cls.getDeclaredMethod("destroy");
+            destroyMethod.invoke(uia);
+          } catch (NoSuchMethodException
+              | IllegalAccessException
+              | ClassNotFoundException
+              | InvocationTargetException e) {
+                  throw new WifiManagerSnippetException("Failed to cleaup Ui Automation", e);
+          }
         }
     }
 
