@@ -69,7 +69,7 @@ public class WifiManagerSnippet implements Snippet {
         mWifiManager =
                 (WifiManager)
                         mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        elevatePermissionIfRequired();
+        adaptShellPermissionIfRequired();
     }
 
     @Rpc(
@@ -395,12 +395,13 @@ public class WifiManagerSnippet implements Snippet {
     /**
      * Elevates permission as require for proper wifi controls.
      *
+     * Starting in Android Q (29), additional restrictions are added for wifi operation. See
+     * below Android Q privacy changes for additional details.
+     * https://developer.android.com/preview/privacy/camera-connectivity
+     *
      * @throws Throwable
      */
-    private void elevatePermissionIfRequired() throws Throwable {
-        // Starting in Android Q (29), additional restrictions are added for wifi operation. See
-        // below Android Q privacy changes for additional details.
-        // https://developer.android.com/preview/privacy/camera-connectivity
+    private void adaptShellPermissionIfRequired() throws Throwable {
         if (mContext.getApplicationContext().getApplicationInfo().targetSdkVersion >= 29
             && Build.VERSION.SDK_INT >= 29) {
           Log.d("Elevating permission require to enable support for wifi operation in Android Q+");
