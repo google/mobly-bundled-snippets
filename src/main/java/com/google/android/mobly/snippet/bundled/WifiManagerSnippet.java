@@ -399,7 +399,7 @@ public class WifiManagerSnippet implements Snippet {
      * below Android Q privacy changes for additional details.
      * https://developer.android.com/preview/privacy/camera-connectivity
      *
-     * @throws Throwable
+     * @throws Throwable if failed to cleanup connection with UiAutomation
      */
     private void adaptShellPermissionIfRequired() throws Throwable {
         if (mContext.getApplicationContext().getApplicationInfo().targetSdkVersion >= 29
@@ -408,7 +408,7 @@ public class WifiManagerSnippet implements Snippet {
           UiAutomation uia = InstrumentationRegistry.getInstrumentation().getUiAutomation();
           uia.adoptShellPermissionIdentity();
           try {
-            Class cls = Class.forName("android.app.UiAutomation");
+            Class<?> cls = Class.forName("android.app.UiAutomation");
             Method destroyMethod = cls.getDeclaredMethod("destroy");
             destroyMethod.invoke(uia);
           } catch (NoSuchMethodException
