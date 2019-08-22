@@ -28,11 +28,12 @@ public class BluetoothHearingAidSnippet implements Snippet {
         }
     }
 
+    private static final int TIMEOUT_SEC = 60;
+    
     private Context context;
     private static boolean isHearingAidProfileReady = false;
     private static BluetoothHearingAid hearingAidProfile;
     private final JsonSerializer jsonSerializer = new JsonSerializer();
-    private static final int timeoutSeconds = 60;
 
     @TargetApi(Build.VERSION_CODES.Q)
     public BluetoothHearingAidSnippet() {
@@ -40,7 +41,7 @@ public class BluetoothHearingAidSnippet implements Snippet {
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         bluetoothAdapter.getProfileProxy(
                 context, new HearingAidServiceListener(), BluetoothProfile.HEARING_AID);
-        Utils.waitUntil(() -> isHearingAidProfileReady, timeoutSeconds);
+        Utils.waitUntil(() -> isHearingAidProfileReady, TIMEOUT_SEC);
     }
 
     @TargetApi(Build.VERSION_CODES.Q)
@@ -67,11 +68,11 @@ public class BluetoothHearingAidSnippet implements Snippet {
                 () ->
                         hearingAidProfile.getConnectionState(device)
                                 == BluetoothHearingAid.STATE_CONNECTED,
-                timeoutSeconds)) {
+                TIMEOUT_SEC)) {
             throw new BluetoothHearingAidSnippetException(
                     String.format(
                             "Failed to connect to device %s|%s with HA profile within %d sec.",
-                            device.getName(), device.getAddress(), timeoutSeconds));
+                            device.getName(), device.getAddress(), TIMEOUT_SEC));
         }
     }
 
@@ -83,11 +84,11 @@ public class BluetoothHearingAidSnippet implements Snippet {
                 () ->
                         hearingAidProfile.getConnectionState(device)
                                 == BluetoothHearingAid.STATE_DISCONNECTED,
-                timeoutSeconds)) {
+                TIMEOUT_SEC)) {
             throw new BluetoothHearingAidSnippetException(
                     String.format(
                             "Failed to disconnect to device %s|%s with HA profile within %d sec.",
-                            device.getName(), device.getAddress(), timeoutSeconds));
+                            device.getName(), device.getAddress(), TIMEOUT_SEC));
         }
     }
 
