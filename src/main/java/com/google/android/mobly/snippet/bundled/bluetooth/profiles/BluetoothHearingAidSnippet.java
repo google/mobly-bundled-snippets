@@ -29,9 +29,9 @@ public class BluetoothHearingAidSnippet implements Snippet {
     }
 
     private Context context;
-    private static boolean sIsHearingAidProfileReady = false;
-    private static BluetoothHearingAid sHearingAidProfile;
-    private final JsonSerializer mJsonSerializer = new JsonSerializer();
+    private static boolean isHearingAidProfileReady = false;
+    private static BluetoothHearingAid hearingAidProfile;
+    private final JsonSerializer jsonSerializer = new JsonSerializer();
 
     @TargetApi(Build.VERSION_CODES.Q)
     public BluetoothHearingAidSnippet() {
@@ -39,18 +39,18 @@ public class BluetoothHearingAidSnippet implements Snippet {
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         bluetoothAdapter.getProfileProxy(
                 context, new HearingAidServiceListener(), BluetoothProfile.HEARING_AID);
-        Utils.waitUntil(() -> sIsHearingAidProfileReady, 60);
+        Utils.waitUntil(() -> isHearingAidProfileReady, 60);
     }
 
     @TargetApi(Build.VERSION_CODES.Q)
     private static class HearingAidServiceListener implements BluetoothProfile.ServiceListener {
         public void onServiceConnected(int var1, BluetoothProfile profile) {
-            sHearingAidProfile = (BluetoothHearingAid) profile;
-            sIsHearingAidProfileReady = true;
+            hearingAidProfile = (BluetoothHearingAid) profile;
+            isHearingAidProfileReady = true;
         }
 
         public void onServiceDisconnected(int var1) {
-            sIsHearingAidProfileReady = false;
+            isHearingAidProfileReady = false;
         }
     }
 
@@ -61,10 +61,10 @@ public class BluetoothHearingAidSnippet implements Snippet {
         BluetoothDevice device = BluetoothAdapterSnippet.getKnownDeviceByAddress(deviceAddress);
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_PAIRING_REQUEST);
         context.registerReceiver(new PairingBroadcastReceiver(context), filter);
-        Utils.invokeByReflection(sHearingAidProfile, "connect", device);
+        Utils.invokeByReflection(hearingAidProfile, "connect", device);
         if (!Utils.waitUntil(
                 () ->
-                        sHearingAidProfile.getConnectionState(device)
+                        hearingAidProfile.getConnectionState(device)
                                 == BluetoothHearingAid.STATE_CONNECTED,
                 120)) {
             throw new BluetoothHearingAidSnippetException(
@@ -79,10 +79,10 @@ public class BluetoothHearingAidSnippet implements Snippet {
     @Rpc(description = "Disconnects a device from HA profile.")
     public void btHearingAidDisconnect(String deviceAddress) throws Throwable {
         BluetoothDevice device = getConnectedBluetoothDevice(deviceAddress);
-        Utils.invokeByReflection(sHearingAidProfile, "disconnect", device);
+        Utils.invokeByReflection(hearingAidProfile, "disconnect", device);
         if (!Utils.waitUntil(
                 () ->
-                        sHearingAidProfile.getConnectionState(device)
+                        hearingAidProfile.getConnectionState(device)
                                 == BluetoothHearingAid.STATE_DISCONNECTED,
                 120)) {
             throw new BluetoothHearingAidSnippetException(
@@ -96,13 +96,13 @@ public class BluetoothHearingAidSnippet implements Snippet {
 
     @Rpc(description = "Gets all the devices currently connected via HA profile.")
     public ArrayList<Bundle> btHearingAidGetConnectedDevices() {
-        return mJsonSerializer.serializeBluetoothDeviceList(
-                sHearingAidProfile.getConnectedDevices());
+        return jsonSerializer.serializeBluetoothDeviceList(
+                hearingAidProfile.getConnectedDevices());
     }
 
     private BluetoothDevice getConnectedBluetoothDevice(String deviceAddress)
             throws BluetoothHearingAidSnippetException {
-        for (BluetoothDevice device : sHearingAidProfile.getConnectedDevices()) {
+        for (BluetoothDevice device : hearingAidProfile.getConnectedDevices()) {
             if (device.getAddress().equalsIgnoreCase(deviceAddress)) {
                 return device;
             }
