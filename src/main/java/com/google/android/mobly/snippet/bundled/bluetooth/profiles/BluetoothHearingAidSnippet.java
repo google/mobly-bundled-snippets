@@ -28,17 +28,17 @@ public class BluetoothHearingAidSnippet implements Snippet {
         }
     }
 
-    private Context mContext;
+    private Context context;
     private static boolean sIsHearingAidProfileReady = false;
     private static BluetoothHearingAid sHearingAidProfile;
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
 
     @TargetApi(Build.VERSION_CODES.Q)
     public BluetoothHearingAidSnippet() {
-        mContext = InstrumentationRegistry.getInstrumentation().getContext();
+        context = InstrumentationRegistry.getInstrumentation().getContext();
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         bluetoothAdapter.getProfileProxy(
-                mContext, new HearingAidServiceListener(), BluetoothProfile.HEARING_AID);
+                context, new HearingAidServiceListener(), BluetoothProfile.HEARING_AID);
         Utils.waitUntil(() -> sIsHearingAidProfileReady, 60);
     }
 
@@ -60,7 +60,7 @@ public class BluetoothHearingAidSnippet implements Snippet {
     public void btHearingAidConnect(String deviceAddress) throws Throwable {
         BluetoothDevice device = BluetoothAdapterSnippet.getKnownDeviceByAddress(deviceAddress);
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_PAIRING_REQUEST);
-        mContext.registerReceiver(new PairingBroadcastReceiver(mContext), filter);
+        context.registerReceiver(new PairingBroadcastReceiver(context), filter);
         Utils.invokeByReflection(sHearingAidProfile, "connect", device);
         if (!Utils.waitUntil(
                 () ->
