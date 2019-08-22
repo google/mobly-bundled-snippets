@@ -32,6 +32,7 @@ public class BluetoothHearingAidSnippet implements Snippet {
     private static boolean isHearingAidProfileReady = false;
     private static BluetoothHearingAid hearingAidProfile;
     private final JsonSerializer jsonSerializer = new JsonSerializer();
+    private static final int timeoutSeconds = 60;
 
     @TargetApi(Build.VERSION_CODES.Q)
     public BluetoothHearingAidSnippet() {
@@ -39,7 +40,7 @@ public class BluetoothHearingAidSnippet implements Snippet {
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         bluetoothAdapter.getProfileProxy(
                 context, new HearingAidServiceListener(), BluetoothProfile.HEARING_AID);
-        Utils.waitUntil(() -> isHearingAidProfileReady, 60);
+        Utils.waitUntil(() -> isHearingAidProfileReady, timeoutSeconds);
     }
 
     @TargetApi(Build.VERSION_CODES.Q)
@@ -66,13 +67,11 @@ public class BluetoothHearingAidSnippet implements Snippet {
                 () ->
                         hearingAidProfile.getConnectionState(device)
                                 == BluetoothHearingAid.STATE_CONNECTED,
-                120)) {
+                timeoutSeconds)) {
             throw new BluetoothHearingAidSnippetException(
-                    "Failed to connect to device "
-                            + device.getName()
-                            + "|"
-                            + device.getAddress()
-                            + " with HA profile within 2min.");
+                    String.format(
+                            "Failed to connect to device %s|%s with HA profile within %d sec.",
+                            device.getName(), device.getAddress(), timeoutSeconds));
         }
     }
 
@@ -84,20 +83,17 @@ public class BluetoothHearingAidSnippet implements Snippet {
                 () ->
                         hearingAidProfile.getConnectionState(device)
                                 == BluetoothHearingAid.STATE_DISCONNECTED,
-                120)) {
+                timeoutSeconds)) {
             throw new BluetoothHearingAidSnippetException(
-                    "Failed to disconnect device "
-                            + device.getName()
-                            + "|"
-                            + device.getAddress()
-                            + " from HA profile within 2min.");
+                    String.format(
+                            "Failed to disconnect to device %s|%s with HA profile within %d sec.",
+                            device.getName(), device.getAddress(), timeoutSeconds));
         }
     }
 
     @Rpc(description = "Gets all the devices currently connected via HA profile.")
     public ArrayList<Bundle> btHearingAidGetConnectedDevices() {
-        return jsonSerializer.serializeBluetoothDeviceList(
-                hearingAidProfile.getConnectedDevices());
+        return jsonSerializer.serializeBluetoothDeviceList(hearingAidProfile.getConnectedDevices());
     }
 
     private BluetoothDevice getConnectedBluetoothDevice(String deviceAddress)
@@ -107,8 +103,8 @@ public class BluetoothHearingAidSnippet implements Snippet {
                 return device;
             }
         }
-        throw new BluetoothHearingAidSnippetException(
-                "No device with address " + deviceAddress + " is connected via HA Profile.");
+        throw new BluetoothHearingAidSnippetException(String.format(
+                "No device with address %s is connected via HA Profile.", deviceAddress));
     }
 
     @Override
