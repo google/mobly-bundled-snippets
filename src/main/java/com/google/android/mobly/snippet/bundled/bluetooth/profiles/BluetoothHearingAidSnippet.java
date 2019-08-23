@@ -17,6 +17,7 @@ import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.rpc.RpcMinSdk;
+import com.google.common.base.Ascii;
 import java.util.ArrayList;
 
 public class BluetoothHearingAidSnippet implements Snippet {
@@ -29,8 +30,8 @@ public class BluetoothHearingAidSnippet implements Snippet {
     }
 
     private static final int TIMEOUT_SEC = 60;
-    
-    private Context context;
+
+    private final Context context;
     private static boolean isHearingAidProfileReady = false;
     private static BluetoothHearingAid hearingAidProfile;
     private final JsonSerializer jsonSerializer = new JsonSerializer();
@@ -46,11 +47,13 @@ public class BluetoothHearingAidSnippet implements Snippet {
 
     @TargetApi(Build.VERSION_CODES.Q)
     private static class HearingAidServiceListener implements BluetoothProfile.ServiceListener {
+        @Override
         public void onServiceConnected(int var1, BluetoothProfile profile) {
             hearingAidProfile = (BluetoothHearingAid) profile;
             isHearingAidProfileReady = true;
         }
 
+        @Override
         public void onServiceDisconnected(int var1) {
             isHearingAidProfileReady = false;
         }
@@ -97,10 +100,10 @@ public class BluetoothHearingAidSnippet implements Snippet {
         return jsonSerializer.serializeBluetoothDeviceList(hearingAidProfile.getConnectedDevices());
     }
 
-    private BluetoothDevice getConnectedBluetoothDevice(String deviceAddress)
+    private static BluetoothDevice getConnectedBluetoothDevice(String deviceAddress)
             throws BluetoothHearingAidSnippetException {
         for (BluetoothDevice device : hearingAidProfile.getConnectedDevices()) {
-            if (device.getAddress().equalsIgnoreCase(deviceAddress)) {
+            if (Ascii.equalsIgnoreCase(device.getAddress(), deviceAddress)) {
                 return device;
             }
         }
