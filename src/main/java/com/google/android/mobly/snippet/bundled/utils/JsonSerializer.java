@@ -62,7 +62,8 @@ public class JsonSerializer {
      */
     public static String trimQuotationMarks(String originalString) {
         String result = originalString;
-        if (originalString.charAt(0) == '"'
+        if (originalString.length() > 2
+                && originalString.charAt(0) == '"'
                 && originalString.charAt(originalString.length() - 1) == '"') {
             result = originalString.substring(1, originalString.length() - 1);
         }
