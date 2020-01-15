@@ -96,6 +96,12 @@ public class BluetoothA2dpSnippet implements Snippet {
         return mJsonSerializer.serializeBluetoothDeviceList(sA2dpProfile.getConnectedDevices());
     }
 
+    @Rpc(description = "Checks if a device is streaming audio via A2DP profile.")
+    public boolean btIsA2dpPlaying(String deviceAddress) throws Throwable {
+        BluetoothDevice device = getConnectedBluetoothDevice(deviceAddress);
+        return sA2dpProfile.isA2dpPlaying(device);
+    }
+
     private BluetoothDevice getConnectedBluetoothDevice(String deviceAddress)
             throws BluetoothA2dpSnippetException {
         for (BluetoothDevice device : sA2dpProfile.getConnectedDevices()) {
