@@ -203,7 +203,8 @@ public class BluetoothAdapterSnippet implements Snippet {
             throw new BluetoothAdapterSnippetException(
                     "Bluetooth is not enabled, cannot become discoverable.");
         }
-        if (Build.VERSION.SDK_INT > 29) {
+        // TODO change it to SDK version R after R is released.
+        if (Build.VERSION_CODES == 	Build.VERSION_CODES.CUR_DEVELOPMENT) {
           if (!(boolean)
                 Utils.invokeByReflection(
                         mBluetoothAdapter,
