@@ -22,6 +22,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
@@ -202,14 +203,26 @@ public class BluetoothAdapterSnippet implements Snippet {
             throw new BluetoothAdapterSnippetException(
                     "Bluetooth is not enabled, cannot become discoverable.");
         }
-        if (!(boolean)
+        // TODO(jwang1013): change it to SDK version for R after R is released.
+        if (Build.VERSION.CODENAME.equals("R") || Build.VERSION.SDK_INT > 29) {
+          if (!(boolean)
+                Utils.invokeByReflection(
+                        mBluetoothAdapter,
+                        "setScanMode",
+                        BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE,
+                        (long) duration * 1000)) {
+            throw new BluetoothAdapterSnippetException("Failed to become discoverable.");
+        } else {
+          if (!(boolean)
                 Utils.invokeByReflection(
                         mBluetoothAdapter,
                         "setScanMode",
                         BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE,
                         duration)) {
             throw new BluetoothAdapterSnippetException("Failed to become discoverable.");
+          }
         }
+      }
     }
 
     @Rpc(description = "Cancel ongoing bluetooth discovery.")
