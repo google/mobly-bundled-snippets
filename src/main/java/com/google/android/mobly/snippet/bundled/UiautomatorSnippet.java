@@ -41,9 +41,7 @@ public class UiautomatorSnippet implements Snippet {
             res = outStream.toString();
 
         } catch (IOException e) {
-            if (BuildConfig.DEBUG) {
-                Log.i(TAG, "Error when dump UI hierarchy XML. " + e);
-            }
+            res = "Dump error." + e;
         }
         return res;
     }
