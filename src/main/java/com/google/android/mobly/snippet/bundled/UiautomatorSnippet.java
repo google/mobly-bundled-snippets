@@ -16,7 +16,6 @@
 
 package com.google.android.mobly.snippet.bundled;
 
-import android.util.Log;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.uiautomator.UiDevice;
 import com.google.android.mobly.snippet.Snippet;
@@ -32,7 +31,7 @@ public class UiautomatorSnippet implements Snippet {
             UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
 
     @Rpc(description = "Dumps UI hierarchy XML and return as string.")
-    public String uiautomatorDumpWindowHierarchy() throws IOException {
+    public String uiautomatorDumpWindowHierarchy(){
         String res = "";
         try {
             OutputStream outStream = new ByteArrayOutputStream();
@@ -41,7 +40,6 @@ public class UiautomatorSnippet implements Snippet {
 
         } catch (IOException e) {
             res = "Dump error.";
-            throw e;
         }
         return res;
     }
