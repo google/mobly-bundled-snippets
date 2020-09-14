@@ -24,14 +24,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-/** Snippet class exposing Android APIs in Uiautomator. */
+/**
+ * Snippet class exposing Android APIs in Uiautomator.
+ */
 public class UiautomatorSnippet implements Snippet {
+
     private static final String TAG = UiautomatorSnippet.class.getCanonicalName();
     private static final UiDevice device =
-            UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
+          UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
 
     @Rpc(description = "Dumps UI hierarchy XML and return as string.")
-    public String uiautomatorDumpWindowHierarchy() throws IOException{
+    public String uiautomatorDumpWindowHierarchy() throws IOException {
         String res = "";
         OutputStream outStream = new ByteArrayOutputStream();
         device.dumpWindowHierarchy(outStream);
@@ -41,5 +44,6 @@ public class UiautomatorSnippet implements Snippet {
     }
 
     @Override
-    public void shutdown() {}
+    public void shutdown() {
+    }
 }
