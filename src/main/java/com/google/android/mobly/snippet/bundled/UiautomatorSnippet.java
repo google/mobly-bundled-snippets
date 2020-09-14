@@ -29,7 +29,6 @@ import java.io.OutputStream;
  */
 public class UiautomatorSnippet implements Snippet {
 
-    private static final String TAG = UiautomatorSnippet.class.getCanonicalName();
     private static final UiDevice device =
           UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
 
