@@ -16,7 +16,6 @@
 
 package com.google.android.mobly.snippet.bundled;
 
-// import android.support.test.uiautomator.UiDevice;
 import android.util.Log;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.uiautomator.UiDevice;
