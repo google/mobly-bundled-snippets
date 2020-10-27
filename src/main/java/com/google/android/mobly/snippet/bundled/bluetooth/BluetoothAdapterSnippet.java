@@ -31,8 +31,10 @@ import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.util.Log;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.json.JSONException;
 
@@ -46,8 +48,9 @@ public class BluetoothAdapterSnippet implements Snippet {
         }
     }
 
-    // Default timeout in seconds.
-    private static final int TIMEOUT_TOGGLE_STATE = 30;
+    private static final int BT_STATE_SAMPLE_SIZE = 5;
+    // Default timeout in ms.
+    private static final int TIMEOUT_TOGGLE_STATE_MS = 30000;
     private final Context mContext;
     private static final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
@@ -89,47 +92,40 @@ public class BluetoothAdapterSnippet implements Snippet {
         return null;
     }
 
-    @Rpc(description = "Enable bluetooth with a 30s timeout.")
+    @Rpc(description = "Enable bluetooth.")
     public void btEnable() throws BluetoothAdapterSnippetException, InterruptedException {
         if (mBluetoothAdapter.getState() == BluetoothAdapter.STATE_ON) {
             return;
         }
-        // If bt is trying to turn off, wait for that to finish before continuing.
-        if (mBluetoothAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF) {
-            if (!Utils.waitUntil(
-                    () -> mBluetoothAdapter.getState() == BluetoothAdapter.STATE_OFF,
-                    TIMEOUT_TOGGLE_STATE)) {
-                Log.e(String.format("BT failed to stabilize after %ss.", TIMEOUT_TOGGLE_STATE));
-            }
-        }
+        waitForStableBtState();
+
         if (!mBluetoothAdapter.enable()) {
-            throw new BluetoothAdapterSnippetException("Failed to start enabling bluetooth");
+            throw new BluetoothAdapterSnippetException("Failed to start enabling bluetooth.");
         }
-        if (!Utils.waitUntil(() -> mBluetoothAdapter.isEnabled(), TIMEOUT_TOGGLE_STATE)) {
+
+        waitForStableBtState();
+        int state = mBluetoothAdapter.getState();
+        if (state != BluetoothAdapter.STATE_ON) {
             throw new BluetoothAdapterSnippetException(
-                    String.format("Bluetooth did not turn on within %ss.", TIMEOUT_TOGGLE_STATE));
+                    "Failed to turn On Bluetooth. Current State " + state);
         }
     }
 
-    @Rpc(description = "Disable bluetooth with a 30s timeout.")
+    @Rpc(description = "Disable bluetooth.")
     public void btDisable() throws BluetoothAdapterSnippetException, InterruptedException {
         if (mBluetoothAdapter.getState() == BluetoothAdapter.STATE_OFF) {
             return;
         }
-        // If bt is trying to turn on, wait for that to finish before continuing.
-        if (mBluetoothAdapter.getState() == BluetoothAdapter.STATE_TURNING_ON) {
-            if (!Utils.waitUntil(
-                    () -> mBluetoothAdapter.getState() == BluetoothAdapter.STATE_ON,
-                    TIMEOUT_TOGGLE_STATE)) {
-                Log.e(String.format("BT failed to stabilize after %ss.", TIMEOUT_TOGGLE_STATE));
-            }
-        }
+        waitForStableBtState();
         if (!mBluetoothAdapter.disable()) {
-            throw new BluetoothAdapterSnippetException("Failed to start disabling bluetooth");
+            throw new BluetoothAdapterSnippetException("Failed to start disabling bluetooth.");
         }
-        if (!Utils.waitUntil(() -> !mBluetoothAdapter.isEnabled(), TIMEOUT_TOGGLE_STATE)) {
+
+        waitForStableBtState();
+        int state = mBluetoothAdapter.getState();
+        if (state != BluetoothAdapter.STATE_OFF) {
             throw new BluetoothAdapterSnippetException(
-                    String.format("Bluetooth did not turn off within %ss.", TIMEOUT_TOGGLE_STATE));
+                    "Failed to turn Off Bluetooth. Current State " + state);
         }
     }
 
@@ -205,24 +201,24 @@ public class BluetoothAdapterSnippet implements Snippet {
         }
         // TODO(jwang1013): change it to SDK version for R after R is released.
         if (Build.VERSION.CODENAME.equals("R") || Build.VERSION.SDK_INT > 29) {
-          if (!(boolean)
-                Utils.invokeByReflection(
-                        mBluetoothAdapter,
-                        "setScanMode",
-                        BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE,
-                        (long) duration * 1000)) {
-            throw new BluetoothAdapterSnippetException("Failed to become discoverable.");
-        } else {
-          if (!(boolean)
-                Utils.invokeByReflection(
-                        mBluetoothAdapter,
-                        "setScanMode",
-                        BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE,
-                        duration)) {
-            throw new BluetoothAdapterSnippetException("Failed to become discoverable.");
-          }
+            if (!(boolean)
+                    Utils.invokeByReflection(
+                            mBluetoothAdapter,
+                            "setScanMode",
+                            BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE,
+                            (long) duration * 1000)) {
+                throw new BluetoothAdapterSnippetException("Failed to become discoverable.");
+            } else {
+                if (!(boolean)
+                        Utils.invokeByReflection(
+                                mBluetoothAdapter,
+                                "setScanMode",
+                                BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE,
+                                duration)) {
+                    throw new BluetoothAdapterSnippetException("Failed to become discoverable.");
+                }
+            }
         }
-      }
     }
 
     @Rpc(description = "Cancel ongoing bluetooth discovery.")
@@ -332,5 +328,31 @@ public class BluetoothAdapterSnippet implements Snippet {
                 mDiscoveryResults.put(device.getAddress(), device);
             }
         }
+    }
+
+    /** Waits until bluetooth adapter state becomes consistent. */
+    private static void waitForStableBtState() throws BluetoothAdapterSnippetException {
+        Set<Integer> btStates = new HashSet<>();
+        int sampleSize = 0;
+        long timeout = System.currentTimeMillis() + TIMEOUT_TOGGLE_STATE_MS;
+        while (System.currentTimeMillis() < timeout) {
+            // Check if state is normalized.
+            if (sampleSize == BT_STATE_SAMPLE_SIZE) {
+                if (btStates.size() == 1) {
+                    return;
+                }
+                btStates.clear();
+                sampleSize = 0;
+            }
+            // Delay.
+            Utils.waitUntil(() -> false, /* timeout= */ 1);
+
+            sampleSize += 1;
+            btStates.add(mBluetoothAdapter.getState());
+        }
+        throw new BluetoothAdapterSnippetException(
+                String.format(
+                        "Failed to reach stable Bluetooth state within %d ms",
+                        TIMEOUT_TOGGLE_STATE_MS));
     }
 }
