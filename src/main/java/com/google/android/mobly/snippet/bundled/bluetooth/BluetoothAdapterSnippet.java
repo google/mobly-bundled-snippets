@@ -119,7 +119,6 @@ public class BluetoothAdapterSnippet implements Snippet {
         if (!mBluetoothAdapter.disable()) {
             throw new BluetoothAdapterSnippetException("Failed to start disabling bluetooth.");
         }
-        waitForStableBtState();
         if (!Utils.waitUntil(
                 () -> mBluetoothAdapter.getState() == BluetoothAdapter.STATE_OFF,
                 TIMEOUT_TOGGLE_STATE_MS / 1000)) {
