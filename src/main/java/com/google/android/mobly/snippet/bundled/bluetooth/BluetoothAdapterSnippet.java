@@ -38,17 +38,20 @@ import org.json.JSONException;
 
 /** Snippet class exposing Android APIs in BluetoothAdapter. */
 public class BluetoothAdapterSnippet implements Snippet {
+
     private static class BluetoothAdapterSnippetException extends Exception {
+
         private static final long serialVersionUID = 1;
 
         public BluetoothAdapterSnippetException(String msg) {
             super(msg);
         }
     }
+
     // Timeout to measure consistent BT state.
-    private static final int BT_MATCHING_STATE_INTERVAL_MS = 1000 * 5;
+    private static final int BT_MATCHING_STATE_INTERVAL_SEC = 5;
     // Default timeout in ms.
-    private static final int TIMEOUT_TOGGLE_STATE_MS = 1000 * 30;
+    private static final int TIMEOUT_TOGGLE_STATE_SEC = 30;
     private final Context mContext;
     private static final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
@@ -90,7 +93,7 @@ public class BluetoothAdapterSnippet implements Snippet {
         return null;
     }
 
-    @Rpc(description = "Enable bluetooth.")
+    @Rpc(description = "Enable bluetooth with a 30s timeout.")
     public void btEnable() throws BluetoothAdapterSnippetException, InterruptedException {
         if (mBluetoothAdapter.getState() == BluetoothAdapter.STATE_ON) {
             return;
@@ -102,15 +105,14 @@ public class BluetoothAdapterSnippet implements Snippet {
         }
         if (!Utils.waitUntil(
                 () -> mBluetoothAdapter.getState() == BluetoothAdapter.STATE_ON,
-                TIMEOUT_TOGGLE_STATE_MS / 1000)) {
+                TIMEOUT_TOGGLE_STATE_SEC)) {
             throw new BluetoothAdapterSnippetException(
                     String.format(
-                            "Bluetooth did not turn on within %ss.",
-                            TIMEOUT_TOGGLE_STATE_MS / 1000));
+                            "Bluetooth did not turn on within %ss.", TIMEOUT_TOGGLE_STATE_SEC));
         }
     }
 
-    @Rpc(description = "Disable bluetooth.")
+    @Rpc(description = "Disable bluetooth with a 30s timeout.")
     public void btDisable() throws BluetoothAdapterSnippetException, InterruptedException {
         if (mBluetoothAdapter.getState() == BluetoothAdapter.STATE_OFF) {
             return;
@@ -121,11 +123,10 @@ public class BluetoothAdapterSnippet implements Snippet {
         }
         if (!Utils.waitUntil(
                 () -> mBluetoothAdapter.getState() == BluetoothAdapter.STATE_OFF,
-                TIMEOUT_TOGGLE_STATE_MS / 1000)) {
+                TIMEOUT_TOGGLE_STATE_SEC)) {
             throw new BluetoothAdapterSnippetException(
                     String.format(
-                            "Bluetooth did not turn off within %ss.",
-                            TIMEOUT_TOGGLE_STATE_MS / 1000));
+                            "Bluetooth did not turn off within %ss.", TIMEOUT_TOGGLE_STATE_SEC));
         }
     }
 
@@ -330,12 +331,13 @@ public class BluetoothAdapterSnippet implements Snippet {
     }
 
     /**
-     * Waits until the bluetooth adapter state becomes consistent. We consider BT state consistent
-     * if it hasn't changed within 5 sec.
+     * Waits until the bluetooth adapter state has stabilized. We consider BT state stabilized if it
+     * hasn't changed within 5 sec.
      */
     private static void waitForStableBtState() throws BluetoothAdapterSnippetException {
-        long timeoutMs = System.currentTimeMillis() + TIMEOUT_TOGGLE_STATE_MS;
-        long continuousStateIntervalMs = System.currentTimeMillis() + BT_MATCHING_STATE_INTERVAL_MS;
+        long timeoutMs = System.currentTimeMillis() + TIMEOUT_TOGGLE_STATE_SEC * 1000;
+        long continuousStateIntervalMs =
+                System.currentTimeMillis() + BT_MATCHING_STATE_INTERVAL_SEC * 1000;
         int prevState = mBluetoothAdapter.getState();
         while (System.currentTimeMillis() < timeoutMs) {
             // Delay.
@@ -344,7 +346,7 @@ public class BluetoothAdapterSnippet implements Snippet {
             int currentState = mBluetoothAdapter.getState();
             if (currentState != prevState) {
                 continuousStateIntervalMs =
-                        System.currentTimeMillis() + BT_MATCHING_STATE_INTERVAL_MS;
+                        System.currentTimeMillis() + BT_MATCHING_STATE_INTERVAL_SEC * 1000;
             }
             if (continuousStateIntervalMs <= System.currentTimeMillis()) {
                 return;
@@ -353,7 +355,7 @@ public class BluetoothAdapterSnippet implements Snippet {
         }
         throw new BluetoothAdapterSnippetException(
                 String.format(
-                        "Failed to reach stable Bluetooth state within %d ms",
-                        TIMEOUT_TOGGLE_STATE_MS));
+                        "Failed to reach a stable Bluetooth state within %d s",
+                        TIMEOUT_TOGGLE_STATE_SEC));
     }
 }
