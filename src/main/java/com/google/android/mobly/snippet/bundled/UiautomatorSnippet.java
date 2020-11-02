@@ -34,10 +34,9 @@ public class UiautomatorSnippet implements Snippet {
 
     @Rpc(description = "Dumps UI hierarchy XML and return as string.")
     public String uiautomatorDumpWindowHierarchy() throws IOException {
-        String res = "";
         OutputStream outStream = new ByteArrayOutputStream();
         device.dumpWindowHierarchy(outStream);
-        res = outStream.toString();
+        String res = outStream.toString();
         outStream.close();
         return res;
     }
