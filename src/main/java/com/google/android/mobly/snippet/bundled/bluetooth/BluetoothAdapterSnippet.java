@@ -50,7 +50,7 @@ public class BluetoothAdapterSnippet implements Snippet {
 
     // Timeout to measure consistent BT state.
     private static final int BT_MATCHING_STATE_INTERVAL_SEC = 5;
-    // Default timeout in ms.
+    // Default timeout in seconds.
     private static final int TIMEOUT_TOGGLE_STATE_SEC = 30;
     private final Context mContext;
     private static final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
