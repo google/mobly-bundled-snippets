@@ -47,6 +47,7 @@
                            com.google.android.mobly.snippet.bundled.NetworkingSnippet,
                            com.google.android.mobly.snippet.bundled.FileSnippet,
                            com.google.android.mobly.snippet.bundled.SmsSnippet,
+                           com.google.android.mobly.snippet.bundled.UiautomatorSnippet,
                            com.google.android.mobly.snippet.bundled.WifiManagerSnippet,
                            com.google.android.mobly.snippet.bundled.StorageSnippet" />
     </application>
