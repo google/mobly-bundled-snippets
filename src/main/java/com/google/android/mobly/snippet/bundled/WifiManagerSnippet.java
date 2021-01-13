@@ -43,7 +43,7 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
+import android.net.wifi.SupplicantState;
 /** Snippet class exposing Android APIs in WifiManager. */
 public class WifiManagerSnippet implements Snippet {
     private static class WifiManagerSnippetException extends Exception {
@@ -269,14 +269,15 @@ public class WifiManagerSnippet implements Snippet {
                     "Failed to reconnect to Wi-Fi network of ID: " + networkId);
         }
         if (!Utils.waitUntil(
-                () ->
-                        mWifiManager.getConnectionInfo().getSSID().equals(SSID)
-                                && mWifiManager.getConnectionInfo().getNetworkId() != -1,
-                90)) {
+            () ->
+                mWifiManager.getConnectionInfo().getSSID().equals(SSID)
+                    && mWifiManager.getConnectionInfo().getNetworkId() != -1 && mWifiManager
+                    .getConnectionInfo().getSupplicantState().equals(SupplicantState.COMPLETED),
+            90)) {
             throw new WifiManagerSnippetException(
-                    String.format(
-                            "Failed to connect to '%s', timeout! Current connection: '%s'",
-                            wifiNetworkConfig, mWifiManager.getConnectionInfo().getSSID()));
+                String.format(
+                    "Failed to connect to '%s', timeout! Current connection: '%s'",
+                    wifiNetworkConfig, mWifiManager.getConnectionInfo().getSSID()));
         }
         Log.d(
                 "Connected to network '"
