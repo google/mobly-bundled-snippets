@@ -66,14 +66,14 @@ public class AccountSnippet implements Snippet {
     private final AccountManager mAccountManager;
     private final List<Object> mSyncStatusObserverHandles;
 
-    private final Map<String, Set<String>> mSyncWhitelist;
+    private final Map<String, Set<String>> mSyncAllowList;
     private final ReentrantReadWriteLock mLock;
 
     public AccountSnippet() {
         Context context = InstrumentationRegistry.getInstrumentation().getContext();
         mAccountManager = AccountManager.get(context);
         mSyncStatusObserverHandles = new LinkedList<>();
-        mSyncWhitelist = new HashMap<>();
+        mSyncAllowList = new HashMap<>();
         mLock = new ReentrantReadWriteLock();
     }
 
@@ -133,13 +133,13 @@ public class AccountSnippet implements Snippet {
                                 if (!adapter.accountType.equals(GOOGLE_ACCOUNT_TYPE)) {
                                     continue;
                                 }
-                                // If a content provider is not whitelisted, then disable it.
-                                // Because startSync and stopSync synchronously update the whitelist
-                                // and sync settings, writelock both the whitelist check and the
+                                // If a content provider is not allowListed, then disable it.
+                                // Because startSync and stopSync synchronously update the allowList
+                                // and sync settings, writelock both the allowList check and the
                                 // call to sync together.
                                 mLock.writeLock().lock();
                                 try {
-                                    if (!isAdapterWhitelisted(username, adapter.authority)) {
+                                    if (!isAdapterAllowListed(username, adapter.authority)) {
                                         updateSync(account, adapter.authority, false /* sync */);
                                     }
                                 } finally {
@@ -187,21 +187,21 @@ public class AccountSnippet implements Snippet {
     }
 
     /**
-     * Checks to see if the SyncAdapter is whitelisted.
+     * Checks to see if the SyncAdapter is allowListed.
      *
-     * <p>AccountSnippet disables syncing by default when adding an account, except for whitelisted
-     * SyncAdapters. This function checks the whitelist for a specific account-authority pair.
+     * <p>AccountSnippet disables syncing by default when adding an account, except for allowListed
+     * SyncAdapters. This function checks the allowList for a specific account-authority pair.
      *
      * @param username Username of the account (including @gmail.com).
      * @param authority The authority of a content provider that should be checked.
      */
-    private boolean isAdapterWhitelisted(String username, String authority) {
+    private boolean isAdapterAllowListed(String username, String authority) {
         boolean result = false;
         mLock.readLock().lock();
         try {
-            Set<String> whitelistedProviders = mSyncWhitelist.get(username);
-            if (whitelistedProviders != null) {
-                result = whitelistedProviders.contains(authority);
+            Set<String> allowListedProviders = mSyncAllowList.get(username);
+            if (allowListedProviders != null) {
+                result = allowListedProviders.contains(authority);
             }
         } finally {
             mLock.readLock().unlock();
@@ -244,7 +244,7 @@ public class AccountSnippet implements Snippet {
     /**
      * Enables syncing of a SyncAdapter for a given content provider.
      *
-     * <p>Adds the authority to a whitelist, and immediately requests a sync.
+     * <p>Adds the authority to a allowList, and immediately requests a sync.
      *
      * @param username Username of the account (including @gmail.com).
      * @param authority The authority of a content provider that should be synced.
@@ -254,13 +254,13 @@ public class AccountSnippet implements Snippet {
         if (!listAccounts().contains(username)) {
             throw new AccountSnippetException("Account " + username + " is not on the device");
         }
-        // Add to the whitelist
+        // Add to the allowList
         mLock.writeLock().lock();
         try {
-            if (mSyncWhitelist.containsKey(username)) {
-                mSyncWhitelist.get(username).add(authority);
+            if (mSyncAllowList.containsKey(username)) {
+                mSyncAllowList.get(username).add(authority);
             } else {
-                mSyncWhitelist.put(username, new HashSet<String>(Arrays.asList(authority)));
+                mSyncAllowList.put(username, new HashSet<String>(Arrays.asList(authority)));
             }
             // Update the Sync settings
             for (SyncAdapterType adapter : ContentResolver.getSyncAdapterTypes()) {
@@ -279,7 +279,7 @@ public class AccountSnippet implements Snippet {
     /**
      * Disables syncing of a SyncAdapter for a given content provider.
      *
-     * <p>Removes the content provider authority from a whitelist.
+     * <p>Removes the content provider authority from a allowList.
      *
      * @param username Username of the account (including @gmail.com).
      * @param authority The authority of a content provider that should not be synced.
@@ -289,14 +289,14 @@ public class AccountSnippet implements Snippet {
         if (!listAccounts().contains(username)) {
             throw new AccountSnippetException("Account " + username + " is not on the device");
         }
-        // Remove from whitelist
+        // Remove from allowList
         mLock.writeLock().lock();
         try {
-            if (mSyncWhitelist.containsKey(username)) {
-                Set<String> whitelistedProviders = mSyncWhitelist.get(username);
-                whitelistedProviders.remove(authority);
-                if (whitelistedProviders.isEmpty()) {
-                    mSyncWhitelist.remove(username);
+            if (mSyncAllowList.containsKey(username)) {
+                Set<String> allowListedProviders = mSyncAllowList.get(username);
+                allowListedProviders.remove(authority);
+                if (allowListedProviders.isEmpty()) {
+                    mSyncAllowList.remove(username);
                 }
             }
             // Update the Sync settings
