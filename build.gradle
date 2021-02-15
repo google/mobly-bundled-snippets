@@ -1,29 +1,24 @@
-// For android studio 2.3 and plugin 2.3.3
-
 buildscript {
     repositories {
         jcenter()
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.4.1'
+        classpath 'com.android.tools.build:gradle:4.1.2'
 
         // NOTE: Do not place your application dependencies here.
     }
 }
 
 plugins {
-    id "com.github.sherter.google-java-format" version "0.8"
+    id "com.github.sherter.google-java-format" version "0.9"
 }
-
-repositories {
-    jcenter()
-    google()
-}
-
-apply plugin: 'com.android.application'
 
 allprojects {
+    repositories {
+        google()
+        jcenter()
+    }
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
             options.compilerArgs << "-Xlint:all"
@@ -31,8 +26,11 @@ allprojects {
     }
 }
 
+apply plugin: 'com.android.application'
+
 android {
     compileSdkVersion 29
+    buildToolsVersion "30.0.2"
 
     defaultConfig {
         applicationId "com.google.android.mobly.snippet.bundled"
@@ -54,7 +52,6 @@ android {
         warningsAsErrors true
         disable 'HardwareIds','MissingApplicationIcon','GoogleAppIndexingWarning','InvalidPackage','OldTargetApi'
     }
-    buildToolsVersion '28.0.3'
 }
 
 // Produces a jar of source files. Needed for compliance reasons.
@@ -74,16 +71,16 @@ artifacts {
 }
 
 dependencies {
-    implementation 'androidx.test:runner:1.2.0'
+    implementation 'androidx.test:runner:1.3.0'
     implementation 'com.google.android.mobly:mobly-snippet-lib:1.2.0'
-    implementation 'com.google.code.gson:gson:2.8.5'
-    implementation 'com.google.guava:guava:27.0.1-android'
-    implementation 'com.google.errorprone:error_prone_annotations:2.3.2'
+    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'com.google.guava:guava:30.1-jre'
+    implementation 'com.google.errorprone:error_prone_annotations:2.5.1'
 
-    testImplementation 'com.google.errorprone:error_prone_annotations:2.3.2'
-    testImplementation 'com.google.guava:guava:27.0.1-android'
-    testImplementation 'com.google.truth:truth:0.42'
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'com.google.errorprone:error_prone_annotations:2.5.1'
+    testImplementation 'com.google.guava:guava:30.1-jre'
+    testImplementation 'com.google.truth:truth:1.1.2'
+    testImplementation 'junit:junit:4.13.2'
 }
 
 googleJavaFormat {
