@@ -50,6 +50,21 @@ public class TelephonySnippet implements Snippet {
         return mTelephonyManager.getCallState();
     }
 
+    @Rpc(
+            description = 
+                    "Returns a constant indicating the radio technology (network type) currently"
+                            + "in use on the device for data transmission.")
+    public int getDataNetworkType() {
+      return mTelephonyManager.getDataNetworkType();
+    }
+
+    @Rpc(
+            description = 
+                    "Returns a constant indicating the radio technology (network type) currently"
+                            + "in use on the device for voice transmission.")
+    public int getVoiceNetworkType() {
+      return mTelephonyManager.getVoiceNetworkType();
+    }
     @Override
     public void shutdown() {}
 }
