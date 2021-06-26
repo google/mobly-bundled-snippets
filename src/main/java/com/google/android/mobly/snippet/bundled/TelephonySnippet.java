@@ -51,7 +51,7 @@ public class TelephonySnippet implements Snippet {
     }
 
     @Rpc(
-            description = 
+            description =
                     "Returns a constant indicating the radio technology (network type) currently"
                             + "in use on the device for data transmission.")
     public int getDataNetworkType() {
@@ -59,7 +59,7 @@ public class TelephonySnippet implements Snippet {
     }
 
     @Rpc(
-            description = 
+            description =
                     "Returns a constant indicating the radio technology (network type) currently"
                             + "in use on the device for voice transmission.")
     public int getVoiceNetworkType() {
