@@ -43,6 +43,11 @@ public class AudioSnippet implements Snippet {
         return mAudioManager.isMicrophoneMute();
     }
 
+    @Rpc(description = "Returns whether or not any music is active.")
+    public boolean isMusicActive() {
+        return mAudioManager.isMusicActive();
+    }
+
     @Rpc(description = "Gets the music stream volume.")
     public Integer getMusicVolume() {
         return mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
