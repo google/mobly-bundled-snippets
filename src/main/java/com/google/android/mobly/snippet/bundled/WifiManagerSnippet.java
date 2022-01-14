@@ -88,8 +88,18 @@ public class WifiManagerSnippet implements Snippet {
                 failedConfigs.add(config);
             }
         }
+
+        // If removeNetwork is called on a network with both an open and OWE config, it will remove
+        // both. The subsequent call on the same network will fail. The clear operation may succeed
+        // even if failures appear in the log below.
         if (!failedConfigs.isEmpty()) {
-            throw new WifiManagerSnippetException("Failed to remove networks: " + failedConfigs);
+            Log.e("Encountered error while removing networks: " + failedConfigs);
+        }
+
+        // Re-check configured configs list to ensure that it is cleared
+        unremovedConfigs = mWifiManager.getConfiguredNetworks();
+        if (!unremovedConfigs.isEmpty()) {
+            throw new WifiManagerSnippetException("Failed to remove networks: " + unremovedConfigs);
         }
     }
 
