@@ -305,7 +305,7 @@ public class BluetoothAdapterSnippet implements Snippet {
                 return;
             }
         }
-        throw new NoSuchElementException("No device wih address " + deviceAddress + " is paired.");
+        throw new NoSuchElementException("No device with address " + deviceAddress + " is paired.");
     }
 
     @Override
