@@ -104,6 +104,24 @@ public class AudioSnippet implements Snippet {
                 AudioManager.STREAM_VOICE_CALL, value, 0 /* flags, 0 = no flags */);
     }
 
+    @Rpc(description = "Gets the alarm volume.")
+    public Integer getAlarmVolume() {
+        return mAudioManager.getStreamVolume(AudioManager.STREAM_ALARM);
+    }
+
+    @Rpc(description = "Gets the maximum alarm volume value.")
+    public int getAlarmMaxVolume() {
+        return mAudioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM);
+    }
+
+    @Rpc(
+            description =
+                    "Sets the alarm stream volume. The minimum value is 0. Use 'getAlarmMaxVolume'"
+                            + " to determine the maximum.")
+    public void setAlarmVolume(Integer value) {
+        mAudioManager.setStreamVolume(AudioManager.STREAM_ALARM, value, 0 /* flags, 0 = no flags */);
+    }
+
     @Rpc(description = "Silences all audio streams.")
     public void muteAll() throws Exception {
         /* Get numStreams from AudioSystem through reflection. If for some reason this fails,
@@ -128,6 +146,9 @@ public class AudioSnippet implements Snippet {
     public void muteMusic() {
         setMusicVolume(0);
     }
+
+    @Rpc(description = "Mute alarm stream.")
+    public void muteAlarm() { setAlarmVolume(0); }
 
     @Override
     public void shutdown() {}
