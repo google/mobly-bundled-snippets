@@ -30,7 +30,7 @@ public class RpcEnum {
     private final ImmutableBiMap<String, Integer> mEnums;
 
     private RpcEnum(ImmutableBiMap.Builder<String, Integer> builder, int minSdk) {
-        mEnums = builder.build();
+        mEnums = builder.buildOrThrow();
     }
 
     /**
