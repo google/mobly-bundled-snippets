@@ -29,7 +29,7 @@ import com.google.common.collect.ImmutableBiMap;
 public class RpcEnum {
     private final ImmutableBiMap<String, Integer> mEnums;
 
-    private RpcEnum(ImmutableBiMap.Builder<String, Integer> builder, int minSdk) {
+    private RpcEnum(ImmutableBiMap.Builder<String, Integer> builder) {
         mEnums = builder.buildOrThrow();
     }
 
@@ -64,7 +64,6 @@ public class RpcEnum {
     /** Builder for RpcEnum. */
     public static class Builder {
         private final ImmutableBiMap.Builder<String, Integer> builder;
-        public int minSdk = 0;
 
         public Builder() {
             builder = new ImmutableBiMap.Builder<>();
@@ -83,7 +82,7 @@ public class RpcEnum {
         }
 
         public RpcEnum build() {
-            return new RpcEnum(builder, minSdk);
+            return new RpcEnum(builder);
         }
     }
 }
