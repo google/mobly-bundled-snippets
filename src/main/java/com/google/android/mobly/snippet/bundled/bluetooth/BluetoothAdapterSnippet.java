@@ -119,7 +119,19 @@ public class BluetoothAdapterSnippet implements Snippet {
         }
         waitForStableBtState();
 
-        if (!mBluetoothAdapter.enable()) {
+        if (Build.VERSION.SDK_INT > 32) {
+            // BluetoothAdapter#enable is removed from public SDK for T and above, so uses an intent
+            // instead.
+            UiDevice uiDevice = getUiDevice();
+            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            enableIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            // Triggers the system UI popup to ask for explicit permission.
+            mContext.startActivity(enableIntent);
+            // Clicks the "ALLOW" button.
+            BySelector allowButtonSelector = By.text(TEXT_PATTERN_ALLOW).clickable(true);
+            uiDevice.wait(Until.findObject(allowButtonSelector), 10);
+            uiDevice.findObject(allowButtonSelector).click();
+        } else if (!mBluetoothAdapter.enable()) {
             throw new BluetoothAdapterSnippetException("Failed to start enabling bluetooth.");
         }
         if (!Utils.waitUntil(
@@ -220,7 +232,8 @@ public class BluetoothAdapterSnippet implements Snippet {
                     "Bluetooth is not enabled, cannot become discoverable.");
         }
         if (Build.VERSION.SDK_INT > 30) {
-            // setScanMode is removed from public SDK for T and above, so uses an intent instead.
+            // BluetoothAdapter#setScanMode is removed from public SDK for S and above, so uses an
+            // intent instead.
             UiDevice uiDevice = getUiDevice();
             Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
             discoverableIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
