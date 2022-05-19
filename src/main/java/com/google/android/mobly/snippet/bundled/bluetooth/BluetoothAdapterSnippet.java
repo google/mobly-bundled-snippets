@@ -219,8 +219,8 @@ public class BluetoothAdapterSnippet implements Snippet {
             throw new BluetoothAdapterSnippetException(
                     "Bluetooth is not enabled, cannot become discoverable.");
         }
-        if (Build.VERSION.SDK_INT > 30) {
-            // BluetoothAdapter#setScanMode is removed from public SDK for S and above, so uses an
+        if (Build.VERSION.SDK_INT >= 31) {
+            // BluetoothAdapter#setScanMode is removed from public SDK for 31 and above, so uses an
             // intent instead.
             UiDevice uiDevice = getUiDevice();
             Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
@@ -232,7 +232,7 @@ public class BluetoothAdapterSnippet implements Snippet {
             BySelector allowButtonSelector = By.text(TEXT_PATTERN_ALLOW).clickable(true);
             uiDevice.wait(Until.findObject(allowButtonSelector), 10);
             uiDevice.findObject(allowButtonSelector).click();
-        } else if (Build.VERSION.SDK_INT > 29) {
+        } else if (Build.VERSION.SDK_INT >= 30) {
             if (!(boolean)
                     Utils.invokeByReflection(
                             mBluetoothAdapter,
