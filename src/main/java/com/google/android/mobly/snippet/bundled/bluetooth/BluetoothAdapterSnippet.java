@@ -119,9 +119,9 @@ public class BluetoothAdapterSnippet implements Snippet {
         }
         waitForStableBtState();
 
-        if (Build.VERSION.SDK_INT > 32) {
-            // BluetoothAdapter#enable is removed from public SDK for T and above, so uses an intent
-            // instead.
+        if (Build.VERSION.SDK_INT >= 33) {
+            // BluetoothAdapter#enable is removed from public SDK for 33 and above, so uses an
+            // intent instead.
             UiDevice uiDevice = getUiDevice();
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             enableIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
