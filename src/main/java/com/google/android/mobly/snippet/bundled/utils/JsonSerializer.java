@@ -27,6 +27,7 @@ import android.net.wifi.WifiInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.ParcelUuid;
+import android.util.SparseArray;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.lang.reflect.Modifier;
@@ -187,6 +188,20 @@ public class JsonSerializer {
         Bundle result = new Bundle();
         result.putString("DeviceName", record.getDeviceName());
         result.putInt("TxPowerLevel", record.getTxPowerLevel());
+        result.putBundle(
+            "manufacturerSpecificData", serializeBleScanManufacturerSpecificData(record));
+        return result;
+    }
+
+    /** Serialize manufacturer specific data from ScanRecord for Bluetooth LE. */
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private Bundle serializeBleScanManufacturerSpecificData(ScanRecord record) {
+        Bundle result = new Bundle();
+        SparseArray<byte[]> sparseArray = record.getManufacturerSpecificData();
+        for (int i = 0; i < sparseArray.size(); i++) {
+            int key = sparseArray.keyAt(i);
+            result.putByteArray(String.valueOf(key), sparseArray.get(key));
+        }
         return result;
     }
 
