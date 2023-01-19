@@ -42,17 +42,13 @@ import org.json.JSONObject;
  * A collection of methods used to serialize data types defined in Android API into JSON strings.
  */
 public class JsonSerializer {
-    private static Gson mGson;
-
-    public JsonSerializer() {
-        GsonBuilder builder = new GsonBuilder();
-        mGson =
-                builder.serializeNulls()
-                        .excludeFieldsWithModifiers(Modifier.STATIC)
-                        .enableComplexMapKeySerialization()
-                        .disableInnerClassSerialization()
-                        .create();
-    }
+    private static final Gson gson =
+        new GsonBuilder()
+            .serializeNulls()
+            .excludeFieldsWithModifiers(Modifier.STATIC)
+            .enableComplexMapKeySerialization()
+            .disableInnerClassSerialization()
+            .create();
 
     /**
      * Remove the extra quotation marks from the beginning and the end of a string.
@@ -90,11 +86,11 @@ public class JsonSerializer {
      * @throws JSONException
      */
     private JSONObject defaultSerialization(Object data) throws JSONException {
-        return new JSONObject(mGson.toJson(data));
+        return new JSONObject(gson.toJson(data));
     }
 
     private JSONObject serializeDhcpInfo(DhcpInfo data) throws JSONException {
-        JSONObject result = new JSONObject(mGson.toJson(data));
+        JSONObject result = new JSONObject(gson.toJson(data));
         int ipAddress = data.ipAddress;
         byte[] addressBytes = {
             (byte) (0xff & ipAddress),
@@ -112,14 +108,14 @@ public class JsonSerializer {
     }
 
     private JSONObject serializeWifiConfiguration(WifiConfiguration data) throws JSONException {
-        JSONObject result = new JSONObject(mGson.toJson(data));
+        JSONObject result = new JSONObject(gson.toJson(data));
         result.put("Status", WifiConfiguration.Status.strings[data.status]);
         result.put("SSID", trimQuotationMarks(data.SSID));
         return result;
     }
 
     private JSONObject serializeWifiInfo(WifiInfo data) throws JSONException {
-        JSONObject result = new JSONObject(mGson.toJson(data));
+        JSONObject result = new JSONObject(gson.toJson(data));
         result.put("SSID", trimQuotationMarks(data.getSSID()));
         for (SupplicantState state : SupplicantState.values()) {
             if (data.getSupplicantState().equals(state)) {
