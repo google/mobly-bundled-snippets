@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
+import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -43,7 +44,7 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import android.net.wifi.SupplicantState;
+
 /** Snippet class exposing Android APIs in WifiManager. */
 public class WifiManagerSnippet implements Snippet {
     private static class WifiManagerSnippetException extends Exception {
@@ -72,10 +73,7 @@ public class WifiManagerSnippet implements Snippet {
         adaptShellPermissionIfRequired();
     }
 
-    @Rpc(
-            description =
-                    "Clears all configured networks. This will only work if all configured "
-                            + "networks were added through this MBS instance")
+    @Rpc(description = "Clears all configured networks that were added through this MBS instance.")
     public void wifiClearConfiguredNetworks() throws WifiManagerSnippetException {
         List<WifiConfiguration> unremovedConfigs = mWifiManager.getConfiguredNetworks();
         List<WifiConfiguration> failedConfigs = new ArrayList<>();
@@ -84,6 +82,10 @@ public class WifiManagerSnippet implements Snippet {
                     "Failed to get a list of configured networks. Is wifi disabled?");
         }
         for (WifiConfiguration config : unremovedConfigs) {
+            if (!config.toString().contains("cname=com.google.android.mobly.snippet.bundled")) {
+              Log.d("No permission to delete Wi-Fi not added by MBS: " + config.SSID);
+              continue;
+            }
             if (!mWifiManager.removeNetwork(config.networkId)) {
                 failedConfigs.add(config);
             }
@@ -93,13 +95,8 @@ public class WifiManagerSnippet implements Snippet {
         // both. The subsequent call on the same network will fail. The clear operation may succeed
         // even if failures appear in the log below.
         if (!failedConfigs.isEmpty()) {
-            Log.e("Encountered error while removing networks: " + failedConfigs);
-        }
-
-        // Re-check configured configs list to ensure that it is cleared
-        unremovedConfigs = mWifiManager.getConfiguredNetworks();
-        if (!unremovedConfigs.isEmpty()) {
-            throw new WifiManagerSnippetException("Failed to remove networks: " + unremovedConfigs);
+            throw new WifiManagerSnippetException(
+                "Encountered error while removing networks: " + failedConfigs);
         }
     }
 
