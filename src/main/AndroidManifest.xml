@@ -55,6 +55,7 @@
                            com.google.android.mobly.snippet.bundled.StorageSnippet" />
     </application>
 
+    <!--suppress AndroidDomInspection -->
     <instrumentation
         android:name="com.google.android.mobly.snippet.SnippetRunner"
         android:targetPackage="com.google.android.mobly.snippet.bundled" />
