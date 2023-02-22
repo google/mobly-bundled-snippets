@@ -26,6 +26,7 @@ import org.junit.Test;
 
 /** Tests for {@link com.google.android.mobly.snippet.bundled.utils.Utils} */
 public class UtilsTest {
+    /** @noinspection unused*/
     public static final class ReflectionTest_HostClass {
         public Object returnSame(List<String> arg) {
             return arg;
@@ -56,7 +57,7 @@ public class UtilsTest {
         List<?> sampleList = Collections.singletonList("sampleList");
         ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
         Object ret = invokeByReflection(hostClass, "returnSame", sampleList);
-        Truth.assertThat(ret).isSameAs(sampleList);
+        Truth.assertThat(ret).isSameInstanceAs(sampleList);
     }
 
     @Test
@@ -87,11 +88,11 @@ public class UtilsTest {
         Object arg2 = new Object();
         Object ret =
                 invokeByReflection(hostClass, "multiArgCall", arg1, arg2, true /* returnArg1 */);
-        Truth.assertThat(ret).isSameAs(arg1);
+        Truth.assertThat(ret).isSameInstanceAs(arg1);
         ret =
                 Utils.invokeByReflection(
                         hostClass, "multiArgCall", arg1, arg2, false /* returnArg1 */);
-        Truth.assertThat(ret).isSameAs(arg2);
+        Truth.assertThat(ret).isSameInstanceAs(arg2);
     }
 
     @Test

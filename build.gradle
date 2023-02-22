@@ -1,26 +1,22 @@
 buildscript {
     repositories {
-        jcenter()
         google()
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.2'
-
-        // NOTE: Do not place your application dependencies here.
+        mavenCentral()
     }
 }
 
 plugins {
     id "com.github.sherter.google-java-format" version "0.9"
+    id 'com.android.application' version '7.4.1'
 }
 
 allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
     gradle.projectsEvaluated {
-        tasks.withType(JavaCompile) {
+        tasks.withType(JavaCompile).configureEach {
             options.compilerArgs << "-Xlint:all"
         }
     }
@@ -29,24 +25,24 @@ allprojects {
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "30.0.2"
+    compileSdk 31
 
     defaultConfig {
         applicationId "com.google.android.mobly.snippet.bundled"
-        minSdkVersion 18
+        // Set by https://github.com/google/mobly-snippet-lib/blob/master/third_party/sl4a/build.gradle
+        minSdkVersion 26
         // Set target to 22 to avoid having to deal with runtime permissions.
-        targetSdkVersion 22
+        //noinspection ExpiredTargetSdkVersion
+        targetSdk 31
         versionCode 1
         versionName "0.0.1"
         setProperty("archivesBaseName", "mobly-bundled-snippets")
-        multiDexEnabled true
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    lintOptions {
+    lint {
         abortOnError false
         checkAllWarnings true
         warningsAsErrors true
@@ -55,12 +51,12 @@ android {
 }
 
 // Produces a jar of source files. Needed for compliance reasons.
-task sourcesJar(type: Jar) {
+tasks.register('sourcesJar', Jar) {
     from android.sourceSets.main.java.srcDirs
-    classifier = 'src'
+    archiveClassifier = 'src'
 }
 
-task javadoc(type: Javadoc) {
+tasks.register('javadoc', Javadoc) {
     source = android.sourceSets.main.java.srcDirs
     classpath += project.files(
         android.getBootClasspath().join(File.pathSeparator))
@@ -71,16 +67,16 @@ artifacts {
 }
 
 dependencies {
-    implementation 'androidx.test:runner:1.3.0'
-    implementation 'com.android.support.test.uiautomator:uiautomator-v18:2.1.3'
-    implementation 'com.google.android.mobly:mobly-snippet-lib:1.2.0'
-    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'androidx.test:runner:1.5.2'
+    implementation "androidx.test.uiautomator:uiautomator:2.2.0"
+    implementation 'com.google.android.mobly:mobly-snippet-lib:1.3.1'
+    implementation 'com.google.code.gson:gson:2.9.1'
     implementation 'com.google.guava:guava:31.0.1-jre'
-    implementation 'com.google.errorprone:error_prone_annotations:2.5.1'
+    implementation 'com.google.errorprone:error_prone_annotations:2.18.0'
 
-    testImplementation 'com.google.errorprone:error_prone_annotations:2.5.1'
+    testImplementation 'com.google.errorprone:error_prone_annotations:2.18.0'
     testImplementation 'com.google.guava:guava:31.0.1-jre'
-    testImplementation 'com.google.truth:truth:1.1.2'
+    testImplementation 'com.google.truth:truth:1.1.3'
     testImplementation 'junit:junit:4.13.2'
 }
 
@@ -89,7 +85,7 @@ googleJavaFormat {
 }
 
 // Open lint's HTML report in your default browser or viewer.
-task openLintReport(type: Exec) {
+tasks.register('openLintReport', Exec) {
     def lint_report = "build/reports/lint-results.html"
     def cmd = "cat"
     def platform = System.getProperty('os.name').toLowerCase(Locale.ROOT)
@@ -103,7 +99,7 @@ task openLintReport(type: Exec) {
     commandLine cmd, lint_report
 }
 
-task presubmit {
+tasks.register('presubmit') {
     dependsOn { ['googleJavaFormat', 'lint', 'openLintReport'] }
     doLast {
         println "Fix any lint issues you see. When it looks good, submit the pull request."
