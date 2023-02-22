@@ -31,8 +31,6 @@ android {
         applicationId "com.google.android.mobly.snippet.bundled"
         // Set by https://github.com/google/mobly-snippet-lib/blob/master/third_party/sl4a/build.gradle
         minSdkVersion 26
-        // Set target to 22 to avoid having to deal with runtime permissions.
-        //noinspection ExpiredTargetSdkVersion
         targetSdk 31
         versionCode 1
         versionName "0.0.1"
