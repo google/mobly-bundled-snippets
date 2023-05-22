@@ -17,6 +17,7 @@
 package com.google.android.mobly.snippet.bundled.utils;
 
 import com.google.common.collect.ImmutableBiMap;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 
 /**
  * A container type for handling String-Integer enum conversion in Rpc protocol.
@@ -27,20 +28,20 @@ import com.google.common.collect.ImmutableBiMap;
  * <p>Once built, an RpcEnum object is immutable.
  */
 public class RpcEnum {
-    private final ImmutableBiMap<String, Integer> mEnums;
+    private final ImmutableBiMap<String, Integer> enums;
 
     private RpcEnum(ImmutableBiMap.Builder<String, Integer> builder) {
-        mEnums = builder.buildOrThrow();
+        enums = builder.buildOrThrow();
     }
 
     /**
      * Get the int value of an enum based on its String value.
      *
      * @param enumString
-     * @return
+     * @return int value
      */
     public int getInt(String enumString) {
-        Integer result = mEnums.get(enumString);
+        Integer result = enums.get(enumString);
         if (result == null) {
             throw new NoSuchFieldError("No int value found for: " + enumString);
         }
@@ -51,12 +52,12 @@ public class RpcEnum {
      * Get the String value of an enum based on its int value.
      *
      * @param enumInt
-     * @return
+     * @return string value
      */
     public String getString(int enumInt) {
-        String result = mEnums.inverse().get(enumInt);
+        String result = enums.inverse().get(enumInt);
         if (result == null) {
-            throw new NoSuchFieldError("No String value found for: " + enumInt);
+            return String.format("UNKNOWN_VALUE[%s].", enumInt);
         }
         return result;
     }
@@ -76,6 +77,7 @@ public class RpcEnum {
          * @param enumInt
          * @return
          */
+        @CanIgnoreReturnValue
         public Builder add(String enumString, int enumInt) {
             builder.put(enumString, enumInt);
             return this;

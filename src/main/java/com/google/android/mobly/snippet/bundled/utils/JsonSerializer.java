@@ -16,8 +16,13 @@
 
 package com.google.android.mobly.snippet.bundled.utils;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.ScanRecord;
 import android.net.DhcpInfo;
@@ -27,6 +32,7 @@ import android.net.wifi.WifiInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.ParcelUuid;
+import android.util.Base64;
 import android.util.SparseArray;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -125,7 +131,7 @@ public class JsonSerializer {
         return result;
     }
 
-    public Bundle serializeBluetoothDevice(BluetoothDevice data) {
+    public static Bundle serializeBluetoothDevice(BluetoothDevice data) {
         Bundle result = new Bundle();
         result.putString("Address", data.getAddress());
         final String bondState =
@@ -184,8 +190,31 @@ public class JsonSerializer {
         Bundle result = new Bundle();
         result.putString("DeviceName", record.getDeviceName());
         result.putInt("TxPowerLevel", record.getTxPowerLevel());
+        result.putParcelableArrayList("Services", serializeBleScanServices(record));
         result.putBundle(
             "manufacturerSpecificData", serializeBleScanManufacturerSpecificData(record));
+        return result;
+    }
+
+    /** Serialize manufacturer specific data from ScanRecord for Bluetooth LE. */
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private ArrayList<Bundle> serializeBleScanServices(ScanRecord record) {
+        ArrayList<Bundle> result = new ArrayList<>();
+        if (record.getServiceUuids() != null) {
+            for (ParcelUuid uuid : record.getServiceUuids()) {
+                Bundle service = new Bundle();
+                service.putString("UUID", uuid.getUuid().toString());
+                if (record.getServiceData(uuid) != null) {
+                    service.putString(
+                            "Data",
+                            new String(Base64.encode(record.getServiceData(uuid), Base64.NO_WRAP),
+                                      UTF_8));
+                } else {
+                    service.putString("Data", "");
+                }
+                result.add(service);
+            }
+        }
         return result;
     }
 
@@ -211,6 +240,44 @@ public class JsonSerializer {
                 "Mode", MbsEnums.BLE_ADVERTISE_MODE.getString(advertiseSettings.getMode()));
         result.putInt("Timeout", advertiseSettings.getTimeout());
         result.putBoolean("IsConnectable", advertiseSettings.isConnectable());
+        return result;
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static Bundle serializeBluetoothGatt(BluetoothGatt gatt) {
+        Bundle result = new Bundle();
+        ArrayList<Bundle> services = new ArrayList<>();
+        for (BluetoothGattService service : gatt.getServices()) {
+            services.add(JsonSerializer.serializeBluetoothGattService(service));
+        }
+        result.putParcelableArrayList("Services", services);
+        result.putBundle("Device", JsonSerializer.serializeBluetoothDevice(gatt.getDevice()));
+        return result;
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static Bundle serializeBluetoothGattService(BluetoothGattService service) {
+        Bundle result = new Bundle();
+        result.putString("UUID", service.getUuid().toString());
+        result.putString("Type", MbsEnums.BLE_SERVICE_TYPE.getString(service.getType()));
+        ArrayList<Bundle> characteristics = new ArrayList<>();
+        for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+            characteristics.add(serializeBluetoothGattCharacteristic(characteristic));
+        }
+        result.putParcelableArrayList("Characteristics", characteristics);
+        return result;
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static Bundle serializeBluetoothGattCharacteristic(
+            BluetoothGattCharacteristic characteristic) {
+        Bundle result = new Bundle();
+        result.putString("UUID", characteristic.getUuid().toString());
+        result.putString(
+                "Property", MbsEnums.BLE_PROPERTY_TYPE.getString(characteristic.getProperties()));
+        result.putString(
+                "Permission",
+                MbsEnums.BLE_PERMISSION_TYPE.getString(characteristic.getPermissions()));
         return result;
     }
 }
