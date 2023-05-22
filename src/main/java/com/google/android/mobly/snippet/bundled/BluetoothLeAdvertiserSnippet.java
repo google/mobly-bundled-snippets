@@ -96,9 +96,9 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
      *          }
      *     </pre>
      *
-     * @param scanResponse A JSONObject representing a {@link AdvertiseData} object is returned when
-     *     a scanning device sends an active scan request. The data structure will be the same as
-     *     advertiseData.
+     * @param scanResponse A JSONObject representing a {@link AdvertiseData} object which saved the
+     *     advertisement data when a scanning device sends an active scan request. The data
+     *     structure will be the same as advertiseData.
      *
      * @throws BluetoothLeAdvertiserSnippetException
      * @throws JSONException
