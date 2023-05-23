@@ -96,9 +96,24 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
      *          }
      *     </pre>
      *
-     * @param scanResponse A JSONObject representing a {@link AdvertiseData} object which saved the
-     *     advertisement data when a scanning device sends an active scan request. The data
-     *     structure will be the same as advertiseData.
+     * @param scanResponse A JSONObject representing a {@link AdvertiseData} object which will
+     *     response the data to the scanning device. E.g.
+     *     <pre>
+     *          {
+     *            "IncludeDeviceName": (bool),
+     *            # JSON list, each element representing a set of service data, which is composed of
+     *            # a UUID, and an optional string.
+     *            "ServiceData": [
+     *                      {
+     *                        "UUID": (A string representation of {@link ParcelUuid}),
+     *                        "Data": (Optional, The string representation of what you want to
+     *                                 advertise, base64 encoded)
+     *                        # If you want to add a UUID without data, simply omit the "Data"
+     *                        # field.
+     *                      }
+     *                ]
+     *          }
+     *     </pre>
      *
      * @throws BluetoothLeAdvertiserSnippetException
      * @throws JSONException
