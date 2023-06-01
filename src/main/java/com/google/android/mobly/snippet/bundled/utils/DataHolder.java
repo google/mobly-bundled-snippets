@@ -20,6 +20,7 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import java.util.HashMap;
 
 /** A holder to hold android objects for snippets. */
+// TODO(ko1in1u): For future extensions between Snippet classes and Utils.
 public class DataHolder {
     private final HashMap<BluetoothGattCharacteristic, String> dataToBeRead;
 
