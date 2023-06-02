@@ -34,6 +34,7 @@ import com.google.android.mobly.snippet.event.SnippetEvent;
 import com.google.android.mobly.snippet.rpc.AsyncRpc;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.rpc.RpcMinSdk;
+import com.google.android.mobly.snippet.rpc.RpcOptional;
 import com.google.android.mobly.snippet.util.Log;
 import java.util.HashMap;
 import org.json.JSONException;
@@ -76,7 +77,27 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
      *          }
      *     </pre>
      *
-     * @param advertiseData A JSONObject representing a {@link AdvertiseData} object. E.g.
+     * @param advertiseData A JSONObject representing a {@link AdvertiseData} object will be
+     *     broadcast if the operation succeeds. E.g.
+     *     <pre>
+     *          {
+     *            "IncludeDeviceName": (bool),
+     *            # JSON list, each element representing a set of service data, which is composed of
+     *            # a UUID, and an optional string.
+     *            "ServiceData": [
+     *                      {
+     *                        "UUID": (A string representation of {@link ParcelUuid}),
+     *                        "Data": (Optional, The string representation of what you want to
+     *                                 advertise, base64 encoded)
+     *                        # If you want to add a UUID without data, simply omit the "Data"
+     *                        # field.
+     *                      }
+     *                ]
+     *          }
+     *     </pre>
+     *
+     * @param scanResponse A JSONObject representing a {@link AdvertiseData} object which will
+     *     response the data to the scanning device. E.g.
      *     <pre>
      *          {
      *            "IncludeDeviceName": (bool),
@@ -100,7 +121,10 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
     @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP_MR1)
     @AsyncRpc(description = "Start BLE advertising.")
     public void bleStartAdvertising(
-            String callbackId, JSONObject advertiseSettings, JSONObject advertiseData)
+            String callbackId,
+            JSONObject advertiseSettings,
+            JSONObject advertiseData,
+            @RpcOptional JSONObject scanResponse)
             throws BluetoothLeAdvertiserSnippetException, JSONException {
         if (!BluetoothAdapter.getDefaultAdapter().isEnabled()) {
             throw new BluetoothLeAdvertiserSnippetException(
@@ -109,7 +133,12 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
         AdvertiseSettings settings = JsonDeserializer.jsonToBleAdvertiseSettings(advertiseSettings);
         AdvertiseData data = JsonDeserializer.jsonToBleAdvertiseData(advertiseData);
         AdvertiseCallback advertiseCallback = new DefaultAdvertiseCallback(callbackId);
-        mAdvertiser.startAdvertising(settings, data, advertiseCallback);
+        if (scanResponse == null) {
+            mAdvertiser.startAdvertising(settings, data, advertiseCallback);
+        } else {
+            AdvertiseData response = JsonDeserializer.jsonToBleAdvertiseData(scanResponse);
+            mAdvertiser.startAdvertising(settings, data, response, advertiseCallback);
+        }
         mAdvertiseCallbacks.put(callbackId, advertiseCallback);
     }
 
@@ -150,6 +179,7 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
             mCallbackId = callbackId;
         }
 
+        @Override
         public void onStartSuccess(AdvertiseSettings settingsInEffect) {
             Log.e("Bluetooth LE advertising started with settings: " + settingsInEffect.toString());
             SnippetEvent event = new SnippetEvent(mCallbackId, "onStartSuccess");
@@ -159,6 +189,7 @@ public class BluetoothLeAdvertiserSnippet implements Snippet {
             sEventCache.postEvent(event);
         }
 
+        @Override
         public void onStartFailure(int errorCode) {
             Log.e("Bluetooth LE advertising failed to start with error code: " + errorCode);
             SnippetEvent event = new SnippetEvent(mCallbackId, "onStartFailure");

@@ -17,12 +17,17 @@
 package com.google.android.mobly.snippet.bundled.utils;
 
 import android.annotation.TargetApi;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
+import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanSettings;
 import android.net.wifi.WifiConfiguration;
 import android.os.Build;
 import android.os.ParcelUuid;
 import android.util.Base64;
+import java.util.UUID;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -98,6 +103,54 @@ public class JsonDeserializer {
             byte[] manufacturerSpecificData =
                     Base64.decode(jsonObject.getString("ManufacturerSpecificData"), Base64.DEFAULT);
             builder.addManufacturerData(manufacturerId, manufacturerSpecificData);
+        }
+        return builder.build();
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static BluetoothGattService jsonToBluetoothGattService(
+            DataHolder dataHolder, JSONObject jsonObject) throws JSONException {
+        BluetoothGattService service =
+                new BluetoothGattService(
+                        UUID.fromString(jsonObject.getString("UUID")),
+                        MbsEnums.BLE_SERVICE_TYPE.getInt(jsonObject.getString("Type")));
+        JSONArray characteristics = jsonObject.getJSONArray("Characteristics");
+        for (int i = 0; i < characteristics.length(); i++) {
+            BluetoothGattCharacteristic characteristic =
+                    jsonToBluetoothGattCharacteristic(dataHolder, characteristics.getJSONObject(i));
+            service.addCharacteristic(characteristic);
+        }
+        return service;
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static BluetoothGattCharacteristic jsonToBluetoothGattCharacteristic(
+            DataHolder dataHolder, JSONObject jsonObject) throws JSONException {
+        BluetoothGattCharacteristic characteristic =
+                new BluetoothGattCharacteristic(
+                        UUID.fromString(jsonObject.getString("UUID")),
+                        MbsEnums.BLE_PROPERTY_TYPE.getInt(jsonObject.getString("Property")),
+                        MbsEnums.BLE_PERMISSION_TYPE.getInt(jsonObject.getString("Permission")));
+        if (jsonObject.has("Data")) {
+              dataHolder.insertData(characteristic, jsonObject.getString("Data"));
+        }
+        return characteristic;
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static ScanFilter jsonToScanFilter(JSONObject jsonObject) throws JSONException {
+        ScanFilter.Builder builder = new ScanFilter.Builder();
+        if (jsonObject.has("ServiceUuid")) {
+            builder.setServiceUuid(ParcelUuid.fromString(jsonObject.getString("ServiceUuid")));
+        }
+        return builder.build();
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static ScanSettings jsonToScanSettings(JSONObject jsonObject) throws JSONException {
+        ScanSettings.Builder builder = new ScanSettings.Builder();
+        if (jsonObject.has("ScanMode")) {
+            builder.setScanMode(MbsEnums.BLE_SCAN_MODE.getInt(jsonObject.getString("ScanMode")));
         }
         return builder.build();
     }

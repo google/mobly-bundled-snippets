@@ -5,6 +5,8 @@
 
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
 
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -12,6 +14,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED" />
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
@@ -38,6 +41,8 @@
             android:value="com.google.android.mobly.snippet.bundled.AccountSnippet,
                            com.google.android.mobly.snippet.bundled.AudioSnippet,
                            com.google.android.mobly.snippet.bundled.bluetooth.BluetoothAdapterSnippet,
+                           com.google.android.mobly.snippet.bundled.bluetooth.BluetoothGattClientSnippet,
+                           com.google.android.mobly.snippet.bundled.bluetooth.BluetoothGattServerSnippet,
                            com.google.android.mobly.snippet.bundled.bluetooth.profiles.BluetoothA2dpSnippet,
                            com.google.android.mobly.snippet.bundled.bluetooth.profiles.BluetoothHearingAidSnippet,
                            com.google.android.mobly.snippet.bundled.BluetoothLeAdvertiserSnippet,
