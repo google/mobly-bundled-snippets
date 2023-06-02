@@ -16,6 +16,8 @@
 
 package com.google.android.mobly.snippet.bundled;
 
+import static java.util.stream.Collectors.toCollection;
+
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -36,6 +38,7 @@ import com.google.android.mobly.snippet.event.SnippetEvent;
 import com.google.android.mobly.snippet.rpc.AsyncRpc;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import java.util.ArrayList;
+import java.util.stream.IntStream;
 import org.json.JSONObject;
 
 /** Snippet class for SMS RPCs. */
@@ -80,20 +83,37 @@ public class SmsSnippet implements Snippet {
 
         if (message.length() > MAX_CHAR_COUNT_PER_SMS) {
             ArrayList<String> parts = mSmsManager.divideMessage(message);
-            ArrayList<PendingIntent> sIntents = new ArrayList<>();
-            for (int i = 0; i < parts.size(); i++) {
-                sIntents.add(
-                        PendingIntent.getBroadcast(mContext, 0, new Intent(SMS_SENT_ACTION), 0));
-            }
             receiver.setExpectedMessageCount(parts.size());
             mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION));
-            mSmsManager.sendMultipartTextMessage(phoneNumber, null, parts, sIntents, null);
+            mSmsManager.sendMultipartTextMessage(
+                    /* destinationAddress= */ phoneNumber,
+                    /* scAddress= */ null,
+                    /* parts= */ parts,
+                    /* sentIntents= */ IntStream.range(0, parts.size())
+                            .mapToObj(
+                                i ->
+                                        PendingIntent.getBroadcast(
+                                                /* context= */ mContext,
+                                                /* requestCode= */ 0,
+                                                /* intent= */ new Intent(SMS_SENT_ACTION),
+                                                /* flags= */ PendingIntent.FLAG_IMMUTABLE))
+                            .collect(toCollection(ArrayList::new)),
+                    /* deliveryIntents= */ null);
         } else {
             PendingIntent sentIntent =
-                    PendingIntent.getBroadcast(mContext, 0, new Intent(SMS_SENT_ACTION), 0);
+                    PendingIntent.getBroadcast(
+                            /* context= */ mContext,
+                            /* requestCode= */ 0,
+                            /* intent= */ new Intent(SMS_SENT_ACTION),
+                            /* flags= */ PendingIntent.FLAG_IMMUTABLE);
             receiver.setExpectedMessageCount(1);
             mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION));
-            mSmsManager.sendTextMessage(phoneNumber, null, message, sentIntent, null);
+            mSmsManager.sendTextMessage(
+                    /* destinationAddress= */ phoneNumber,
+                    /* scAddress= */ null,
+                    /* text= */ message,
+                    /* sentIntent= */ sentIntent,
+                    /* deliveryIntent= */ null);
         }
 
         SnippetEvent result =
