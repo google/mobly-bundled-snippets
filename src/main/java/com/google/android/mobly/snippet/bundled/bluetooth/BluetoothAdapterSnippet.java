@@ -35,7 +35,10 @@ import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.util.Log;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -67,9 +70,12 @@ public class BluetoothAdapterSnippet implements Snippet {
     private static final ConcurrentHashMap<String, BluetoothDevice> mDiscoveryResults =
             new ConcurrentHashMap<>();
     private volatile boolean mIsDiscoveryFinished = false;
+    private final Map<String, BroadcastReceiver> mReceivers;
 
     public BluetoothAdapterSnippet() throws Throwable {
         mContext = InstrumentationRegistry.getInstrumentation().getContext();
+        // Use a synchronized map to avoid racing problems
+        mReceivers = Collections.synchronizedMap(new HashMap<String, BroadcastReceiver>());
         Utils.adaptShellPermissionIfRequired(mContext);
     }
 
@@ -192,11 +198,18 @@ public class BluetoothAdapterSnippet implements Snippet {
     }
 
     @Rpc(description = "Automatically confirm the incoming BT pairing request.")
-    public void btAutoConfirmIncomingPair() throws Throwable {
+    public void btStartAutoAcceptIncomingPairRequest() throws Throwable {
+        BroadcastReceiver receiver = new PairingBroadcastReceiver(mContext);
         mContext.registerReceiver(
-                new PairingBroadcastReceiver(mContext), PairingBroadcastReceiver.filter);
+                receiver, PairingBroadcastReceiver.filter);
+        mReceivers.put("AutoAcceptIncomingPairReceiver", receiver);
     }
 
+    @Rpc(description = "Stop the incoming BT pairing request.")
+    public void btStopAutoAcceptIncomingPairRequest() throws Throwable {
+        BroadcastReceiver receiver = mReceivers.remove("AutoAcceptIncomingPairReceiver");
+        mContext.unregisterReceiver(receiver);
+    }
 
     @Rpc(description = "Returns the hardware address of the local Bluetooth adapter.")
     public String btGetAddress() {
@@ -364,7 +377,12 @@ public class BluetoothAdapterSnippet implements Snippet {
     }
 
     @Override
-    public void shutdown() {}
+    public void shutdown() {
+        for (Map.Entry<String,BroadcastReceiver> entry : mReceivers.entrySet()) {
+            mContext.unregisterReceiver(entry.getValue());
+        }
+        mReceivers.clear();
+    }
 
     private class BluetoothScanReceiver extends BroadcastReceiver {
 
