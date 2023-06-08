@@ -38,8 +38,8 @@ import com.google.android.mobly.snippet.util.Log;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -391,7 +391,7 @@ public class BluetoothAdapterSnippet implements Snippet {
 
     @Override
     public void shutdown() {
-        for (Map.Entry<String,BroadcastReceiver> entry : mReceivers.entrySet()) {
+        for (Map.Entry<String, BroadcastReceiver> entry : mReceivers.entrySet()) {
             mContext.unregisterReceiver(entry.getValue());
         }
         mReceivers.clear();

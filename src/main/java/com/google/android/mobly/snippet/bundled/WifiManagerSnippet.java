@@ -16,7 +16,6 @@
 
 package com.google.android.mobly.snippet.bundled;
 
-import android.app.UiAutomation;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
