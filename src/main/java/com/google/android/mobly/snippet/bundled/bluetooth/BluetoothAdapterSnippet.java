@@ -68,8 +68,9 @@ public class BluetoothAdapterSnippet implements Snippet {
             new ConcurrentHashMap<>();
     private volatile boolean mIsDiscoveryFinished = false;
 
-    public BluetoothAdapterSnippet() {
+    public BluetoothAdapterSnippet() throws Throwable {
         mContext = InstrumentationRegistry.getInstrumentation().getContext();
+        Utils.adaptShellPermissionIfRequired(mContext);
     }
 
     /**
@@ -189,6 +190,13 @@ public class BluetoothAdapterSnippet implements Snippet {
     public String btGetName() {
         return mBluetoothAdapter.getName();
     }
+
+    @Rpc(description = "Automatically confirm the bt pairing request.")
+    public void btConfirmPair() throws Throwable {
+        mContext.registerReceiver(
+                new PairingBroadcastReceiver(mContext), PairingBroadcastReceiver.filter);
+    }
+
 
     @Rpc(description = "Returns the hardware address of the local Bluetooth adapter.")
     public String btGetAddress() {
