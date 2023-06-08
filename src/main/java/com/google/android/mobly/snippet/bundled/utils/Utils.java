@@ -219,7 +219,7 @@ public final class Utils {
    public static void adaptShellPermissionIfRequired(Context context) throws Throwable {
       if (context.getApplicationContext().getApplicationInfo().targetSdkVersion >= 29
           && Build.VERSION.SDK_INT >= 29) {
-        Log.d("Elevating permission require to enable support for wifi operation in Android Q+");
+        Log.d("Elevating permission require to enable support for privileged operation in Android Q+");
         UiAutomation uia = InstrumentationRegistry.getInstrumentation().getUiAutomation();
         uia.adoptShellPermissionIdentity();
         try {
