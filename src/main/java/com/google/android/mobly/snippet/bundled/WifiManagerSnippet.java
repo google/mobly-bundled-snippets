@@ -54,10 +54,6 @@ public class WifiManagerSnippet implements Snippet {
         public WifiManagerSnippetException(String msg) {
             super(msg);
         }
-
-        public WifiManagerSnippetException(String msg, Throwable err) {
-            super(msg, err);
-        }
     }
 
     private static final int TIMEOUT_TOGGLE_STATE = 30;
