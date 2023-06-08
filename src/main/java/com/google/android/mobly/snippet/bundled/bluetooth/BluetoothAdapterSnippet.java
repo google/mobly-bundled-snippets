@@ -191,8 +191,8 @@ public class BluetoothAdapterSnippet implements Snippet {
         return mBluetoothAdapter.getName();
     }
 
-    @Rpc(description = "Automatically confirm the bt pairing request.")
-    public void btConfirmPair() throws Throwable {
+    @Rpc(description = "Automatically confirm the incoming BT pairing request.")
+    public void btAutoConfirmIncomingPair() throws Throwable {
         mContext.registerReceiver(
                 new PairingBroadcastReceiver(mContext), PairingBroadcastReceiver.filter);
     }
