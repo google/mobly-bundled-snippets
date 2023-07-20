@@ -17,6 +17,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED" />
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
@@ -39,6 +40,7 @@
                  android:name="androidx.multidex.MultiDexApplication">
         <meta-data
             android:name="mobly-snippets"
+            android:testOnly="true"
             android:value="com.google.android.mobly.snippet.bundled.AccountSnippet,
                            com.google.android.mobly.snippet.bundled.AudioSnippet,
                            com.google.android.mobly.snippet.bundled.bluetooth.BluetoothAdapterSnippet,

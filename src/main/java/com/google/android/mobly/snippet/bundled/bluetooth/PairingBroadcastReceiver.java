@@ -8,14 +8,16 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import com.google.android.mobly.snippet.util.Log;
+import com.google.android.mobly.snippet.bundled.utils.Utils;
 
 @TargetApi(Build.VERSION_CODES.KITKAT)
 public class PairingBroadcastReceiver extends BroadcastReceiver {
     private final Context mContext;
     public static IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_PAIRING_REQUEST);
 
-    public PairingBroadcastReceiver(Context context) {
+    public PairingBroadcastReceiver(Context context) throws Throwable {
         mContext = context;
+        Utils.adaptShellPermissionIfRequired(mContext);
     }
 
     public void onReceive(Context context, Intent intent) {

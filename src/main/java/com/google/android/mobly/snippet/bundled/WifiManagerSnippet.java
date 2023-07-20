@@ -16,7 +16,6 @@
 
 package com.google.android.mobly.snippet.bundled;
 
-import android.app.UiAutomation;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -44,6 +43,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import android.net.wifi.SupplicantState;
+
+import com.google.android.mobly.snippet.bundled.utils.Utils;
+
 /** Snippet class exposing Android APIs in WifiManager. */
 public class WifiManagerSnippet implements Snippet {
     private static class WifiManagerSnippetException extends Exception {
@@ -51,10 +53,6 @@ public class WifiManagerSnippet implements Snippet {
 
         public WifiManagerSnippetException(String msg) {
             super(msg);
-        }
-
-        public WifiManagerSnippetException(String msg, Throwable err) {
-            super(msg, err);
         }
     }
 
@@ -69,7 +67,7 @@ public class WifiManagerSnippet implements Snippet {
         mWifiManager =
                 (WifiManager)
                         mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        adaptShellPermissionIfRequired();
+        Utils.adaptShellPermissionIfRequired(mContext);
     }
 
     @Rpc(
@@ -403,33 +401,6 @@ public class WifiManagerSnippet implements Snippet {
     @Override
     public void shutdown() {}
 
-    /**
-     * Elevates permission as require for proper wifi controls.
-     *
-     * Starting in Android Q (29), additional restrictions are added for wifi operation. See
-     * below Android Q privacy changes for additional details.
-     * https://developer.android.com/preview/privacy/camera-connectivity
-     *
-     * @throws Throwable if failed to cleanup connection with UiAutomation
-     */
-    private void adaptShellPermissionIfRequired() throws Throwable {
-        if (mContext.getApplicationContext().getApplicationInfo().targetSdkVersion >= 29
-            && Build.VERSION.SDK_INT >= 29) {
-          Log.d("Elevating permission require to enable support for wifi operation in Android Q+");
-          UiAutomation uia = InstrumentationRegistry.getInstrumentation().getUiAutomation();
-          uia.adoptShellPermissionIdentity();
-          try {
-            Class<?> cls = Class.forName("android.app.UiAutomation");
-            Method destroyMethod = cls.getDeclaredMethod("destroy");
-            destroyMethod.invoke(uia);
-          } catch (NoSuchMethodException
-              | IllegalAccessException
-              | ClassNotFoundException
-              | InvocationTargetException e) {
-                  throw new WifiManagerSnippetException("Failed to cleaup Ui Automation", e);
-          }
-        }
-    }
 
     private class WifiScanReceiver extends BroadcastReceiver {
 

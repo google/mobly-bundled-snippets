@@ -16,9 +16,14 @@
 
 package com.google.android.mobly.snippet.bundled.utils;
 
+import android.app.UiAutomation;
+import android.os.Build;
+import android.content.Context;
+import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.bundled.SmsSnippet;
 import com.google.android.mobly.snippet.event.EventCache;
 import com.google.android.mobly.snippet.event.SnippetEvent;
+import com.google.android.mobly.snippet.util.Log;
 import com.google.common.primitives.Primitives;
 import com.google.common.reflect.TypeToken;
 import java.lang.reflect.InvocationTargetException;
@@ -209,5 +214,24 @@ public final class Utils {
             hexChars[j * 2 + 1] = hexArray[v & 0x0F];
         }
         return new String(hexChars);
+    }
+
+   public static void adaptShellPermissionIfRequired(Context context) throws Throwable {
+      if (context.getApplicationContext().getApplicationInfo().targetSdkVersion >= 29
+          && Build.VERSION.SDK_INT >= 29) {
+        Log.d("Elevating permission require to enable support for privileged operation in Android Q+");
+        UiAutomation uia = InstrumentationRegistry.getInstrumentation().getUiAutomation();
+        uia.adoptShellPermissionIdentity();
+        try {
+          Class<?> cls = Class.forName("android.app.UiAutomation");
+          Method destroyMethod = cls.getDeclaredMethod("destroy");
+          destroyMethod.invoke(uia);
+        } catch (NoSuchMethodException
+            | IllegalAccessException
+            | ClassNotFoundException
+            | InvocationTargetException e) {
+          throw new RuntimeException("Failed to cleaup Ui Automation", e);
+        }
+      }
     }
 }
