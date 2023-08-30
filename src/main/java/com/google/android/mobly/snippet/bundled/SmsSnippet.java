@@ -107,7 +107,13 @@ public class SmsSnippet implements Snippet {
                             /* intent= */ new Intent(SMS_SENT_ACTION),
                             /* flags= */ PendingIntent.FLAG_IMMUTABLE);
             receiver.setExpectedMessageCount(1);
-            mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION));
+            if (Build.VERSION.SDK_INT >= 33) {
+                mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION), null,
+                    null,
+                    Context.RECEIVER_EXPORTED);
+            } else {
+                mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION));
+            }
             mSmsManager.sendTextMessage(
                     /* destinationAddress= */ phoneNumber,
                     /* scAddress= */ null,
