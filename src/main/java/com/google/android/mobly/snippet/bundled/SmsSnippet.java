@@ -84,7 +84,13 @@ public class SmsSnippet implements Snippet {
         if (message.length() > MAX_CHAR_COUNT_PER_SMS) {
             ArrayList<String> parts = mSmsManager.divideMessage(message);
             receiver.setExpectedMessageCount(parts.size());
-            mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION));
+            if (Build.VERSION.SDK_INT >= 33) {
+                mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION), null,
+                        null,
+                        Context.RECEIVER_EXPORTED);
+            } else {
+                mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION));
+            }
             mSmsManager.sendMultipartTextMessage(
                     /* destinationAddress= */ phoneNumber,
                     /* scAddress= */ null,
@@ -107,7 +113,13 @@ public class SmsSnippet implements Snippet {
                             /* intent= */ new Intent(SMS_SENT_ACTION),
                             /* flags= */ PendingIntent.FLAG_IMMUTABLE);
             receiver.setExpectedMessageCount(1);
-            mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION));
+            if (Build.VERSION.SDK_INT >= 33) {
+                mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION), null,
+                    null,
+                    Context.RECEIVER_EXPORTED);
+            } else {
+                mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION));
+            }
             mSmsManager.sendTextMessage(
                     /* destinationAddress= */ phoneNumber,
                     /* scAddress= */ null,
