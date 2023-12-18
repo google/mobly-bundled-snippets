@@ -20,6 +20,7 @@ public class PairingBroadcastReceiver extends BroadcastReceiver {
         Utils.adaptShellPermissionIfRequired(mContext);
     }
 
+    @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
         if (action.equals(BluetoothDevice.ACTION_PAIRING_REQUEST)) {
