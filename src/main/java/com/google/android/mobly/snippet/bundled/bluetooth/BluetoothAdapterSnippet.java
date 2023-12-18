@@ -343,7 +343,7 @@ public class BluetoothAdapterSnippet implements Snippet {
             throws BluetoothAdapterSnippetException, InterruptedException, JSONException {
         ArrayList<Bundle> pairedDevices = new ArrayList<>();
         for (BluetoothDevice device : mBluetoothAdapter.getBondedDevices()) {
-            pairedDevices.add(mJsonSerializer.serializeBluetoothDevice(device));
+            pairedDevices.add(JsonSerializer.serializeBluetoothDevice(device));
         }
         return pairedDevices;
     }
