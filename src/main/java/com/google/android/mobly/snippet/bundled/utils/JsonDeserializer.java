@@ -101,7 +101,8 @@ public class JsonDeserializer {
             JSONObject manufacturerData = jsonObject.getJSONObject("ManufacturerData");
             int manufacturerId = manufacturerData.getInt("ManufacturerId");
             byte[] manufacturerSpecificData =
-                    Base64.decode(jsonObject.getString("ManufacturerSpecificData"), Base64.DEFAULT);
+                    Base64.decode(
+                            manufacturerData.getString("ManufacturerSpecificData"), Base64.DEFAULT);
             builder.addManufacturerData(manufacturerId, manufacturerSpecificData);
         }
         return builder.build();
