@@ -47,7 +47,7 @@ public class TelephonySnippet implements Snippet {
                     "Gets the call state for the default subscription. Call state values are"
                             + "0: IDLE, 1: RINGING, 2: OFFHOOK")
     public int getTelephonyCallState() {
-        return mTelephonyManager.getCallState();
+        return mTelephonyManager.getCallStateForSubscription();
     }
 
     @Rpc(
