@@ -47,7 +47,11 @@ public class TelephonySnippet implements Snippet {
                     "Gets the call state for the default subscription. Call state values are"
                             + "0: IDLE, 1: RINGING, 2: OFFHOOK")
     public int getTelephonyCallState() {
-        return mTelephonyManager.getCallState();
+        if (Build.VERSION.SDK_INT < 31) {
+            return mTelephonyManager.getCallState();
+        } else {
+            return mTelephonyManager.getCallStateForSubscription();
+        }
     }
 
     @Rpc(
@@ -55,7 +59,11 @@ public class TelephonySnippet implements Snippet {
                     "Returns a constant indicating the radio technology (network type) currently"
                             + "in use on the device for data transmission.")
     public int getDataNetworkType() {
-      return mTelephonyManager.getDataNetworkType();
+        if (Build.VERSION.SDK_INT < 30) {
+            return mTelephonyManager.getNetworkType();
+        } else {
+            return mTelephonyManager.getDataNetworkType();
+        }
     }
 
     @Rpc(
