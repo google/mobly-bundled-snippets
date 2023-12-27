@@ -55,7 +55,11 @@ public class TelephonySnippet implements Snippet {
                     "Returns a constant indicating the radio technology (network type) currently"
                             + "in use on the device for data transmission.")
     public int getDataNetworkType() {
-      return mTelephonyManager.getDataNetworkType();
+        if (Build.VERSION.SDK_INT < 31) {
+            return mTelephonyManager.getDataNetworkType();
+        } else {
+            return mTelephonyManager.getCallStateForSubscription();
+        }
     }
 
     @Rpc(
