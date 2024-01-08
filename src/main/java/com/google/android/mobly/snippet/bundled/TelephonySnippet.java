@@ -47,7 +47,7 @@ public class TelephonySnippet implements Snippet {
     public String getLine1Number(@RpcDefault("0") Integer simSlot) {
         String thisNumber = "";
 
-        if (Build.VERSION.SDK_INT < 33 || simSlot == null) {
+        if (Build.VERSION.SDK_INT < 33) {
             thisNumber = mTelephonyManager.getLine1Number();
         } else {
             SubscriptionInfo mSubscriptionInfo =
@@ -77,7 +77,7 @@ public class TelephonySnippet implements Snippet {
 
         if (Build.VERSION.SDK_INT < 31) {
             return mTelephonyManager.getCallState();
-        } else if (simSlot != null) {
+        } else {
             SubscriptionInfo mSubscriptionInfo =
                     mSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(
                             simSlot.intValue());
@@ -87,8 +87,6 @@ public class TelephonySnippet implements Snippet {
                                 .createForSubscriptionId(mSubscriptionInfo.getSubscriptionId())
                                 .getCallStateForSubscription();
             }
-        } else {
-            thisState = mTelephonyManager.getCallState();
         }
 
         return thisState;
