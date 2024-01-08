@@ -42,16 +42,17 @@ public class TelephonySnippet implements Snippet {
 
     @Rpc(
             description =
-                    "Gets the line 1 phone number, or optionally get phone number for the " +
-                            "simSlot (slot# start from 0, only valid for API level > 32)")
-    public String getLine1Number(@RpcDefault("0") int simSlot) {
+                    "Gets the line 1 phone number, or optionally get phone number for the "
+                            + "simSlot (slot# start from 0, only valid for API level > 32)")
+    public String getLine1Number(@RpcDefault("0") Integer simSlot) {
         String thisNumber = "";
 
-        if (Build.VERSION.SDK_INT < 33) {
+        if (Build.VERSION.SDK_INT < 33 || simSlot == null) {
             thisNumber = mTelephonyManager.getLine1Number();
         } else {
             SubscriptionInfo mSubscriptionInfo =
-                    mSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(simSlot);
+                    mSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(
+                            simSlot.intValue());
             if (mSubscriptionInfo != null) {
                 thisNumber =
                         mSubscriptionManager.getPhoneNumber(mSubscriptionInfo.getSubscriptionId());
@@ -68,23 +69,26 @@ public class TelephonySnippet implements Snippet {
 
     @Rpc(
             description =
-                    "Gets the call state for the default subscription or optionally get the call" +
-                            " state for the simSlot (slot# start from 0, only valid for API" +
-                            " level > 30). Call state values are 0: IDLE, 1: RINGING, 2: OFFHOOK")
-    public int getTelephonyCallState(@RpcDefault("0") int simSlot) {
+                    "Gets the call state for the default subscription or optionally get the call"
+                            + " state for the simSlot (slot# start from 0, only valid for API"
+                            + " level > 30). Call state values are 0: IDLE, 1: RINGING, 2: OFFHOOK")
+    public int getTelephonyCallState(@RpcDefault("0") Integer simSlot) {
         int thisState = -1;
 
         if (Build.VERSION.SDK_INT < 31) {
             return mTelephonyManager.getCallState();
-        } else {
+        } else if (simSlot != null) {
             SubscriptionInfo mSubscriptionInfo =
-                    mSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(simSlot);
+                    mSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(
+                            simSlot.intValue());
             if (mSubscriptionInfo != null) {
                 thisState =
                         mTelephonyManager
                                 .createForSubscriptionId(mSubscriptionInfo.getSubscriptionId())
                                 .getCallStateForSubscription();
             }
+        } else {
+            thisState = mTelephonyManager.getCallState();
         }
 
         return thisState;
