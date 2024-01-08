@@ -29,12 +29,12 @@ allprojects {
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 31
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.google.android.mobly.snippet.bundled"
-        minSdkVersion 26
-        targetSdkVersion 31
+        minSdk 26
+        targetSdk 33
         versionCode 1
         versionName "0.0.1"
         setProperty("archivesBaseName", "mobly-bundled-snippets")
