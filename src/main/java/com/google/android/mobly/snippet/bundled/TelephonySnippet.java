@@ -24,7 +24,7 @@ import android.telephony.TelephonyManager;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
-import com.google.android.mobly.snippet.rpc.RpcOptional;
+import com.google.android.mobly.snippet.rpc.RpcDefault;
 
 /** Snippet class for telephony RPCs. */
 public class TelephonySnippet implements Snippet {
@@ -35,19 +35,26 @@ public class TelephonySnippet implements Snippet {
     public TelephonySnippet() {
         Context context = InstrumentationRegistry.getInstrumentation().getContext();
         mTelephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        mSubscriptionManager = (SubscriptionManager) context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
+        mSubscriptionManager =
+                (SubscriptionManager)
+                        context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
     }
 
-    @Rpc(description = "Gets the line 1 phone number, or optionally get phone number for the simSlot (slot# start from 0, only valid for API level > 32)")
-    public String getLine1Number(@RpcOptional Integer simSlot) {
+    @Rpc(
+            description =
+                    "Gets the line 1 phone number, or optionally get phone number for the " +
+                            "simSlot (slot# start from 0, only valid for API level > 32)")
+    public String getLine1Number(@RpcDefault("0") int simSlot) {
         String thisNumber = "";
 
-        if (Build.VERSION.SDK_INT < 33 || simSlot == null) {
+        if (Build.VERSION.SDK_INT < 33) {
             thisNumber = mTelephonyManager.getLine1Number();
-        } else{
-            SubscriptionInfo mSubscriptionInfo = mSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(simSlot.intValue());
+        } else {
+            SubscriptionInfo mSubscriptionInfo =
+                    mSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(simSlot);
             if (mSubscriptionInfo != null) {
-                thisNumber = mSubscriptionManager.getPhoneNumber(mSubscriptionInfo.getSubscriptionId());
+                thisNumber =
+                        mSubscriptionManager.getPhoneNumber(mSubscriptionInfo.getSubscriptionId());
             }
         }
 
@@ -61,23 +68,23 @@ public class TelephonySnippet implements Snippet {
 
     @Rpc(
             description =
-                    "Gets the call state for the default subscription or optionally get the call state for the simSlot (slot# start from 0, only valid for API level > 30)."
-                            + " Call state values are 0: IDLE, 1: RINGING, 2: OFFHOOK")
-    public int getTelephonyCallState(@RpcOptional Integer simSlot) {
+                    "Gets the call state for the default subscription or optionally get the call" +
+                            " state for the simSlot (slot# start from 0, only valid for API" +
+                            " level > 30). Call state values are 0: IDLE, 1: RINGING, 2: OFFHOOK")
+    public int getTelephonyCallState(@RpcDefault("0") int simSlot) {
         int thisState = -1;
 
         if (Build.VERSION.SDK_INT < 31) {
             return mTelephonyManager.getCallState();
-        } else if(simSlot != null){
-            SubscriptionInfo mSubscriptionInfo = mSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(simSlot.intValue());
+        } else {
+            SubscriptionInfo mSubscriptionInfo =
+                    mSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(simSlot);
             if (mSubscriptionInfo != null) {
                 thisState =
                         mTelephonyManager
                                 .createForSubscriptionId(mSubscriptionInfo.getSubscriptionId())
                                 .getCallStateForSubscription();
             }
-        }else{
-            thisState = mTelephonyManager.getCallStateForSubscription();
         }
 
         return thisState;
