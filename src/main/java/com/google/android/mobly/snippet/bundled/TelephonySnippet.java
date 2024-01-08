@@ -54,22 +54,6 @@ public class TelephonySnippet implements Snippet {
         return thisNumber;
     }
 
-    @Rpc(description = "Gets phone number for the simSlot (slot# start from 0, only valid for API level > 32)."
-                                + " API level <33 will always return phone number for simSlotIndex = 0")
-    public String getPhoneNumber(int simSlot) {
-        String thisNumber = "";
-
-        if (Build.VERSION.SDK_INT < 33) {
-            thisNumber = mTelephonyManager.getLine1Number();
-        } else {
-            SubscriptionInfo mSubscriptionInfo = mSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(simSlot);
-            if (mSubscriptionInfo != null) {
-                thisNumber = mSubscriptionManager.getPhoneNumber(mSubscriptionInfo.getSubscriptionId());
-            }
-        }
-        return thisNumber;
-    }
-
     @Rpc(description = "Returns the unique subscriber ID, for example, the IMSI for a GSM phone.")
     public String getSubscriberId() {
         return mTelephonyManager.getSubscriberId();
