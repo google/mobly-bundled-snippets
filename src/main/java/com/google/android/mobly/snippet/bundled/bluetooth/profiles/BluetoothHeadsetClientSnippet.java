@@ -1,6 +1,21 @@
+/*
+ * Copyright (C) 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package com.google.android.mobly.snippet.bundled.bluetooth.profiles;
 
-import android.annotation.TargetApi;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -16,8 +31,10 @@ import android.os.Build;
 import android.os.Bundle;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
-import com.bosch.giftdroid.snippet.bundled.utils.JsonSerializer;
-import com.bosch.giftdroid.snippet.bundled.utils.Utils;
+import com.google.android.mobly.snippet.bundled.bluetooth.BluetoothAdapterSnippet;
+import com.google.android.mobly.snippet.bundled.bluetooth.PairingBroadcastReceiver;
+import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
+import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.rpc.RpcMinSdk;
 import java.util.ArrayList;
@@ -94,7 +111,7 @@ public class BluetoothHeadsetClientSnippet implements Snippet {
     }
 
     @Rpc(description = "Set connection policy for HFP profile.")
-    public boolean btheadsetClientset(String Name, int connectionPolicy) {
+    public boolean btheadsetClientset(String name, int connectionPolicy) {
         Log.d(TAG, "btheadsetClientset");
         if (mBluetoothHeadsetClient == null) {
             android.util.Log.d(TAG, "btheadsetClientset mBluetoothHeadsetClient is NULL");
@@ -102,7 +119,7 @@ public class BluetoothHeadsetClientSnippet implements Snippet {
         } else {
             Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
             for (BluetoothDevice device : pairedDevices) {
-                if (device.getName().equalsIgnoreCase(Name)) {
+                if (device.getName().equalsIgnoreCase(name)) {
                     boolean status = mBluetoothHeadsetClient.setConnectionPolicy(device, connectionPolicy);
                     Log.d(TAG, "btheadsetClientset status:" + status);
                     return status;
@@ -113,11 +130,11 @@ public class BluetoothHeadsetClientSnippet implements Snippet {
     }
 
     @Rpc(description = "Connects to remote device.")
-    public boolean btHfpcconnect(String Name) {
+    public boolean btHfpconnect(String name) {
         Log.d(TAG, "btHfpcconnect");
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         for (BluetoothDevice device : pairedDevices) {
-            if (device.getName().equalsIgnoreCase(Name)) {
+            if (device.getName().equalsIgnoreCase(name)) {
                 boolean status = mBluetoothHeadsetClient.connect(device);
                 Log.d(TAG, "btHfpcconnect status:" + status);
                 return status;
@@ -126,12 +143,12 @@ public class BluetoothHeadsetClientSnippet implements Snippet {
         return false;
     }
 
-    @Rpc(description = "disConnects to remote device.")
-    public boolean btHfpcdisconnect(String Name) {
+    @Rpc(description = "disconnects to remote device.")
+    public boolean btHfpdisconnect(String name) {
         Log.d(TAG, "btHfpcdisconnect");
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         for (BluetoothDevice device : pairedDevices) {
-            if (device.getName().equalsIgnoreCase(Name)) {
+            if (device.getName().equalsIgnoreCase(name)) {
                 boolean status = mBluetoothHeadsetClient.disconnect(device);
                 Log.d(TAG, "btHfpcdisconnect status:" + status);
                 return status;
@@ -141,11 +158,11 @@ public class BluetoothHeadsetClientSnippet implements Snippet {
     }
 
     @Rpc(description = " Returns connection state.")
-    public int btHfpgetConnectionState(String Name) {
+    public int btHfpgetConnectionState(String name) {
         Log.d(TAG, "btHfpgetConnectionState");
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         for (BluetoothDevice device : pairedDevices) {
-            if (device.getName().equalsIgnoreCase(Name)) {
+            if (device.getName().equalsIgnoreCase(name)) {
                 Log.d(TAG, "btHfpgetConnectionState");
                 return mBluetoothHeadsetClient.getConnectionState(device);
             }
@@ -154,10 +171,10 @@ public class BluetoothHeadsetClientSnippet implements Snippet {
     }
 
     @Rpc(description = "Starts voice recognition.")
-    public boolean btHfpstartVoiceRecognition(String Name) {
+    public boolean btHfpstartVoiceRecognition(String name) {
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         for (BluetoothDevice device : pairedDevices) {
-            if (device.getName().equalsIgnoreCase(Name)) {
+            if (device.getName().equalsIgnoreCase(name)) {
                 return mBluetoothHeadsetClient.startVoiceRecognition(device);
             }
         }
@@ -165,10 +182,10 @@ public class BluetoothHeadsetClientSnippet implements Snippet {
     }
 
     @Rpc(description = "Stops voice recognition.")
-    public boolean btHfpstopVoiceRecognition(String Name) {
+    public boolean btHfpstopVoiceRecognition(String name) {
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         for (BluetoothDevice device : pairedDevices) {
-            if (device.getName().equalsIgnoreCase(Name)) {
+            if (device.getName().equalsIgnoreCase(name)) {
                 return mBluetoothHeadsetClient.stopVoiceRecognition(device);
             }
         }
