@@ -30,6 +30,7 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
+import com.google.android.mobly.snippet.util.Log;
 import com.google.android.mobly.snippet.rpc.Rpc;
 
 import java.util.ArrayList;
@@ -55,20 +56,20 @@ public class BluetoothHeadsetSnippet implements Snippet {
         }
     }
 
-    private static boolean sIsHFPProfileReady = false;
+    private boolean sIsHFPProfileReady = false;
     private Context mContext;
     private BluetoothHeadset mBluetoothHeadset;
     private static final int HEADSET = 1;
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
     private static final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-    private BluetoothDevice mBluetoothConnectedDevice;
+
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            android.util.Log.d("action",action);
+            Log.d(action);
             if (Objects.equals(action, BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED)){
-                android.util.Log.d("Connection State ",action);
+                Log.d(action);
             }
         }
     };
