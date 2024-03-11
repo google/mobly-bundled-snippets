@@ -18,41 +18,46 @@ package com.google.android.mobly.snippet.bundled.bluetooth.profiles;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothHeadset;
+import android.bluetooth.BluetoothProfile;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Build;
 import android.os.Bundle;
 import androidx.test.platform.app.InstrumentationRegistry;
+
 import com.google.android.mobly.snippet.Snippet;
-import com.google.android.mobly.snippet.bundled.bluetooth.BluetoothAdapterSnippet;
-import com.google.android.mobly.snippet.bundled.bluetooth.PairingBroadcastReceiver;
 import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
-import com.google.android.mobly.snippet.rpc.RpcMinSdk;
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.List;
-import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.Objects;
+import java.util.Set;
+
+/**
+ * Custom exception class for handling exceptions within the BluetoothHeadsetSnippet.
+ * This exception is meant to encapsulate and convey specific error information related to
+ * BluetoothHeadsetSnippet operations.
+ */
 public class BluetoothHeadsetSnippet implements Snippet {
     private static class BluetoothHeadsetSnippetException extends Exception {
         private static final long serialVersionUID = 1;
 
+        /**
+         * Constructs a BluetoothHeadsetSnippetException with the specified detail message.
+         *
+         * @param msg The detail message providing information about the exception.
+         */
         BluetoothHeadsetSnippetException(String msg) {
             super(msg);
         }
     }
 
-    private final String TAG = "BluetoothHeadsetSnippet";
     private static boolean sIsHFPProfileReady = false;
     private Context mContext;
     private BluetoothHeadset mBluetoothHeadset;
-    private BluetoothProfile.ServiceListener mServiceListenner;
     private static final int HEADSET = 1;
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
     private static final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -60,25 +65,23 @@ public class BluetoothHeadsetSnippet implements Snippet {
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "BroadcastReceiver onReceive");
             String action = intent.getAction();
-            android.util.Log.d(TAG, action);
-            if (BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
-                android.util.Log.d(TAG, action);
+            android.util.Log.d("action",action);
+            if (Objects.equals(action, BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED)){
+                android.util.Log.d("Connection State ",action);
             }
         }
     };
     private final BluetoothProfile.ServiceListener mProfileListener = new BluetoothProfile.ServiceListener() {
+        @Override
         public void onServiceConnected(int var1, BluetoothProfile profile) {
-            Log.d(TAG, "onServiceConnected" + var1);
             if (var1 == HEADSET) {
                 mBluetoothHeadset = (BluetoothHeadset)profile;
                 sIsHFPProfileReady = true;
             }
         }
-
+        @Override
         public void onServiceDisconnected(int var1) {
-            Log.d(TAG, "onServiceDisconnected" + var1);
             if (var1 == HEADSET) {
                 sIsHFPProfileReady = false;
                 mBluetoothHeadset = null;
@@ -87,7 +90,6 @@ public class BluetoothHeadsetSnippet implements Snippet {
     };
 
     public BluetoothHeadsetSnippet() {
-        Log.d(TAG, "BluetoothHeadsetSnippet");
         mContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         IntentFilter filter = new IntentFilter(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED);
@@ -97,43 +99,67 @@ public class BluetoothHeadsetSnippet implements Snippet {
     }
 
 
+    /**
+     * Returns the connection state for a Bluetooth device with the specified name.
+     *
+     * @param name The name of the Bluetooth device.
+     * @return The connection state for the specified device.
+     * @throws BluetoothHeadsetSnippetException If no device with the specified name is connected via HEADSET.
+     */
     @Rpc(description = " Returns connection state.")
-    public int btHfpgetConnectionState(String name) {
-        Log.d(TAG, "btHfpgetConnectionState");
+    public int btHfpgetConnectionState(String name) throws BluetoothHeadsetSnippetException {
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         for (BluetoothDevice device : pairedDevices) {
             if (device.getName().equalsIgnoreCase(name)) {
-                Log.d(TAG, "btHfpgetConnectionState");
                 return mBluetoothHeadset.getConnectionState(device);
             }
         }
-        return 0;
+        throw new BluetoothHeadsetSnippetException("No device with name " + name + " is connected via HEADSET.");
     }
 
+    /**
+     * Starts voice recognition for the Bluetooth device with the specified name.
+     *
+     * @param name The name of the Bluetooth device.
+     * @return True if voice recognition is successfully started; false otherwise.
+     * @throws BluetoothHeadsetSnippetException If no device with the specified name is found or if an error
+     *         occurs during the startVoiceRecognition operation.
+     */
     @Rpc(description = "Starts voice recognition.")
-    public boolean btHfpstartVoiceRecognition(String name) {
+    public boolean btHfpstartVoiceRecognition(String name) throws BluetoothHeadsetSnippetException{
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         for (BluetoothDevice device : pairedDevices) {
             if (device.getName().equalsIgnoreCase(name)) {
                 return mBluetoothHeadset.startVoiceRecognition(device);
             }
         }
-        return false;
+        throw new BluetoothHeadsetSnippetException("No device with name " + name + " is connected via HEADSET.");
     }
 
+
+    /**
+     * Stops voice recognition for the Bluetooth device with the specified name.
+     *
+     * @param name The name of the Bluetooth device.
+     * @return True if voice recognition is successfully started; false otherwise.
+     * @throws BluetoothHeadsetSnippetException If no device with the specified name is found or if an error
+     *         occurs during the startVoiceRecognition operation.
+     */
     @Rpc(description = "Stops voice recognition.")
-    public boolean btHfpstopVoiceRecognition(String name) {
+    public boolean btHfpstopVoiceRecognition(String name) throws BluetoothHeadsetSnippetException {
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         for (BluetoothDevice device : pairedDevices) {
             if (device.getName().equalsIgnoreCase(name)) {
                 return mBluetoothHeadset.stopVoiceRecognition(device);
             }
         }
-        return false;
+        throw new BluetoothHeadsetSnippetException("No device with name " + name + " is connected via HEADSET.");
+    }
+    @Rpc(description = "Gets all the devices currently connected via A2DP profile.")
+    public ArrayList<Bundle> btHfpGetConnectedDevices() {
+        return mJsonSerializer.serializeBluetoothDeviceList(mBluetoothHeadset.getConnectedDevices());
     }
 
     @Override
-    public void shutdown() {
-        Log.d(TAG, "shutdown");
-    }
+    public void shutdown() { }
 }
