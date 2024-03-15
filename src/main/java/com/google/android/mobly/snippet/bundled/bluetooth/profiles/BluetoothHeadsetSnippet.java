@@ -27,11 +27,11 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import androidx.test.platform.app.InstrumentationRegistry;
 
-import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
-import com.google.android.mobly.snippet.util.Log;
 import com.google.android.mobly.snippet.rpc.Rpc;
+import com.google.android.mobly.snippet.Snippet;
+import com.google.android.mobly.snippet.util.Log;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -43,6 +43,11 @@ import java.util.Set;
  * BluetoothHeadsetSnippet operations.
  */
 public class BluetoothHeadsetSnippet implements Snippet {
+
+    private final JsonSerializer mJsonSerializer = new JsonSerializer();
+    private static final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+    private final Context mContext = InstrumentationRegistry.getInstrumentation().getContext();
     private static class BluetoothHeadsetSnippetException extends Exception {
         private static final long serialVersionUID = 1;
 
@@ -57,11 +62,8 @@ public class BluetoothHeadsetSnippet implements Snippet {
     }
 
     private boolean sIsHFPProfileReady = false;
-    private Context mContext;
     private BluetoothHeadset mBluetoothHeadset;
     private static final int HEADSET = 1;
-    private final JsonSerializer mJsonSerializer = new JsonSerializer();
-    private static final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -91,7 +93,6 @@ public class BluetoothHeadsetSnippet implements Snippet {
     };
 
     public BluetoothHeadsetSnippet() {
-        mContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         IntentFilter filter = new IntentFilter(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED);
         mBluetoothAdapter.getProfileProxy(mContext, mProfileListener, HEADSET);
