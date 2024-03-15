@@ -103,60 +103,71 @@ public class BluetoothHeadsetSnippet implements Snippet {
     /**
      * Returns the connection state for a Bluetooth device with the specified name.
      *
-     * @param name The name of the Bluetooth device.
+     * @param deviceAddress The address of the Bluetooth device.
      * @return The connection state for the specified device.
      * @throws BluetoothHeadsetSnippetException If no device with the specified name is connected via HEADSET.
      */
-    @Rpc(description = " Returns connection state.")
-    public int btHfpgetConnectionState(String name) throws BluetoothHeadsetSnippetException {
+    @Rpc(description = "Returns connection state.")
+    public int btHfpGetConnectionState(String deviceAddress) throws BluetoothHeadsetSnippetException {
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         for (BluetoothDevice device : pairedDevices) {
-            if (device.getName().equalsIgnoreCase(name)) {
+            if (device.getAddress().equalsIgnoreCase(deviceAddress)) {
                 return mBluetoothHeadset.getConnectionState(device);
             }
         }
-        throw new BluetoothHeadsetSnippetException("No device with name " + name + " is connected via HEADSET.");
+        throw new BluetoothHeadsetSnippetException("No device with name " + deviceAddress +" is connected via HEADSET.");
     }
 
     /**
      * Starts voice recognition for the Bluetooth device with the specified name.
      *
-     * @param name The name of the Bluetooth device.
+     * @param deviceAddress The address of the Bluetooth device.
      * @return True if voice recognition is successfully started; false otherwise.
      * @throws BluetoothHeadsetSnippetException If no device with the specified name is found or if an error
      *         occurs during the startVoiceRecognition operation.
      */
     @Rpc(description = "Starts voice recognition.")
-    public boolean btHfpstartVoiceRecognition(String name) throws BluetoothHeadsetSnippetException{
+    public boolean btHfpStartVoiceRecognition(String deviceAddress) throws BluetoothHeadsetSnippetException{
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         for (BluetoothDevice device : pairedDevices) {
-            if (device.getName().equalsIgnoreCase(name)) {
+            if (device.getAddress().equalsIgnoreCase(deviceAddress)) {
                 return mBluetoothHeadset.startVoiceRecognition(device);
             }
         }
-        throw new BluetoothHeadsetSnippetException("No device with name " + name + " is connected via HEADSET.");
+        throw new BluetoothHeadsetSnippetException("No device with name " + deviceAddress +" is connected via HEADSET.");
     }
 
 
     /**
      * Stops voice recognition for the Bluetooth device with the specified name.
      *
-     * @param name The name of the Bluetooth device.
+     * @param deviceAddress The address of the Bluetooth device.
      * @return True if voice recognition is successfully started; false otherwise.
      * @throws BluetoothHeadsetSnippetException If no device with the specified name is found or if an error
      *         occurs during the startVoiceRecognition operation.
      */
     @Rpc(description = "Stops voice recognition.")
-    public boolean btHfpstopVoiceRecognition(String name) throws BluetoothHeadsetSnippetException {
+    public boolean btHfpStopVoiceRecognition(String deviceAddress) throws BluetoothHeadsetSnippetException {
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         for (BluetoothDevice device : pairedDevices) {
-            if (device.getName().equalsIgnoreCase(name)) {
+            if (device.getAddress().equalsIgnoreCase(deviceAddress)) {
                 return mBluetoothHeadset.stopVoiceRecognition(device);
             }
         }
-        throw new BluetoothHeadsetSnippetException("No device with name " + name + " is connected via HEADSET.");
+        throw new BluetoothHeadsetSnippetException("No device with name " + deviceAddress +" is connected via HEADSET.");
     }
-    @Rpc(description = "Gets all the devices currently connected via A2DP profile.")
+
+    @Rpc(description = "Checks whether the headset supports voice recognition;")
+    public boolean btHfpIsVoiceRecognitionSupported(String deviceAddress) throws BluetoothHeadsetSnippetException {
+        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+        for (BluetoothDevice device : pairedDevices) {
+            if (device.getAddress().equalsIgnoreCase(deviceAddress)) {
+                return mBluetoothHeadset.isVoiceRecognitionSupported(device);
+            }
+        }
+        throw new BluetoothHeadsetSnippetException("No device with name " + deviceAddress +" is connected via HEADSET.");
+    }
+    @Rpc(description = "Gets all the devices currently connected via HFP profile.")
     public ArrayList<Bundle> btHfpGetConnectedDevices() {
         return mJsonSerializer.serializeBluetoothDeviceList(mBluetoothHeadset.getConnectedDevices());
     }
