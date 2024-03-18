@@ -31,6 +31,7 @@ import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.Snippet;
+import com.google.android.mobly.snippet.bundled.bluetooth.PairingBroadcastReceiver;
 import com.google.android.mobly.snippet.util.Log;
 
 import java.util.ArrayList;
@@ -65,16 +66,6 @@ public class BluetoothHeadsetSnippet implements Snippet {
     private BluetoothHeadset mBluetoothHeadset;
     private static final int HEADSET = 1;
 
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            Log.d(action);
-            if (Objects.equals(action, BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED)){
-                Log.d(action);
-            }
-        }
-    };
     private final BluetoothProfile.ServiceListener mProfileListener = new BluetoothProfile.ServiceListener() {
         @Override
         public void onServiceConnected(int var1, BluetoothProfile profile) {
@@ -92,12 +83,12 @@ public class BluetoothHeadsetSnippet implements Snippet {
         }
     };
 
-    public BluetoothHeadsetSnippet() {
+    public BluetoothHeadsetSnippet() throws Throwable {
         IntentFilter filter = new IntentFilter(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED);
-        mBluetoothAdapter.getProfileProxy(mContext, mProfileListener, HEADSET);
+        mBluetoothAdapter.getProfileProxy(mContext, mProfileListener, BluetoothProfile.HEADSET);
         Utils.waitUntil(() -> sIsHFPProfileReady, 60);
-        mContext.registerReceiver(mReceiver, filter);
+        mContext.registerReceiver(new PairingBroadcastReceiver(mContext), filter);
     }
 
 
