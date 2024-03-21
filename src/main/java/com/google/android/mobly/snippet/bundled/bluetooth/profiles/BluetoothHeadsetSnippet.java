@@ -20,22 +20,19 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import com.google.android.mobly.snippet.Snippet;
+import com.google.android.mobly.snippet.bundled.bluetooth.PairingBroadcastReceiver;
 import com.google.android.mobly.snippet.bundled.utils.JsonSerializer;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
 import com.google.android.mobly.snippet.rpc.Rpc;
-import com.google.android.mobly.snippet.Snippet;
-import com.google.android.mobly.snippet.bundled.bluetooth.PairingBroadcastReceiver;
-import com.google.android.mobly.snippet.util.Log;
 
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -62,7 +59,6 @@ public class BluetoothHeadsetSnippet implements Snippet {
         }
     }
 
-    private boolean sIsHFPProfileReady = false;
     private BluetoothHeadset mBluetoothHeadset;
     private static final int HEADSET = 1;
 
@@ -71,13 +67,11 @@ public class BluetoothHeadsetSnippet implements Snippet {
         public void onServiceConnected(int var1, BluetoothProfile profile) {
             if (var1 == HEADSET) {
                 mBluetoothHeadset = (BluetoothHeadset)profile;
-                sIsHFPProfileReady = true;
             }
         }
         @Override
         public void onServiceDisconnected(int var1) {
             if (var1 == HEADSET) {
-                sIsHFPProfileReady = false;
                 mBluetoothHeadset = null;
             }
         }
@@ -87,7 +81,7 @@ public class BluetoothHeadsetSnippet implements Snippet {
         IntentFilter filter = new IntentFilter(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED);
         mBluetoothAdapter.getProfileProxy(mContext, mProfileListener, BluetoothProfile.HEADSET);
-        Utils.waitUntil(() -> sIsHFPProfileReady, 60);
+        Utils.waitUntil(() -> mBluetoothHeadset != null, 60);
         mContext.registerReceiver(new PairingBroadcastReceiver(mContext), filter);
     }
 
