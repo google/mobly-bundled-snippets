@@ -100,6 +100,7 @@ public class BluetoothA2dpSnippet implements Snippet {
     public boolean btIsA2dpPlaying(String deviceAddress) throws Throwable {
         BluetoothDevice device = getConnectedBluetoothDevice(deviceAddress);
         return sA2dpProfile.isA2dpPlaying(device);
+
     }
 
     private BluetoothDevice getConnectedBluetoothDevice(String deviceAddress)
