@@ -59,47 +59,57 @@ public class WifiManagerSnippet implements Snippet {
 
     private static final int TIMEOUT_TOGGLE_STATE = 30;
     private final WifiManager mWifiManager;
+    private final ConnectivityManager mConnectivityManager;
     private final Context mContext;
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
     private volatile boolean mIsScanResultAvailable = false;
-    private final AtomicBoolean isInternetWifiConnectedAtomic = new AtomicBoolean(false);
+    private final AtomicBoolean mIsWifiConnected = new AtomicBoolean(false);
 
     public WifiManagerSnippet() throws Throwable {
         mContext = InstrumentationRegistry.getInstrumentation().getContext();
         mWifiManager =
                 (WifiManager)
                         mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        mConnectivityManager =
+                (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         Utils.adaptShellPermissionIfRequired(mContext);
-        registerNetworkStateCallback(mContext);
+        registerNetworkStateCallback();
     }
 
-    private void registerNetworkStateCallback(Context context) {
+    private void registerNetworkStateCallback() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            return;
+        return;
         }
-        ConnectivityManager connectivityManager =
-            (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        connectivityManager.registerNetworkCallback(
-            new NetworkRequest.Builder()
-                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-                .build(),
-            new ConnectivityManager.NetworkCallback() {
-            @Override
-            public void onAvailable(Network network) {
-                isInternetWifiConnectedAtomic.set(true);
-            }
 
-            @Override
-            public void onLost(Network network) {
-                isInternetWifiConnectedAtomic.set(false);
-            }
-        });
+        mConnectivityManager.registerNetworkCallback(
+            new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build(),
+            new ConnectivityManager.NetworkCallback() {
+                @Override
+                public void onAvailable(Network network) {
+                    mIsWifiConnected.set(true);
+                }
+
+                @Override
+                public void onLost(Network network) {
+                    mIsWifiConnected.set(false);
+                }
+            });
     }
 
-    @Rpc(description = "Checks if internet Wi-Fi is connected.")
-    public boolean isInternetWifiConnected() {
-        return isInternetWifiConnectedAtomic.get();
+    @Rpc(description = "Checks if Wi-Fi is connected.")
+    public boolean isWifiConnected() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return mWifiManager
+                    .getConnectionInfo()
+                    .getSupplicantState()
+                    .equals(SupplicantState.COMPLETED);
+        } else {
+            return mIsWifiConnected.get();
+        }
+    }
+
+    private boolean isWifiConnectedToSsid(String ssid) {
+        return mWifiManager.getConnectionInfo().getSSID().equals(ssid);
     }
 
     @Rpc(
@@ -223,23 +233,19 @@ public class WifiManagerSnippet implements Snippet {
         }
         return wifiGetCachedScanResults();
     }
-    
-    @Rpc(description ="Connects to a Wi-Fi network without internet check")
-    public void wifiConnectSimple(String ssid, @Nullable String password)
-        throws InterruptedException, JSONException, WifiManagerSnippetException {
-        wifiConnectSimpleWithInternetCheck(ssid, password, /* checkInternet= */ false);
-    }
 
-    @Rpc(description = "Connects to a Wi-Fi network with optional internet check.")
-    public void wifiConnectSimpleWithInternetCheck(String ssid, @Nullable String password,
-            boolean checkInternet)
-            throws InterruptedException, JSONException, WifiManagerSnippetException {
+  @Rpc(
+      description =
+          "Connects to a Wi-Fi network. This covers the common network types like open and "
+              + "WPA2.")
+  public void wifiConnectSimple(String ssid, @Nullable String password)
+      throws InterruptedException, JSONException, WifiManagerSnippetException {
         JSONObject config = new JSONObject();
         config.put("SSID", ssid);
         if (password != null) {
             config.put("password", password);
         }
-        wifiConnectWithInternetCheck(config, checkInternet);
+        wifiConnect(config);
     }
 
     /**
@@ -264,7 +270,7 @@ public class WifiManagerSnippet implements Snippet {
     }
 
     /**
-     * Connect to a Wi-Fi network without checking if internet is available.
+     * Connect to a Wi-Fi network.
      *
      * @param wifiNetworkConfig A JSON object that contains the info required to connect to a Wi-Fi
      *     network. It follows the fields of WifiConfiguration type, e.g. {"SSID": "myWifi",
@@ -273,25 +279,8 @@ public class WifiManagerSnippet implements Snippet {
      * @throws JSONException
      * @throws WifiManagerSnippetException
      */
-    @Rpc(description = "Connects to a Wi-Fi network without internet check.")
+    @Rpc(description = "Connects to a Wi-Fi network.")
     public void wifiConnect(JSONObject wifiNetworkConfig)
-            throws InterruptedException, JSONException, WifiManagerSnippetException {
-        wifiConnectWithInternetCheck(wifiNetworkConfig, /* checkInternet= */ false);
-    }
-
-    /**
-     * Connect to a Wi-Fi network and optionally check if internet is available.
-     *
-     * @param wifiNetworkConfig A JSON object that contains the info required to connect to a Wi-Fi
-     *     network. It follows the fields of WifiConfiguration type, e.g. {"SSID": "myWifi",
-     *     "password": "12345678"}.
-     * @throws InterruptedException
-     * @throws JSONException
-     * @throws WifiManagerSnippetException
-     */
-    @Rpc(description = "Connects to a Wi-Fi network with optional internet check.")
-    public void wifiConnectWithInternetCheck(JSONObject wifiNetworkConfig,
-            boolean checkInternet)
             throws InterruptedException, JSONException, WifiManagerSnippetException {
         Log.d("Got network config: " + wifiNetworkConfig);
         WifiConfiguration wifiConfig = JsonDeserializer.jsonToWifiConfig(wifiNetworkConfig);
@@ -330,29 +319,12 @@ public class WifiManagerSnippet implements Snippet {
             throw new WifiManagerSnippetException(
                     "Failed to reconnect to Wi-Fi network of ID: " + networkId);
         }
-        if (!checkInternet) {
-            if (!Utils.waitUntil(
-                () ->
-                    mWifiManager.getConnectionInfo().getSSID().equals(SSID)
-                        && mWifiManager.getConnectionInfo().getNetworkId() != -1 && mWifiManager
-                        .getConnectionInfo().getSupplicantState().equals(SupplicantState.COMPLETED),
-                90)) {
-                throw new WifiManagerSnippetException(
-                    String.format(
-                        "Failed to connect to '%s', timeout! Current connection: '%s'",
-                        wifiNetworkConfig, mWifiManager.getConnectionInfo().getSSID()));
-            }
-        } else {
-            if (!Utils.waitUntil(
-                () ->
-                    mWifiManager.getConnectionInfo().getSSID().equals(SSID)
-                        && isInternetWifiConnected(),
-                90)) {
-                throw new WifiManagerSnippetException(
-                    String.format(
-                        "Failed to connect to '%s', timeout! Current connection: '%s'",
-                        wifiNetworkConfig, mWifiManager.getConnectionInfo().getSSID()));
-            }
+
+        if (!Utils.waitUntil(() -> isWifiConnected() && isWifiConnectedToSsid(SSID), 90)) {
+            throw new WifiManagerSnippetException(
+                String.format(
+                    "Failed to connect to '%s', timeout! Current connection: '%s'",
+                    wifiNetworkConfig, mWifiManager.getConnectionInfo().getSSID()));
         }
         Log.d(
                 "Connected to network '"
