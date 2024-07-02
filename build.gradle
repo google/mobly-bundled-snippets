@@ -76,6 +76,7 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'com.google.guava:guava:31.0.1-jre'
     implementation 'com.google.errorprone:error_prone_annotations:2.15.0'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.10'
 
     testImplementation 'com.google.errorprone:error_prone_annotations:2.15.0'
     testImplementation 'com.google.guava:guava:31.0.1-jre'
