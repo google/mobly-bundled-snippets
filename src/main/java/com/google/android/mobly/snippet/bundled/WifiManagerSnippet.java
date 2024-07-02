@@ -414,9 +414,9 @@ public class WifiManagerSnippet implements Snippet {
             throw new WifiManagerSnippetException("Failed to initiate turning on Wi-Fi Soft AP.");
         }
         if (!Utils.waitUntil(() -> wifiIsApEnabled() == true, 60)) {
-      throw new WifiManagerSnippetException(
-          "Timed out after 60s waiting for Wi-Fi Soft AP state to turn on with configuration: "
-              + configuration);
+            throw new WifiManagerSnippetException(
+                    "Timed out after 60s waiting for Wi-Fi Soft AP state to turn on with configuration: "
+                            + configuration);
         }
     }
 
