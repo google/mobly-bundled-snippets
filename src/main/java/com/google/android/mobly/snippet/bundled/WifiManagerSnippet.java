@@ -20,7 +20,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkRequest;
 import android.net.wifi.ScanResult;
+import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -37,12 +42,10 @@ import com.google.android.mobly.snippet.rpc.RpcMinSdk;
 import com.google.android.mobly.snippet.util.Log;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import android.net.wifi.SupplicantState;
-
-import com.google.android.mobly.snippet.bundled.utils.Utils;
 
 /** Snippet class exposing Android APIs in WifiManager. */
 public class WifiManagerSnippet implements Snippet {
@@ -56,16 +59,57 @@ public class WifiManagerSnippet implements Snippet {
 
     private static final int TIMEOUT_TOGGLE_STATE = 30;
     private final WifiManager mWifiManager;
+    private final ConnectivityManager mConnectivityManager;
     private final Context mContext;
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
     private volatile boolean mIsScanResultAvailable = false;
+    private final AtomicBoolean mIsWifiConnected = new AtomicBoolean(false);
 
     public WifiManagerSnippet() throws Throwable {
         mContext = InstrumentationRegistry.getInstrumentation().getContext();
         mWifiManager =
                 (WifiManager)
                         mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        mConnectivityManager =
+                (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         Utils.adaptShellPermissionIfRequired(mContext);
+        registerNetworkStateCallback();
+    }
+
+    private void registerNetworkStateCallback() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+        return;
+        }
+
+        mConnectivityManager.registerNetworkCallback(
+            new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build(),
+            new ConnectivityManager.NetworkCallback() {
+                @Override
+                public void onAvailable(Network network) {
+                    mIsWifiConnected.set(true);
+                }
+
+                @Override
+                public void onLost(Network network) {
+                    mIsWifiConnected.set(false);
+                }
+            });
+    }
+
+    @Rpc(description = "Checks if Wi-Fi is connected.")
+    public boolean isWifiConnected() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return mWifiManager
+                    .getConnectionInfo()
+                    .getSupplicantState()
+                    .equals(SupplicantState.COMPLETED);
+        } else {
+            return mIsWifiConnected.get();
+        }
+    }
+
+    private boolean isWifiConnectedToSsid(String ssid) {
+        return mWifiManager.getConnectionInfo().getSSID().equals(ssid);
     }
 
     @Rpc(
@@ -190,12 +234,12 @@ public class WifiManagerSnippet implements Snippet {
         return wifiGetCachedScanResults();
     }
 
-    @Rpc(
-            description =
-                    "Connects to a Wi-Fi network. This covers the common network types like open and "
-                            + "WPA2.")
-    public void wifiConnectSimple(String ssid, @Nullable String password)
-            throws InterruptedException, JSONException, WifiManagerSnippetException {
+  @Rpc(
+      description =
+          "Connects to a Wi-Fi network. This covers the common network types like open and "
+              + "WPA2.")
+  public void wifiConnectSimple(String ssid, @Nullable String password)
+      throws InterruptedException, JSONException, WifiManagerSnippetException {
         JSONObject config = new JSONObject();
         config.put("SSID", ssid);
         if (password != null) {
@@ -224,6 +268,7 @@ public class WifiManagerSnippet implements Snippet {
         }
         return null;
     }
+
     /**
      * Connect to a Wi-Fi network.
      *
@@ -274,12 +319,8 @@ public class WifiManagerSnippet implements Snippet {
             throw new WifiManagerSnippetException(
                     "Failed to reconnect to Wi-Fi network of ID: " + networkId);
         }
-        if (!Utils.waitUntil(
-            () ->
-                mWifiManager.getConnectionInfo().getSSID().equals(SSID)
-                    && mWifiManager.getConnectionInfo().getNetworkId() != -1 && mWifiManager
-                    .getConnectionInfo().getSupplicantState().equals(SupplicantState.COMPLETED),
-            90)) {
+
+        if (!Utils.waitUntil(() -> isWifiConnected() && isWifiConnectedToSsid(SSID), 90)) {
             throw new WifiManagerSnippetException(
                 String.format(
                     "Failed to connect to '%s', timeout! Current connection: '%s'",
@@ -328,11 +369,11 @@ public class WifiManagerSnippet implements Snippet {
         return mJsonSerializer.toJson(mWifiManager.getConnectionInfo());
     }
 
-    @Rpc(
-            description =
-                    "Get the info from last successful DHCP request, which is a serialized DhcpInfo "
-                            + "object.")
-    public JSONObject wifiGetDhcpInfo() throws JSONException {
+  @Rpc(
+      description =
+          "Get the info from last successful DHCP request, which is a serialized DhcpInfo "
+              + "object.")
+  public JSONObject wifiGetDhcpInfo() throws JSONException {
         return mJsonSerializer.toJson(mWifiManager.getDhcpInfo());
     }
 
