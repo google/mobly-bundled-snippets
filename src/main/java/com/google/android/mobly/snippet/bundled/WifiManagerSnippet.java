@@ -109,7 +109,8 @@ public class WifiManagerSnippet implements Snippet {
     }
 
     private boolean isWifiConnectedToSsid(String ssid) {
-        return mWifiManager.getConnectionInfo().getSSID().equals(ssid);
+        return mWifiManager.getConnectionInfo().getSSID().equals(ssid)
+                || mWifiManager.getConnectionInfo().getSSID().equals(WifiManager.UNKNOWN_SSID);
     }
 
     @Rpc(
