@@ -56,7 +56,7 @@
                            com.google.android.mobly.snippet.bundled.bluetooth.profiles.BluetoothHeadsetSnippet,
                            com.google.android.mobly.snippet.bundled.BluetoothLeAdvertiserSnippet,
                            com.google.android.mobly.snippet.bundled.BluetoothLeScannerSnippet,
-                           com.google.android.mobly.snippet.bundled.ContentProviderOperationSnippet,
+                           com.google.android.mobly.snippet.bundled.ContactSnippet,
                            com.google.android.mobly.snippet.bundled.LogSnippet,
                            com.google.android.mobly.snippet.bundled.MediaSnippet,
                            com.google.android.mobly.snippet.bundled.NotificationSnippet,

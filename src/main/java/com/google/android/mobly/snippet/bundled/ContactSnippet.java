@@ -31,7 +31,7 @@ import com.google.android.mobly.snippet.rpc.RpcOptional;
 import java.util.ArrayList;
 
 /* Snippet class for operating contacts. */
-public class ContentProviderOperationSnippet implements Snippet {
+public class ContactSnippet implements Snippet {
 
     private static final String GOOGLE_ACCOUNT_TYPE = "com.google";
     private final Context context = InstrumentationRegistry.getInstrumentation().getContext();
@@ -40,7 +40,7 @@ public class ContentProviderOperationSnippet implements Snippet {
         "Add a contact with the given email address. If a Google account is specified, the"
             + " contact will be saved to that account; otherwise, it will be saved as a"
             + " device-only contact.")
-    public void addContact(String contactEmailAddress, @RpcOptional String accountEmailAddress)
+    public void contactAdd(String contactEmailAddress, @RpcOptional String accountEmailAddress)
         throws OperationApplicationException, RemoteException {
         ArrayList<ContentProviderOperation> contentProviderOperations = new ArrayList<>();
 
