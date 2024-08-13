@@ -64,23 +64,11 @@ public class ContactSnippet implements Snippet {
     // Apply the operations to the ContentProvider.
     context.getContentResolver()
         .applyBatch(ContactsContract.AUTHORITY, contentProviderOperations);
-
-    // Request a sync to the account.
-    if (accountEmailAddress != null) {
-      requestSync(accountEmailAddress);
-    }
   }
 
-  /**
-   * Requests an immediate synchronization of contact data for the specified Google account.
-   *
-   * <p>This method triggers a manual and expedited sync, ensuring that any changes to contacts
-   * associated with the account are promptly reflected on the device.</p>
-   *
-   * @param accountEmailAddress The email address of the Google account for which to request a
-   *     sync.
-   */
-  private void requestSync(String accountEmailAddress) {
+  @Rpc(description =
+      "Requests an immediate synchronization of contact data for the specified Google account.")
+  public void syncGoogleContacts(String accountEmailAddress) {
     Bundle settingsBundle = new Bundle();
     settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
     settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
