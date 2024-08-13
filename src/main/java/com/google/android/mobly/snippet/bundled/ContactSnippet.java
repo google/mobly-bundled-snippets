@@ -33,49 +33,62 @@ import java.util.ArrayList;
 /* Snippet class for operating contacts. */
 public class ContactSnippet implements Snippet {
 
-    private static final String GOOGLE_ACCOUNT_TYPE = "com.google";
-    private final Context context = InstrumentationRegistry.getInstrumentation().getContext();
+  private static final String GOOGLE_ACCOUNT_TYPE = "com.google";
+  private final Context context = InstrumentationRegistry.getInstrumentation().getContext();
 
-    @Rpc(description =
-        "Add a contact with the given email address. If a Google account is specified, the"
-            + " contact will be saved to that account; otherwise, it will be saved as a"
-            + " device-only contact.")
-    public void contactAdd(String contactEmailAddress, @RpcOptional String accountEmailAddress)
-        throws OperationApplicationException, RemoteException {
-        ArrayList<ContentProviderOperation> contentProviderOperations = new ArrayList<>();
+  @Rpc(description =
+      "Add a contact with the given email address. If a Google account is specified, the"
+          + " contact will be saved to that account; otherwise, it will be saved as a"
+          + " device-only contact.")
+  public void contactAdd(String contactEmailAddress, @RpcOptional String accountEmailAddress)
+      throws OperationApplicationException, RemoteException {
+    ArrayList<ContentProviderOperation> contentProviderOperations = new ArrayList<>();
 
-        // Specify where the new contact should be stored.
-        String accountType = accountEmailAddress == null ? null : GOOGLE_ACCOUNT_TYPE;
-        contentProviderOperations.add(
-            ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
-                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, accountType)
-                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, accountEmailAddress).build());
+    // Specify where the new contact should be stored.
+    String accountType = accountEmailAddress == null ? null : GOOGLE_ACCOUNT_TYPE;
+    contentProviderOperations.add(
+        ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
+            .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, accountType)
+            .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, accountEmailAddress).build());
 
-        // Specify data to associate with the new contact.
-        contentProviderOperations.add(
-            ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
-                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
-                .withValue(ContactsContract.Data.MIMETYPE,
-                    ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)
-                .withValue(ContactsContract.CommonDataKinds.Email.ADDRESS, contactEmailAddress)
-                .withValue(ContactsContract.CommonDataKinds.Email.TYPE,
-                    ContactsContract.CommonDataKinds.Email.TYPE_HOME).build());
+    // Specify data to associate with the new contact.
+    contentProviderOperations.add(
+        ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+            .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+            .withValue(ContactsContract.Data.MIMETYPE,
+                ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)
+            .withValue(ContactsContract.CommonDataKinds.Email.ADDRESS, contactEmailAddress)
+            .withValue(ContactsContract.CommonDataKinds.Email.TYPE,
+                ContactsContract.CommonDataKinds.Email.TYPE_HOME).build());
 
-        // Apply the operations to the ContentProvider.
-        context.getContentResolver()
-            .applyBatch(ContactsContract.AUTHORITY, contentProviderOperations);
+    // Apply the operations to the ContentProvider.
+    context.getContentResolver()
+        .applyBatch(ContactsContract.AUTHORITY, contentProviderOperations);
 
-        // Request a sync to the account.
-        if (accountEmailAddress != null) {
-            Bundle settingsBundle = new Bundle();
-            settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
-            settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
-            ContentResolver.requestSync(new Account(accountEmailAddress, GOOGLE_ACCOUNT_TYPE),
-                ContactsContract.AUTHORITY, settingsBundle);
-        }
+    // Request a sync to the account.
+    if (accountEmailAddress != null) {
+      requestSync(accountEmailAddress);
     }
+  }
 
-    @Override
-    public void shutdown() {
-    }
+  /**
+   * Requests an immediate synchronization of contact data for the specified Google account.
+   *
+   * <p>This method triggers a manual and expedited sync, ensuring that any changes to contacts
+   * associated with the account are promptly reflected on the device.</p>
+   *
+   * @param accountEmailAddress The email address of the Google account for which to request a
+   *     sync.
+   */
+  private void requestSync(String accountEmailAddress) {
+    Bundle settingsBundle = new Bundle();
+    settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+    settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+    ContentResolver.requestSync(new Account(accountEmailAddress, GOOGLE_ACCOUNT_TYPE),
+        ContactsContract.AUTHORITY, settingsBundle);
+  }
+
+  @Override
+  public void shutdown() {
+  }
 }
