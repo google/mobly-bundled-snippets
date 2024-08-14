@@ -19,8 +19,10 @@ package com.google.android.mobly.snippet.bundled;
 import android.accounts.Account;
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.OperationApplicationException;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
@@ -63,6 +65,21 @@ public class ContactSnippet implements Snippet {
         .applyBatch(ContactsContract.AUTHORITY, contentProviderOperations);
   }
 
+  @Rpc(description = "Remove a contact with the given email address.")
+  public void removeGoogleContact(String contactEmailAddress)
+      throws OperationApplicationException, RemoteException {
+    // Specify data to associate with the target contact to remove.
+    long contactId = getContactIdByEmail(contactEmailAddress);
+    ArrayList<ContentProviderOperation> contentProviderOperations = new ArrayList<>();
+    contentProviderOperations.add(
+        ContentProviderOperation.newDelete(
+                ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI, contactId))
+            .build());
+
+    // Apply the operations to the ContentProvider.
+    context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, contentProviderOperations);
+  }
+
   @Rpc(description =
       "Requests an immediate synchronization of contact data for the specified Google account.")
   public void syncGoogleContacts(String accountEmailAddress) {
@@ -73,7 +90,25 @@ public class ContactSnippet implements Snippet {
         ContactsContract.AUTHORITY, settingsBundle);
   }
 
-  @Override
-  public void shutdown() {
+  private long getContactIdByEmail(String emailAddress) throws OperationApplicationException {
+    try (Cursor cursor =
+        context
+            .getContentResolver()
+            .query(
+                ContactsContract.CommonDataKinds.Email.CONTENT_URI,
+                null,
+                ContactsContract.CommonDataKinds.Email.ADDRESS + " = ?",
+                new String[]{emailAddress},
+                null)) {
+      if (cursor != null && cursor.moveToFirst()) {
+        return cursor.getLong(
+            cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.CONTACT_ID));
+      }
+      throw new OperationApplicationException(
+          "The contact " + emailAddress + " doesn't appear to be saved on this device.");
+    }
   }
+
+  @Override
+  public void shutdown() {}
 }
