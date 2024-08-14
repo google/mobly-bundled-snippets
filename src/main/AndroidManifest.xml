@@ -36,6 +36,7 @@
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.READ_SYNC_SETTINGS"/>
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
     <uses-permission android:name="android.permission.SEND_SMS" />
@@ -55,6 +56,7 @@
                            com.google.android.mobly.snippet.bundled.bluetooth.profiles.BluetoothHeadsetSnippet,
                            com.google.android.mobly.snippet.bundled.BluetoothLeAdvertiserSnippet,
                            com.google.android.mobly.snippet.bundled.BluetoothLeScannerSnippet,
+                           com.google.android.mobly.snippet.bundled.ContactSnippet,
                            com.google.android.mobly.snippet.bundled.LogSnippet,
                            com.google.android.mobly.snippet.bundled.MediaSnippet,
                            com.google.android.mobly.snippet.bundled.NotificationSnippet,
