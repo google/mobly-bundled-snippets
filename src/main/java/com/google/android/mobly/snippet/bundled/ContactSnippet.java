@@ -27,7 +27,6 @@ import android.provider.ContactsContract;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
-import com.google.android.mobly.snippet.rpc.RpcOptional;
 import java.util.ArrayList;
 
 /* Snippet class for operating contacts. */
@@ -37,18 +36,16 @@ public class ContactSnippet implements Snippet {
   private final Context context = InstrumentationRegistry.getInstrumentation().getContext();
 
   @Rpc(description =
-      "Add a contact with the given email address. If a Google account is specified, the"
-          + " contact will be saved to that account; otherwise, it will be saved as a"
-          + " device-only contact.")
-  public void contactAdd(String contactEmailAddress, @RpcOptional String accountEmailAddress)
+      "Add a contact with the given email address. A Google account need to be specified, then the"
+          + " contact will be saved to that account.")
+  public void addGoogleContact(String contactEmailAddress, String accountEmailAddress)
       throws OperationApplicationException, RemoteException {
     ArrayList<ContentProviderOperation> contentProviderOperations = new ArrayList<>();
 
     // Specify where the new contact should be stored.
-    String accountType = accountEmailAddress == null ? null : GOOGLE_ACCOUNT_TYPE;
     contentProviderOperations.add(
         ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
-            .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, accountType)
+            .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, GOOGLE_ACCOUNT_TYPE)
             .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, accountEmailAddress).build());
 
     // Specify data to associate with the new contact.
