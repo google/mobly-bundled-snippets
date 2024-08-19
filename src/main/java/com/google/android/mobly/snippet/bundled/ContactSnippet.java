@@ -61,27 +61,23 @@ public class ContactSnippet implements Snippet {
                 ContactsContract.CommonDataKinds.Email.TYPE_HOME).build());
 
     // Apply the operations to the ContentProvider.
-    context.getContentResolver()
-        .applyBatch(ContactsContract.AUTHORITY, contentProviderOperations);
+    context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, contentProviderOperations);
   }
 
   @Rpc(description = "Remove a contact with the given email address.")
-  public void removeGoogleContact(String contactEmailAddress)
+  public void removeGoogleContact(String contactEmailAddress, String accountEmailAddress)
       throws OperationApplicationException, RemoteException {
     // Specify data to associate with the target contact to remove.
-    long contactId = getContactIdByEmail(contactEmailAddress);
+    long contactId = getContactIdByEmail(contactEmailAddress, accountEmailAddress);
     ArrayList<ContentProviderOperation> contentProviderOperations = new ArrayList<>();
-    contentProviderOperations.add(
-        ContentProviderOperation.newDelete(
-                ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI, contactId))
-            .build());
+    contentProviderOperations.add(ContentProviderOperation.newDelete(
+        ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI, contactId)).build());
 
     // Apply the operations to the ContentProvider.
     context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, contentProviderOperations);
   }
 
-  @Rpc(description =
-      "Requests an immediate synchronization of contact data for the specified Google account.")
+  @Rpc(description = "Requests an immediate synchronization of contact data for the specified Google account.")
   public void syncGoogleContacts(String accountEmailAddress) {
     Bundle settingsBundle = new Bundle();
     settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
@@ -90,25 +86,29 @@ public class ContactSnippet implements Snippet {
         ContactsContract.AUTHORITY, settingsBundle);
   }
 
-  private long getContactIdByEmail(String emailAddress) throws OperationApplicationException {
+  private long getContactIdByEmail(String emailAddress, String accountEmailAddress)
+      throws OperationApplicationException {
     try (Cursor cursor =
         context
             .getContentResolver()
             .query(
                 ContactsContract.CommonDataKinds.Email.CONTENT_URI,
                 null,
-                ContactsContract.CommonDataKinds.Email.ADDRESS + " = ?",
-                new String[]{emailAddress},
+                ContactsContract.CommonDataKinds.Email.ADDRESS + " = ?"
+                    + " AND "
+                    + ContactsContract.RawContacts.ACCOUNT_NAME + " = ?",
+                new String[]{emailAddress, accountEmailAddress},
                 null)) {
       if (cursor != null && cursor.moveToFirst()) {
         return cursor.getLong(
             cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.CONTACT_ID));
       }
       throw new OperationApplicationException(
-          "The contact " + emailAddress + " doesn't appear to be saved on this device.");
+          "The contact " + emailAddress + " doesn't appear to be saved on " + accountEmailAddress);
     }
   }
 
   @Override
-  public void shutdown() {}
+  public void shutdown() {
+  }
 }
