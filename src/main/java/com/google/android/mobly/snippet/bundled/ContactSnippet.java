@@ -37,9 +37,7 @@ public class ContactSnippet implements Snippet {
   private static final String GOOGLE_ACCOUNT_TYPE = "com.google";
   private final Context context = InstrumentationRegistry.getInstrumentation().getContext();
 
-  @Rpc(description =
-      "Add a contact with the given email address. A Google account need to be specified, then the"
-          + " contact will be saved to that account.")
+  @Rpc(description = "Add a contact to a Google account on the device.")
   public void addGoogleContact(String contactEmailAddress, String accountEmailAddress)
       throws OperationApplicationException, RemoteException {
     ArrayList<ContentProviderOperation> contentProviderOperations = new ArrayList<>();
@@ -64,7 +62,7 @@ public class ContactSnippet implements Snippet {
     context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, contentProviderOperations);
   }
 
-  @Rpc(description = "Remove a contact with the given email address.")
+  @Rpc(description = "Remove a contact from a Google account on the device")
   public void removeGoogleContact(String contactEmailAddress, String accountEmailAddress)
       throws OperationApplicationException, RemoteException {
     // Specify data to associate with the target contact to remove.
