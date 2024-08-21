@@ -34,14 +34,13 @@ public class WifiAwareManagerSnippet implements Snippet {
         }
     }
     private final Context mContext;
-    private final boolean mIsAwareSupported;
     WifiAwareManager mWifiAwareManager;
 
     public WifiAwareManagerSnippet() throws Throwable {
         mContext = InstrumentationRegistry.getInstrumentation().getContext();
-        mIsAwareSupported =
+        boolean isAwareSupported =
             mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_WIFI_AWARE);
-        if (mIsAwareSupported) {
+        if (isAwareSupported) {
             mWifiAwareManager = (WifiAwareManager) mContext.getSystemService(Context.WIFI_AWARE_SERVICE);
         }
         Utils.adaptShellPermissionIfRequired(mContext);
@@ -50,7 +49,7 @@ public class WifiAwareManagerSnippet implements Snippet {
     /** Checks if Aware is available. This could return false if WiFi or location is disabled. */
     @Rpc(description = "check if Aware is available.")
     public boolean wifiAwareIsAvailable() throws WifiAwareManagerSnippetException {
-        if (!mIsAwareSupported || mWifiAwareManager == null) {
+        if (mWifiAwareManager == null) {
             throw new WifiAwareManagerSnippetException(
                     "WifiAware is not supported in this device");
         }
