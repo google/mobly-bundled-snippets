@@ -397,7 +397,7 @@ public class WifiManagerSnippet implements Snippet {
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP)
     @Rpc(description = "check if TDLS is supported).")
-    public boolean isTdlsSupported() {
+    public boolean wifiIsTdlsSupported() {
         return mWifiManager.isTdlsSupported();
     }
 

@@ -42,7 +42,7 @@ public class WifiAwareManagerSnippet implements Snippet {
 
   /** Checks if Aware is available. This could return false if WiFi or location is disabled. */
   @Rpc(description = "check if Aware is available.")
-  public boolean isAwareAvailable() throws Throwable {
+  public boolean wifiAwareIsAvailable() throws Throwable {
     if (!mIsAwareSupported || mWifiAwareManager == null) {
       return false;
     }
