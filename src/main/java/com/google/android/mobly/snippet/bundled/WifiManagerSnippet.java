@@ -20,6 +20,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -390,6 +391,14 @@ public class WifiManagerSnippet implements Snippet {
                             + "Turn on Wi-Fi before calling.")
     public boolean wifiIs5GHzBandSupported() {
         return mWifiManager.is5GHzBandSupported();
+    }
+
+    /** Checks if TDLS is supported. */
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP)
+    @Rpc(description = "check if TDLS is supported).")
+    public boolean isTdlsSupported() {
+        return mWifiManager.isTdlsSupported();
     }
 
     /**
