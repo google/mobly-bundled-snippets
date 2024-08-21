@@ -27,7 +27,6 @@ import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 import android.net.wifi.ScanResult;
 import android.net.wifi.SupplicantState;
-import android.net.wifi.aware.WifiAwareManager;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -400,17 +399,6 @@ public class WifiManagerSnippet implements Snippet {
     @Rpc(description = "check if TDLS is supported).")
     public boolean isTdlsSupported() {
         return mWifiManager.isTdlsSupported();
-    }
-
-     /** Checks if Aware is available. This could return false if WiFi or location is disabled. */
-    @Rpc(description = "check if Aware is available.")
-    public boolean isAwareAvailable() throws Throwable {
-        if (!mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_WIFI_AWARE)){
-            return false;
-        }
-        WifiAwareManager wifiAwareManager =
-                (WifiAwareManager) mContext.getSystemService(Context.WIFI_AWARE_SERVICE);
-        return wifiAwareManager.isAvailable();
     }
 
     /**
