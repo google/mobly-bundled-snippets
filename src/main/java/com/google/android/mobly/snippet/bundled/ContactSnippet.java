@@ -17,6 +17,7 @@
 package com.google.android.mobly.snippet.bundled;
 
 import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -34,12 +35,22 @@ import java.util.ArrayList;
 /* Snippet class for operating contacts. */
 public class ContactSnippet implements Snippet {
 
+  public static class ContactSnippetException extends Exception {
+
+    ContactSnippetException(String msg) {
+      super(msg);
+    }
+  }
+
   private static final String GOOGLE_ACCOUNT_TYPE = "com.google";
   private final Context context = InstrumentationRegistry.getInstrumentation().getContext();
+  private final AccountManager mAccountManager = AccountManager.get(context);
 
-  @Rpc(description = "Add a contact to a Google account on the device.")
-  public void addGoogleContact(String contactEmailAddress, String accountEmailAddress)
-      throws OperationApplicationException, RemoteException {
+  @Rpc(description = "Add a contact with a given email address to a Google account on the device.")
+  public void contactAddToGoogleAccountByEmail(String contactEmailAddress,
+      String accountEmailAddress)
+      throws ContactSnippetException, OperationApplicationException, RemoteException {
+    isAccountExist(accountEmailAddress);
     ArrayList<ContentProviderOperation> contentProviderOperations = new ArrayList<>();
 
     // Specify where the new contact should be stored.
@@ -62,9 +73,12 @@ public class ContactSnippet implements Snippet {
     context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, contentProviderOperations);
   }
 
-  @Rpc(description = "Remove a contact from a Google account on the device")
-  public void removeGoogleContact(String contactEmailAddress, String accountEmailAddress)
-      throws OperationApplicationException, RemoteException {
+  @Rpc(description = "Remove a contact with a given email address from a Google account on the device")
+  public void contactRemoveFromGoogleAccountByEmail(String contactEmailAddress,
+      String accountEmailAddress)
+      throws ContactSnippetException, OperationApplicationException, RemoteException {
+    isAccountExist(accountEmailAddress);
+
     // Specify data to associate with the target contact to remove.
     long contactId = getContactIdByEmail(contactEmailAddress, accountEmailAddress);
     ArrayList<ContentProviderOperation> contentProviderOperations = new ArrayList<>();
@@ -104,6 +118,17 @@ public class ContactSnippet implements Snippet {
       throw new OperationApplicationException(
           "The contact " + emailAddress + " doesn't appear to be saved on " + accountEmailAddress);
     }
+  }
+
+  private void isAccountExist(String emailAddress) throws ContactSnippetException {
+    Account[] accounts = mAccountManager.getAccountsByType(GOOGLE_ACCOUNT_TYPE);
+    for (Account account : accounts) {
+      if (account.name.equals(emailAddress)) {
+        return;
+      }
+    }
+    throw new ContactSnippetException(
+        "The account " + emailAddress + " doesn't appear to be login on the device");
   }
 
   @Override
