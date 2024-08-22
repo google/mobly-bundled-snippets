@@ -17,10 +17,13 @@
 package com.google.android.mobly.snippet.bundled;
 
 import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.OperationApplicationException;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
@@ -32,14 +35,22 @@ import java.util.ArrayList;
 /* Snippet class for operating contacts. */
 public class ContactSnippet implements Snippet {
 
+  public static class ContactSnippetException extends Exception {
+
+    ContactSnippetException(String msg) {
+      super(msg);
+    }
+  }
+
   private static final String GOOGLE_ACCOUNT_TYPE = "com.google";
   private final Context context = InstrumentationRegistry.getInstrumentation().getContext();
+  private final AccountManager mAccountManager = AccountManager.get(context);
 
-  @Rpc(description =
-      "Add a contact with the given email address. A Google account need to be specified, then the"
-          + " contact will be saved to that account.")
-  public void addGoogleContact(String contactEmailAddress, String accountEmailAddress)
-      throws OperationApplicationException, RemoteException {
+  @Rpc(description = "Add a contact with a given email address to a Google account on the device.")
+  public void contactAddToGoogleAccountByEmail(String contactEmailAddress,
+      String accountEmailAddress)
+      throws ContactSnippetException, OperationApplicationException, RemoteException {
+    assertAccountExists(accountEmailAddress);
     ArrayList<ContentProviderOperation> contentProviderOperations = new ArrayList<>();
 
     // Specify where the new contact should be stored.
@@ -59,18 +70,65 @@ public class ContactSnippet implements Snippet {
                 ContactsContract.CommonDataKinds.Email.TYPE_HOME).build());
 
     // Apply the operations to the ContentProvider.
-    context.getContentResolver()
-        .applyBatch(ContactsContract.AUTHORITY, contentProviderOperations);
+    context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, contentProviderOperations);
   }
 
-  @Rpc(description =
-      "Requests an immediate synchronization of contact data for the specified Google account.")
+  @Rpc(description = "Remove a contact with a given email address from a Google account on the device")
+  public void contactRemoveFromGoogleAccountByEmail(String contactEmailAddress,
+      String accountEmailAddress)
+      throws ContactSnippetException, OperationApplicationException, RemoteException {
+    assertAccountExists(accountEmailAddress);
+
+    // Specify data to associate with the target contact to remove.
+    long contactId = getContactIdByEmail(contactEmailAddress, accountEmailAddress);
+    ArrayList<ContentProviderOperation> contentProviderOperations = new ArrayList<>();
+    contentProviderOperations.add(ContentProviderOperation.newDelete(
+        ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI, contactId)).build());
+
+    // Apply the operations to the ContentProvider.
+    context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, contentProviderOperations);
+  }
+
+  @Rpc(description = "Requests an immediate synchronization of contact data for the specified Google account.")
   public void syncGoogleContacts(String accountEmailAddress) {
     Bundle settingsBundle = new Bundle();
     settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
     settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
     ContentResolver.requestSync(new Account(accountEmailAddress, GOOGLE_ACCOUNT_TYPE),
         ContactsContract.AUTHORITY, settingsBundle);
+  }
+
+  private long getContactIdByEmail(String emailAddress, String accountEmailAddress)
+      throws OperationApplicationException {
+    try (Cursor cursor =
+        context
+            .getContentResolver()
+            .query(
+                ContactsContract.CommonDataKinds.Email.CONTENT_URI,
+                null,
+                ContactsContract.CommonDataKinds.Email.ADDRESS + " = ?"
+                    + " AND "
+                    + ContactsContract.RawContacts.ACCOUNT_NAME + " = ?",
+                new String[]{emailAddress, accountEmailAddress},
+                null)) {
+      if (cursor != null && cursor.moveToFirst()) {
+        return cursor.getLong(
+            cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.CONTACT_ID));
+      }
+      throw new OperationApplicationException(
+          "The contact " + emailAddress + " doesn't appear to be saved on " + accountEmailAddress);
+    }
+  }
+
+  private void assertAccountExists(String emailAddress) throws ContactSnippetException {
+    Account[] accounts = mAccountManager.getAccountsByType(GOOGLE_ACCOUNT_TYPE);
+    for (Account account : accounts) {
+      if (account.name.equals(emailAddress)) {
+        return;
+      }
+    }
+    throw new ContactSnippetException(
+        "The account " + emailAddress + " doesn't appear to be login on the device");
   }
 
   @Override
