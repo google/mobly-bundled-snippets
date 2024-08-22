@@ -50,7 +50,7 @@ public class ContactSnippet implements Snippet {
   public void contactAddToGoogleAccountByEmail(String contactEmailAddress,
       String accountEmailAddress)
       throws ContactSnippetException, OperationApplicationException, RemoteException {
-    isAccountExist(accountEmailAddress);
+    assertAccountExists(accountEmailAddress);
     ArrayList<ContentProviderOperation> contentProviderOperations = new ArrayList<>();
 
     // Specify where the new contact should be stored.
@@ -77,7 +77,7 @@ public class ContactSnippet implements Snippet {
   public void contactRemoveFromGoogleAccountByEmail(String contactEmailAddress,
       String accountEmailAddress)
       throws ContactSnippetException, OperationApplicationException, RemoteException {
-    isAccountExist(accountEmailAddress);
+    assertAccountExists(accountEmailAddress);
 
     // Specify data to associate with the target contact to remove.
     long contactId = getContactIdByEmail(contactEmailAddress, accountEmailAddress);
@@ -120,7 +120,7 @@ public class ContactSnippet implements Snippet {
     }
   }
 
-  private void isAccountExist(String emailAddress) throws ContactSnippetException {
+  private void assertAccountExists(String emailAddress) throws ContactSnippetException {
     Account[] accounts = mAccountManager.getAccountsByType(GOOGLE_ACCOUNT_TYPE);
     for (Account account : accounts) {
       if (account.name.equals(emailAddress)) {
