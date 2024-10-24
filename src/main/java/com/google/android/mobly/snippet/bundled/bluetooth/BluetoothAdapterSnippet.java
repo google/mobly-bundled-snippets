@@ -65,6 +65,8 @@ public class BluetoothAdapterSnippet implements Snippet {
     private static final int BT_MATCHING_STATE_INTERVAL_SEC = 5;
     // Default timeout in seconds.
     private static final int TIMEOUT_TOGGLE_STATE_SEC = 30;
+    // Default timeout in milliseconds for UI update.
+    private static final long TIMEOUT_UI_UPDATE_MS = 2000;
     private final Context mContext;
     private final PackageManager mPackageManager;
     private static final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -139,7 +141,7 @@ public class BluetoothAdapterSnippet implements Snippet {
             mContext.startActivity(enableIntent);
             // Clicks the "ALLOW" button.
             BySelector allowButtonSelector = By.text(TEXT_PATTERN_ALLOW).clickable(true);
-            uiDevice.wait(Until.findObject(allowButtonSelector), 10);
+            uiDevice.wait(Until.findObject(allowButtonSelector), TIMEOUT_UI_UPDATE_MS);
             uiDevice.findObject(allowButtonSelector).click();
         } else if (!mBluetoothAdapter.enable()) {
             throw new BluetoothAdapterSnippetException("Failed to start enabling bluetooth.");
@@ -268,12 +270,12 @@ public class BluetoothAdapterSnippet implements Snippet {
             if (mPackageManager.hasSystemFeature(PackageManager.FEATURE_WATCH)) {
                 // Clicks the "OK" button.
                 BySelector okButtonSelector = By.desc(TEXT_PATTERN_OK).clickable(true);
-                uiDevice.wait(Until.findObject(okButtonSelector), 10);
+                uiDevice.wait(Until.findObject(okButtonSelector), TIMEOUT_UI_UPDATE_MS);
                 uiDevice.findObject(okButtonSelector).click();
             } else {
                 // Clicks the "ALLOW" button.
                 BySelector allowButtonSelector = By.text(TEXT_PATTERN_ALLOW).clickable(true);
-                uiDevice.wait(Until.findObject(allowButtonSelector), 10);
+                uiDevice.wait(Until.findObject(allowButtonSelector), TIMEOUT_UI_UPDATE_MS);
                 uiDevice.findObject(allowButtonSelector).click();
             }
         } else if (Build.VERSION.SDK_INT >= 30) {
