@@ -56,7 +56,7 @@ public class UtilsTest {
         List<?> sampleList = Collections.singletonList("sampleList");
         ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
         Object ret = invokeByReflection(hostClass, "returnSame", sampleList);
-        Truth.assertThat(ret).isSameAs(sampleList);
+        Truth.assertThat(ret).isEqualTo(sampleList);
     }
 
     @Test
@@ -87,11 +87,11 @@ public class UtilsTest {
         Object arg2 = new Object();
         Object ret =
                 invokeByReflection(hostClass, "multiArgCall", arg1, arg2, true /* returnArg1 */);
-        Truth.assertThat(ret).isSameAs(arg1);
+        Truth.assertThat(ret).isEqualTo(arg1);
         ret =
                 Utils.invokeByReflection(
                         hostClass, "multiArgCall", arg1, arg2, false /* returnArg1 */);
-        Truth.assertThat(ret).isSameAs(arg2);
+        Truth.assertThat(ret).isEqualTo(arg2);
     }
 
     @Test
