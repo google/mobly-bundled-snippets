@@ -400,6 +400,12 @@ public class WifiManagerSnippet implements Snippet {
         return mWifiManager.isTdlsSupported();
     }
 
+    /** Checks if WiFi P2P is supported. */
+    @Rpc(description = "check if Wifi P2P is supported).")
+    public boolean wifiIsP2pSupported() {
+        return mWifiManager.isP2pSupported();
+    }
+
     /**
      * Enable Wi-Fi Soft AP (hotspot).
      *
