@@ -28,39 +28,39 @@ import java.io.IOException;
 /* Snippet class to control media playback. */
 public class MediaSnippet implements Snippet {
 
-    private final MediaPlayer mPlayer;
+  private final MediaPlayer mPlayer;
 
-    public MediaSnippet() {
-        mPlayer = new MediaPlayer();
+  public MediaSnippet() {
+    mPlayer = new MediaPlayer();
+  }
+
+  @Rpc(description = "Resets snippet media player to an idle state, regardless of current state.")
+  public void mediaReset() {
+    mPlayer.reset();
+  }
+
+  @Rpc(description = "Play an audio file stored at a specified file path in external storage.")
+  public void mediaPlayAudioFile(String mediaFilePath) throws IOException {
+    mediaReset();
+    if (Build.VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+      mPlayer.setAudioAttributes(
+          new AudioAttributes.Builder()
+              .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+              .setUsage(AudioAttributes.USAGE_MEDIA)
+              .build());
+    } else {
+      mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
     }
+    mPlayer.setDataSource(mediaFilePath);
+    mPlayer.prepare(); // Synchronous call blocks until the player is ready for playback.
+    mPlayer.start();
+  }
 
-    @Rpc(description = "Resets snippet media player to an idle state, regardless of current state.")
-    public void mediaReset() {
-        mPlayer.reset();
-    }
+  @Rpc(description = "Stops media playback.")
+  public void mediaStop() throws IOException {
+    mPlayer.stop();
+  }
 
-    @Rpc(description = "Play an audio file stored at a specified file path in external storage.")
-    public void mediaPlayAudioFile(String mediaFilePath) throws IOException {
-        mediaReset();
-        if (Build.VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-            mPlayer.setAudioAttributes(
-                    new AudioAttributes.Builder()
-                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                            .setUsage(AudioAttributes.USAGE_MEDIA)
-                            .build());
-        } else {
-            mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        }
-        mPlayer.setDataSource(mediaFilePath);
-        mPlayer.prepare(); // Synchronous call blocks until the player is ready for playback.
-        mPlayer.start();
-    }
-
-    @Rpc(description = "Stops media playback.")
-    public void mediaStop() throws IOException {
-        mPlayer.stop();
-    }
-
-    @Override
-    public void shutdown() {}
+  @Override
+  public void shutdown() {}
 }

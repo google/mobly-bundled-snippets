@@ -7,27 +7,27 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
-import com.google.android.mobly.snippet.util.Log;
 import com.google.android.mobly.snippet.bundled.utils.Utils;
+import com.google.android.mobly.snippet.util.Log;
 
 @TargetApi(Build.VERSION_CODES.KITKAT)
 public class PairingBroadcastReceiver extends BroadcastReceiver {
-    private final Context mContext;
-    public static IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_PAIRING_REQUEST);
+  private final Context mContext;
+  public static IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_PAIRING_REQUEST);
 
-    public PairingBroadcastReceiver(Context context) throws Throwable {
-        mContext = context;
-        Utils.adaptShellPermissionIfRequired(mContext);
-    }
+  public PairingBroadcastReceiver(Context context) throws Throwable {
+    mContext = context;
+    Utils.adaptShellPermissionIfRequired(mContext);
+  }
 
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        String action = intent.getAction();
-        if (action.equals(BluetoothDevice.ACTION_PAIRING_REQUEST)) {
-            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-            Log.d("Confirming pairing with device: " + device.getAddress());
-            device.setPairingConfirmation(true);
-            mContext.unregisterReceiver(this);
-        }
+  @Override
+  public void onReceive(Context context, Intent intent) {
+    String action = intent.getAction();
+    if (action.equals(BluetoothDevice.ACTION_PAIRING_REQUEST)) {
+      BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+      Log.d("Confirming pairing with device: " + device.getAddress());
+      device.setPairingConfirmation(true);
+      mContext.unregisterReceiver(this);
     }
+  }
 }

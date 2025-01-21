@@ -26,34 +26,34 @@ import com.google.android.mobly.snippet.rpc.Rpc;
 /** Snippet class exposing Android APIs in WifiAwareManager. */
 public class WifiAwareManagerSnippet implements Snippet {
 
-    private static class WifiAwareManagerSnippetException extends Exception {
-        private static final long serialVersionUID = 1;
+  private static class WifiAwareManagerSnippetException extends Exception {
+    private static final long serialVersionUID = 1;
 
-        public WifiAwareManagerSnippetException(String msg) {
-            super(msg);
-        }
+    public WifiAwareManagerSnippetException(String msg) {
+      super(msg);
     }
-    private final Context mContext;
-    private boolean mIsAwareSupported;
-    WifiAwareManager mWifiAwareManager;
+  }
 
-    public WifiAwareManagerSnippet() throws Throwable {
-        mContext = InstrumentationRegistry.getInstrumentation().getContext();
-        mIsAwareSupported =
-            mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_WIFI_AWARE);
-        if (mIsAwareSupported) {
-            mWifiAwareManager = (WifiAwareManager) mContext.getSystemService(Context.WIFI_AWARE_SERVICE);
-        }
-        Utils.adaptShellPermissionIfRequired(mContext);
-    }
+  private final Context mContext;
+  private boolean mIsAwareSupported;
+  WifiAwareManager mWifiAwareManager;
 
-    /** Checks if Aware is available. This could return false if WiFi or location is disabled. */
-    @Rpc(description = "check if Aware is available.")
-    public boolean wifiAwareIsAvailable() throws WifiAwareManagerSnippetException {
-        if (!mIsAwareSupported) {
-            throw new WifiAwareManagerSnippetException(
-                    "WifiAware is not supported in this device");
-        }
-        return mWifiAwareManager.isAvailable();
+  public WifiAwareManagerSnippet() throws Throwable {
+    mContext = InstrumentationRegistry.getInstrumentation().getContext();
+    mIsAwareSupported =
+        mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_WIFI_AWARE);
+    if (mIsAwareSupported) {
+      mWifiAwareManager = (WifiAwareManager) mContext.getSystemService(Context.WIFI_AWARE_SERVICE);
     }
+    Utils.adaptShellPermissionIfRequired(mContext);
+  }
+
+  /** Checks if Aware is available. This could return false if WiFi or location is disabled. */
+  @Rpc(description = "check if Aware is available.")
+  public boolean wifiAwareIsAvailable() throws WifiAwareManagerSnippetException {
+    if (!mIsAwareSupported) {
+      throw new WifiAwareManagerSnippetException("WifiAware is not supported in this device");
+    }
+    return mWifiAwareManager.isAvailable();
+  }
 }

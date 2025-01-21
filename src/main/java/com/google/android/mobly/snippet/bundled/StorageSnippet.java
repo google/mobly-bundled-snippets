@@ -22,16 +22,16 @@ import com.google.android.mobly.snippet.rpc.Rpc;
 
 public class StorageSnippet implements Snippet {
 
-    @Rpc(description = "Return the primary shared/external storage directory.")
-    public String storageGetExternalStorageDirectory() {
-        return Environment.getExternalStorageDirectory().getAbsolutePath();
-    }
+  @Rpc(description = "Return the primary shared/external storage directory.")
+  public String storageGetExternalStorageDirectory() {
+    return Environment.getExternalStorageDirectory().getAbsolutePath();
+  }
 
-    @Rpc(description = "Return the root of the \"system\" directory.")
-    public String storageGetRootDirectory() {
-        return Environment.getRootDirectory().getAbsolutePath();
-    }
+  @Rpc(description = "Return the root of the \"system\" directory.")
+  public String storageGetRootDirectory() {
+    return Environment.getRootDirectory().getAbsolutePath();
+  }
 
-    @Override
-    public void shutdown() {}
+  @Override
+  public void shutdown() {}
 }

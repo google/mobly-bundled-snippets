@@ -25,16 +25,14 @@ import com.google.android.mobly.snippet.rpc.RunOnUiThread;
 /** Snippet class exposing Android APIs related to creating notification on screen. */
 public class NotificationSnippet implements Snippet {
 
-    @RunOnUiThread
-    @Rpc(description = "Make a toast on screen.")
-    public void makeToast(String message) {
-        Toast.makeText(
-                        InstrumentationRegistry.getInstrumentation().getContext(),
-                        message,
-                        Toast.LENGTH_LONG)
-                .show();
-    }
+  @RunOnUiThread
+  @Rpc(description = "Make a toast on screen.")
+  public void makeToast(String message) {
+    Toast.makeText(
+            InstrumentationRegistry.getInstrumentation().getContext(), message, Toast.LENGTH_LONG)
+        .show();
+  }
 
-    @Override
-    public void shutdown() {}
+  @Override
+  public void shutdown() {}
 }

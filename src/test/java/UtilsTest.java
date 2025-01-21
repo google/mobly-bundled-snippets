@@ -26,95 +26,92 @@ import org.junit.Test;
 
 /** Tests for {@link com.google.android.mobly.snippet.bundled.utils.Utils} */
 public class UtilsTest {
-    public static final class ReflectionTest_HostClass {
-        public Object returnSame(List<String> arg) {
-            return arg;
-        }
-
-        public Object returnSame(int arg) {
-            return arg;
-        }
-
-        public Object multiArgCall(Object arg1, Object arg2, boolean returnArg1) {
-            if (returnArg1) {
-                return arg1;
-            }
-            return arg2;
-        }
-
-        public boolean returnTrue() {
-            return true;
-        }
-
-        public void throwsException() throws IOException {
-            throw new IOException("Example exception");
-        }
+  public static final class ReflectionTest_HostClass {
+    public Object returnSame(List<String> arg) {
+      return arg;
     }
 
-    @Test
-    public void testInvokeByReflection_Obj() throws Throwable {
-        List<?> sampleList = Collections.singletonList("sampleList");
-        ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
-        Object ret = invokeByReflection(hostClass, "returnSame", sampleList);
-        Truth.assertThat(ret).isEqualTo(sampleList);
+    public Object returnSame(int arg) {
+      return arg;
     }
 
-    @Test
-    public void testInvokeByReflection_Null() throws Throwable {
-        ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
-        Object ret = invokeByReflection(hostClass, "returnSame", (Object) null);
-        Truth.assertThat(ret).isNull();
+    public Object multiArgCall(Object arg1, Object arg2, boolean returnArg1) {
+      if (returnArg1) {
+        return arg1;
+      }
+      return arg2;
     }
 
-    @Test
-    public void testInvokeByReflection_NoArg() throws Throwable {
-        ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
-        boolean ret = (boolean) invokeByReflection(hostClass, "returnTrue");
-        Truth.assertThat(ret).isTrue();
+    public boolean returnTrue() {
+      return true;
     }
 
-    @Test
-    public void testInvokeByReflection_Primitive() throws Throwable {
-        ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
-        Object ret = invokeByReflection(hostClass, "returnSame", 5);
-        Truth.assertThat(ret).isEqualTo(5);
+    public void throwsException() throws IOException {
+      throw new IOException("Example exception");
     }
+  }
 
-    @Test
-    public void testInvokeByReflection_MultiArg() throws Throwable {
-        ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
-        Object arg1 = new Object();
-        Object arg2 = new Object();
-        Object ret =
-                invokeByReflection(hostClass, "multiArgCall", arg1, arg2, true /* returnArg1 */);
-        Truth.assertThat(ret).isEqualTo(arg1);
-        ret =
-                Utils.invokeByReflection(
-                        hostClass, "multiArgCall", arg1, arg2, false /* returnArg1 */);
-        Truth.assertThat(ret).isEqualTo(arg2);
-    }
+  @Test
+  public void testInvokeByReflection_Obj() throws Throwable {
+    List<?> sampleList = Collections.singletonList("sampleList");
+    ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
+    Object ret = invokeByReflection(hostClass, "returnSame", sampleList);
+    Truth.assertThat(ret).isEqualTo(sampleList);
+  }
 
-    @Test
-    public void testInvokeByReflection_NoMatch() throws Throwable {
-        ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
-        Truth.assertThat(List.class.isAssignableFrom(Object.class)).isFalse();
-        try {
-            invokeByReflection(hostClass, "returnSame", new Object());
-            Assert.fail();
-        } catch (NoSuchMethodException e) {
-            Truth.assertThat(e.getMessage())
-                    .contains("UtilsTest$ReflectionTest_HostClass#returnSame(Object)");
-        }
-    }
+  @Test
+  public void testInvokeByReflection_Null() throws Throwable {
+    ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
+    Object ret = invokeByReflection(hostClass, "returnSame", (Object) null);
+    Truth.assertThat(ret).isNull();
+  }
 
-    @Test
-    public void testInvokeByReflection_UnwrapException() throws Throwable {
-        ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
-        try {
-            invokeByReflection(hostClass, "throwsException");
-            Assert.fail();
-        } catch (IOException e) {
-            Truth.assertThat(e.getMessage()).isEqualTo("Example exception");
-        }
+  @Test
+  public void testInvokeByReflection_NoArg() throws Throwable {
+    ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
+    boolean ret = (boolean) invokeByReflection(hostClass, "returnTrue");
+    Truth.assertThat(ret).isTrue();
+  }
+
+  @Test
+  public void testInvokeByReflection_Primitive() throws Throwable {
+    ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
+    Object ret = invokeByReflection(hostClass, "returnSame", 5);
+    Truth.assertThat(ret).isEqualTo(5);
+  }
+
+  @Test
+  public void testInvokeByReflection_MultiArg() throws Throwable {
+    ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
+    Object arg1 = new Object();
+    Object arg2 = new Object();
+    Object ret = invokeByReflection(hostClass, "multiArgCall", arg1, arg2, true /* returnArg1 */);
+    Truth.assertThat(ret).isEqualTo(arg1);
+    ret = Utils.invokeByReflection(hostClass, "multiArgCall", arg1, arg2, false /* returnArg1 */);
+    Truth.assertThat(ret).isEqualTo(arg2);
+  }
+
+  @Test
+  public void testInvokeByReflection_NoMatch() throws Throwable {
+    ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
+    Truth.assertThat(List.class.isAssignableFrom(Object.class)).isFalse();
+    try {
+      invokeByReflection(hostClass, "returnSame", new Object());
+      Assert.fail();
+    } catch (NoSuchMethodException e) {
+      Truth.assertThat(e.getMessage())
+          .contains("UtilsTest$ReflectionTest_HostClass#returnSame(Object)");
     }
+  }
+
+  @Test
+  public void testInvokeByReflection_UnwrapException() throws Throwable {
+    ReflectionTest_HostClass hostClass = new ReflectionTest_HostClass();
+    try {
+      invokeByReflection(hostClass, "throwsException");
+      Assert.fail();
+    } catch (IOException e) {
+      Truth.assertThat(e.getMessage()).isEqualTo("Example exception");
+    }
+  }
 }

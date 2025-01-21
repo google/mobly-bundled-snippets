@@ -29,88 +29,85 @@ import com.google.android.mobly.snippet.rpc.RpcDefault;
 /** Snippet class for telephony RPCs. */
 public class TelephonySnippet implements Snippet {
 
-    private final TelephonyManager mTelephonyManager;
-    private final SubscriptionManager mSubscriptionManager;
+  private final TelephonyManager mTelephonyManager;
+  private final SubscriptionManager mSubscriptionManager;
 
-    public TelephonySnippet() {
-        Context context = InstrumentationRegistry.getInstrumentation().getContext();
-        mTelephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        mSubscriptionManager =
-                (SubscriptionManager)
-                        context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
+  public TelephonySnippet() {
+    Context context = InstrumentationRegistry.getInstrumentation().getContext();
+    mTelephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+    mSubscriptionManager =
+        (SubscriptionManager) context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
+  }
+
+  @Rpc(
+      description =
+          "Gets the line 1 phone number, or optionally get phone number for the "
+              + "simSlot (slot# start from 0, only valid for API level > 32)")
+  public String getLine1Number(@RpcDefault("0") Integer simSlot) {
+    String thisNumber = "";
+
+    if (Build.VERSION.SDK_INT < 33) {
+      thisNumber = mTelephonyManager.getLine1Number();
+    } else {
+      SubscriptionInfo mSubscriptionInfo =
+          mSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(simSlot.intValue());
+      if (mSubscriptionInfo != null) {
+        thisNumber = mSubscriptionManager.getPhoneNumber(mSubscriptionInfo.getSubscriptionId());
+      }
     }
 
-    @Rpc(
-            description =
-                    "Gets the line 1 phone number, or optionally get phone number for the "
-                            + "simSlot (slot# start from 0, only valid for API level > 32)")
-    public String getLine1Number(@RpcDefault("0") Integer simSlot) {
-        String thisNumber = "";
+    return thisNumber;
+  }
 
-        if (Build.VERSION.SDK_INT < 33) {
-            thisNumber = mTelephonyManager.getLine1Number();
-        } else {
-            SubscriptionInfo mSubscriptionInfo =
-                    mSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(
-                            simSlot.intValue());
-            if (mSubscriptionInfo != null) {
-                thisNumber =
-                        mSubscriptionManager.getPhoneNumber(mSubscriptionInfo.getSubscriptionId());
-            }
-        }
+  @Rpc(description = "Returns the unique subscriber ID, for example, the IMSI for a GSM phone.")
+  public String getSubscriberId() {
+    return mTelephonyManager.getSubscriberId();
+  }
 
-        return thisNumber;
+  @Rpc(
+      description =
+          "Gets the call state for the default subscription or optionally get the call"
+              + " state for the simSlot (slot# start from 0, only valid for API"
+              + " level > 30). Call state values are 0: IDLE, 1: RINGING, 2: OFFHOOK")
+  public int getTelephonyCallState(@RpcDefault("0") Integer simSlot) {
+    int thisState = -1;
+
+    if (Build.VERSION.SDK_INT < 31) {
+      return mTelephonyManager.getCallState();
+    } else {
+      SubscriptionInfo mSubscriptionInfo =
+          mSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(simSlot.intValue());
+      if (mSubscriptionInfo != null) {
+        thisState =
+            mTelephonyManager
+                .createForSubscriptionId(mSubscriptionInfo.getSubscriptionId())
+                .getCallStateForSubscription();
+      }
     }
 
-    @Rpc(description = "Returns the unique subscriber ID, for example, the IMSI for a GSM phone.")
-    public String getSubscriberId() {
-        return mTelephonyManager.getSubscriberId();
+    return thisState;
+  }
+
+  @Rpc(
+      description =
+          "Returns a constant indicating the radio technology (network type) currently"
+              + "in use on the device for data transmission.")
+  public int getDataNetworkType() {
+    if (Build.VERSION.SDK_INT < 30) {
+      return mTelephonyManager.getNetworkType();
+    } else {
+      return mTelephonyManager.getDataNetworkType();
     }
+  }
 
-    @Rpc(
-            description =
-                    "Gets the call state for the default subscription or optionally get the call"
-                            + " state for the simSlot (slot# start from 0, only valid for API"
-                            + " level > 30). Call state values are 0: IDLE, 1: RINGING, 2: OFFHOOK")
-    public int getTelephonyCallState(@RpcDefault("0") Integer simSlot) {
-        int thisState = -1;
+  @Rpc(
+      description =
+          "Returns a constant indicating the radio technology (network type) currently"
+              + "in use on the device for voice transmission.")
+  public int getVoiceNetworkType() {
+    return mTelephonyManager.getVoiceNetworkType();
+  }
 
-        if (Build.VERSION.SDK_INT < 31) {
-            return mTelephonyManager.getCallState();
-        } else {
-            SubscriptionInfo mSubscriptionInfo =
-                    mSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(
-                            simSlot.intValue());
-            if (mSubscriptionInfo != null) {
-                thisState =
-                        mTelephonyManager
-                                .createForSubscriptionId(mSubscriptionInfo.getSubscriptionId())
-                                .getCallStateForSubscription();
-            }
-        }
-
-        return thisState;
-    }
-
-    @Rpc(
-            description =
-                    "Returns a constant indicating the radio technology (network type) currently"
-                            + "in use on the device for data transmission.")
-    public int getDataNetworkType() {
-        if (Build.VERSION.SDK_INT < 30) {
-            return mTelephonyManager.getNetworkType();
-        } else {
-            return mTelephonyManager.getDataNetworkType();
-        }
-    }
-
-    @Rpc(
-            description =
-                    "Returns a constant indicating the radio technology (network type) currently"
-                            + "in use on the device for voice transmission.")
-    public int getVoiceNetworkType() {
-      return mTelephonyManager.getVoiceNetworkType();
-    }
-    @Override
-    public void shutdown() {}
+  @Override
+  public void shutdown() {}
 }

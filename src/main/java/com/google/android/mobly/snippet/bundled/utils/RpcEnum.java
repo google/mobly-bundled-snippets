@@ -28,63 +28,63 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
  * <p>Once built, an RpcEnum object is immutable.
  */
 public class RpcEnum {
-    private final ImmutableBiMap<String, Integer> enums;
+  private final ImmutableBiMap<String, Integer> enums;
 
-    private RpcEnum(ImmutableBiMap.Builder<String, Integer> builder) {
-        enums = builder.buildOrThrow();
+  private RpcEnum(ImmutableBiMap.Builder<String, Integer> builder) {
+    enums = builder.buildOrThrow();
+  }
+
+  /**
+   * Get the int value of an enum based on its String value.
+   *
+   * @param enumString
+   * @return int value
+   */
+  public int getInt(String enumString) {
+    Integer result = enums.get(enumString);
+    if (result == null) {
+      throw new NoSuchFieldError("No int value found for: " + enumString);
+    }
+    return result;
+  }
+
+  /**
+   * Get the String value of an enum based on its int value.
+   *
+   * @param enumInt
+   * @return string value
+   */
+  public String getString(int enumInt) {
+    String result = enums.inverse().get(enumInt);
+    if (result == null) {
+      return String.format("UNKNOWN_VALUE[%s].", enumInt);
+    }
+    return result;
+  }
+
+  /** Builder for RpcEnum. */
+  public static class Builder {
+    private final ImmutableBiMap.Builder<String, Integer> builder;
+
+    public Builder() {
+      builder = new ImmutableBiMap.Builder<>();
     }
 
     /**
-     * Get the int value of an enum based on its String value.
+     * Add an enum String-Integer pair.
      *
      * @param enumString
-     * @return int value
-     */
-    public int getInt(String enumString) {
-        Integer result = enums.get(enumString);
-        if (result == null) {
-            throw new NoSuchFieldError("No int value found for: " + enumString);
-        }
-        return result;
-    }
-
-    /**
-     * Get the String value of an enum based on its int value.
-     *
      * @param enumInt
-     * @return string value
+     * @return
      */
-    public String getString(int enumInt) {
-        String result = enums.inverse().get(enumInt);
-        if (result == null) {
-            return String.format("UNKNOWN_VALUE[%s].", enumInt);
-        }
-        return result;
+    @CanIgnoreReturnValue
+    public Builder add(String enumString, int enumInt) {
+      builder.put(enumString, enumInt);
+      return this;
     }
 
-    /** Builder for RpcEnum. */
-    public static class Builder {
-        private final ImmutableBiMap.Builder<String, Integer> builder;
-
-        public Builder() {
-            builder = new ImmutableBiMap.Builder<>();
-        }
-
-        /**
-         * Add an enum String-Integer pair.
-         *
-         * @param enumString
-         * @param enumInt
-         * @return
-         */
-        @CanIgnoreReturnValue
-        public Builder add(String enumString, int enumInt) {
-            builder.put(enumString, enumInt);
-            return this;
-        }
-
-        public RpcEnum build() {
-            return new RpcEnum(builder);
-        }
+    public RpcEnum build() {
+      return new RpcEnum(builder);
     }
+  }
 }

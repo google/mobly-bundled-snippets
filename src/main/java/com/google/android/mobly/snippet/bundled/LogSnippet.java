@@ -22,43 +22,43 @@ import com.google.android.mobly.snippet.rpc.Rpc;
 
 /** Snippet class exposing Android APIs related to logging. */
 public class LogSnippet implements Snippet {
-    private String mTag = "MoblyTestLog";
+  private String mTag = "MoblyTestLog";
 
-    @Rpc(description = "Set the tag to use for logX Rpcs. Default is 'MoblyTestLog'.")
-    public void logSetTag(String tag) {
-        mTag = tag;
-    }
+  @Rpc(description = "Set the tag to use for logX Rpcs. Default is 'MoblyTestLog'.")
+  public void logSetTag(String tag) {
+    mTag = tag;
+  }
 
-    @Rpc(description = "Log at info level.")
-    public void logI(String message) {
-        Log.i(mTag, message);
-    }
+  @Rpc(description = "Log at info level.")
+  public void logI(String message) {
+    Log.i(mTag, message);
+  }
 
-    @Rpc(description = "Log at debug level.")
-    public void logD(String message) {
-        Log.d(mTag, message);
-    }
+  @Rpc(description = "Log at debug level.")
+  public void logD(String message) {
+    Log.d(mTag, message);
+  }
 
-    @Rpc(description = "Log at error level.")
-    public void logE(String message) {
-        Log.e(mTag, message);
-    }
+  @Rpc(description = "Log at error level.")
+  public void logE(String message) {
+    Log.e(mTag, message);
+  }
 
-    @Rpc(description = "Log at warning level.")
-    public void logW(String message) {
-        Log.w(mTag, message);
-    }
+  @Rpc(description = "Log at warning level.")
+  public void logW(String message) {
+    Log.w(mTag, message);
+  }
 
-    @Rpc(description = "Log at verbose level.")
-    public void logV(String message) {
-        Log.v(mTag, message);
-    }
+  @Rpc(description = "Log at verbose level.")
+  public void logV(String message) {
+    Log.v(mTag, message);
+  }
 
-    @Rpc(description = "Log at WTF level.")
-    public void logWtf(String message) {
-        Log.wtf(mTag, message);
-    }
+  @Rpc(description = "Log at WTF level.")
+  public void logWtf(String message) {
+    Log.wtf(mTag, message);
+  }
 
-    @Override
-    public void shutdown() {}
+  @Override
+  public void shutdown() {}
 }

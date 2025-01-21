@@ -46,139 +46,134 @@ import org.json.JSONObject;
 /** Snippet class exposing Android APIs in WifiManager. */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
 public class BluetoothLeScannerSnippet implements Snippet {
-    private static class BluetoothLeScanSnippetException extends Exception {
-        private static final long serialVersionUID = 1;
+  private static class BluetoothLeScanSnippetException extends Exception {
+    private static final long serialVersionUID = 1;
 
-        public BluetoothLeScanSnippetException(String msg) {
-            super(msg);
-        }
+    public BluetoothLeScanSnippetException(String msg) {
+      super(msg);
     }
+  }
 
-    private final BluetoothLeScanner mScanner;
-    private final EventCache mEventCache = EventCache.getInstance();
-    private final HashMap<String, ScanCallback> mScanCallbacks = new HashMap<>();
-    private final JsonSerializer mJsonSerializer = new JsonSerializer();
-    private long bleScanStartTime = 0;
+  private final BluetoothLeScanner mScanner;
+  private final EventCache mEventCache = EventCache.getInstance();
+  private final HashMap<String, ScanCallback> mScanCallbacks = new HashMap<>();
+  private final JsonSerializer mJsonSerializer = new JsonSerializer();
+  private long bleScanStartTime = 0;
 
-    public BluetoothLeScannerSnippet() {
-        mScanner = BluetoothAdapter.getDefaultAdapter().getBluetoothLeScanner();
+  public BluetoothLeScannerSnippet() {
+    mScanner = BluetoothAdapter.getDefaultAdapter().getBluetoothLeScanner();
+  }
+
+  /**
+   * Start a BLE scan.
+   *
+   * @param callbackId
+   * @param scanFilters A JSONArray representing a list of {@link ScanFilter} object for finding
+   *     exact BLE devices. E.g.
+   *     <pre>
+   *          [
+   *            {
+   *              "ServiceUuid": (A string representation of {@link ParcelUuid}),
+   *            },
+   *          ]
+   *     </pre>
+   *
+   * @param scanSettings A JSONObject representing a {@link ScanSettings} object which is the
+   *     Settings for the scan. E.g.
+   *     <pre>
+   *          {
+   *            'ScanMode': 'SCAN_MODE_LOW_LATENCY',
+   *          }
+   *     </pre>
+   *
+   * @throws BluetoothLeScanSnippetException
+   */
+  @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP_MR1)
+  @AsyncRpc(description = "Start BLE scan.")
+  public void bleStartScan(
+      String callbackId, @RpcOptional JSONArray scanFilters, @RpcOptional JSONObject scanSettings)
+      throws BluetoothLeScanSnippetException, JSONException {
+    if (!BluetoothAdapter.getDefaultAdapter().isEnabled()) {
+      throw new BluetoothLeScanSnippetException("Bluetooth is disabled, cannot start BLE scan.");
     }
-
-    /**
-     * Start a BLE scan.
-     *
-     * @param callbackId
-     * @param scanFilters A JSONArray representing a list of {@link ScanFilter} object for finding
-     *     exact BLE devices. E.g.
-     *     <pre>
-     *          [
-     *            {
-     *              "ServiceUuid": (A string representation of {@link ParcelUuid}),
-     *            },
-     *          ]
-     *     </pre>
-     *
-     * @param scanSettings A JSONObject representing a {@link ScanSettings} object which is the
-     *     Settings for the scan. E.g.
-     *     <pre>
-     *          {
-     *            'ScanMode': 'SCAN_MODE_LOW_LATENCY',
-     *          }
-     *     </pre>
-     *
-     * @throws BluetoothLeScanSnippetException
-     */
-    @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP_MR1)
-    @AsyncRpc(description = "Start BLE scan.")
-    public void bleStartScan(
-            String callbackId,
-            @RpcOptional JSONArray scanFilters,
-            @RpcOptional JSONObject scanSettings)
-            throws BluetoothLeScanSnippetException, JSONException {
-        if (!BluetoothAdapter.getDefaultAdapter().isEnabled()) {
-            throw new BluetoothLeScanSnippetException(
-                    "Bluetooth is disabled, cannot start BLE scan.");
-        }
-        DefaultScanCallback callback = new DefaultScanCallback(callbackId);
-        if (scanFilters == null && scanSettings == null) {
-            mScanner.startScan(callback);
-        } else {
-            ArrayList<ScanFilter> filters = new ArrayList<>();
-            for (int i = 0; i < scanFilters.length(); i++) {
-                filters.add(JsonDeserializer.jsonToScanFilter(scanFilters.getJSONObject(i)));
-            }
-            ScanSettings settings = JsonDeserializer.jsonToScanSettings(scanSettings);
-            mScanner.startScan(filters, settings, callback);
-        }
-        bleScanStartTime = System.currentTimeMillis();
-        mScanCallbacks.put(callbackId, callback);
+    DefaultScanCallback callback = new DefaultScanCallback(callbackId);
+    if (scanFilters == null && scanSettings == null) {
+      mScanner.startScan(callback);
+    } else {
+      ArrayList<ScanFilter> filters = new ArrayList<>();
+      for (int i = 0; i < scanFilters.length(); i++) {
+        filters.add(JsonDeserializer.jsonToScanFilter(scanFilters.getJSONObject(i)));
+      }
+      ScanSettings settings = JsonDeserializer.jsonToScanSettings(scanSettings);
+      mScanner.startScan(filters, settings, callback);
     }
+    bleScanStartTime = System.currentTimeMillis();
+    mScanCallbacks.put(callbackId, callback);
+  }
 
-    /**
-     * Stop a BLE scan.
-     *
-     * @param callbackId The callbackId corresponding to the {@link
-     *     BluetoothLeScannerSnippet#bleStartScan} call that started the scan.
-     * @throws BluetoothLeScanSnippetException
-     */
-    @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP_MR1)
-    @Rpc(description = "Stop a BLE scan.")
-    public void bleStopScan(String callbackId) throws BluetoothLeScanSnippetException {
-        ScanCallback callback = mScanCallbacks.remove(callbackId);
-        if (callback == null) {
-            throw new BluetoothLeScanSnippetException("No ongoing scan with ID: " + callbackId);
-        }
-        mScanner.stopScan(callback);
+  /**
+   * Stop a BLE scan.
+   *
+   * @param callbackId The callbackId corresponding to the {@link
+   *     BluetoothLeScannerSnippet#bleStartScan} call that started the scan.
+   * @throws BluetoothLeScanSnippetException
+   */
+  @RpcMinSdk(Build.VERSION_CODES.LOLLIPOP_MR1)
+  @Rpc(description = "Stop a BLE scan.")
+  public void bleStopScan(String callbackId) throws BluetoothLeScanSnippetException {
+    ScanCallback callback = mScanCallbacks.remove(callbackId);
+    if (callback == null) {
+      throw new BluetoothLeScanSnippetException("No ongoing scan with ID: " + callbackId);
+    }
+    mScanner.stopScan(callback);
+  }
+
+  @Override
+  public void shutdown() {
+    for (ScanCallback callback : mScanCallbacks.values()) {
+      mScanner.stopScan(callback);
+    }
+    mScanCallbacks.clear();
+  }
+
+  private class DefaultScanCallback extends ScanCallback {
+    private final String mCallbackId;
+
+    public DefaultScanCallback(String callbackId) {
+      mCallbackId = callbackId;
     }
 
     @Override
-    public void shutdown() {
-        for (ScanCallback callback : mScanCallbacks.values()) {
-            mScanner.stopScan(callback);
-        }
-        mScanCallbacks.clear();
+    public void onScanResult(int callbackType, ScanResult result) {
+      Log.i("Got Bluetooth LE scan result.");
+      long bleScanOnResultTime = System.currentTimeMillis();
+      SnippetEvent event = new SnippetEvent(mCallbackId, "onScanResult");
+      String callbackTypeString = MbsEnums.BLE_SCAN_RESULT_CALLBACK_TYPE.getString(callbackType);
+      event.getData().putString("CallbackType", callbackTypeString);
+      event.getData().putBundle("result", mJsonSerializer.serializeBleScanResult(result));
+      event.getData().putLong("StartToResultTimeDeltaMs", bleScanOnResultTime - bleScanStartTime);
+      mEventCache.postEvent(event);
     }
 
-    private class DefaultScanCallback extends ScanCallback {
-        private final String mCallbackId;
-
-        public DefaultScanCallback(String callbackId) {
-            mCallbackId = callbackId;
-        }
-
-        @Override
-        public void onScanResult(int callbackType, ScanResult result) {
-            Log.i("Got Bluetooth LE scan result.");
-            long bleScanOnResultTime = System.currentTimeMillis();
-            SnippetEvent event = new SnippetEvent(mCallbackId, "onScanResult");
-            String callbackTypeString =
-                    MbsEnums.BLE_SCAN_RESULT_CALLBACK_TYPE.getString(callbackType);
-            event.getData().putString("CallbackType", callbackTypeString);
-            event.getData().putBundle("result", mJsonSerializer.serializeBleScanResult(result));
-            event.getData()
-                    .putLong("StartToResultTimeDeltaMs", bleScanOnResultTime - bleScanStartTime);
-            mEventCache.postEvent(event);
-        }
-
-        @Override
-        public void onBatchScanResults(List<ScanResult> results) {
-            Log.i("Got Bluetooth LE batch scan results.");
-            SnippetEvent event = new SnippetEvent(mCallbackId, "onBatchScanResult");
-            ArrayList<Bundle> resultList = new ArrayList<>(results.size());
-            for (ScanResult result : results) {
-                resultList.add(mJsonSerializer.serializeBleScanResult(result));
-            }
-            event.getData().putParcelableArrayList("results", resultList);
-            mEventCache.postEvent(event);
-        }
-
-        @Override
-        public void onScanFailed(int errorCode) {
-            Log.e("Bluetooth LE scan failed with error code: " + errorCode);
-            SnippetEvent event = new SnippetEvent(mCallbackId, "onScanFailed");
-            String errorCodeString = MbsEnums.BLE_SCAN_FAILED_ERROR_CODE.getString(errorCode);
-            event.getData().putString("ErrorCode", errorCodeString);
-            mEventCache.postEvent(event);
-        }
+    @Override
+    public void onBatchScanResults(List<ScanResult> results) {
+      Log.i("Got Bluetooth LE batch scan results.");
+      SnippetEvent event = new SnippetEvent(mCallbackId, "onBatchScanResult");
+      ArrayList<Bundle> resultList = new ArrayList<>(results.size());
+      for (ScanResult result : results) {
+        resultList.add(mJsonSerializer.serializeBleScanResult(result));
+      }
+      event.getData().putParcelableArrayList("results", resultList);
+      mEventCache.postEvent(event);
     }
+
+    @Override
+    public void onScanFailed(int errorCode) {
+      Log.e("Bluetooth LE scan failed with error code: " + errorCode);
+      SnippetEvent event = new SnippetEvent(mCallbackId, "onScanFailed");
+      String errorCodeString = MbsEnums.BLE_SCAN_FAILED_ERROR_CODE.getString(errorCode);
+      event.getData().putString("ErrorCode", errorCodeString);
+      mEventCache.postEvent(event);
+    }
+  }
 }

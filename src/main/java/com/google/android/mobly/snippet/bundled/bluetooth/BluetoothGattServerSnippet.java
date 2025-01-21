@@ -46,156 +46,154 @@ import org.json.JSONObject;
 
 /** Snippet class exposing Android APIs in BluetoothGattServer. */
 public class BluetoothGattServerSnippet implements Snippet {
-    private static class BluetoothGattServerSnippetException extends Exception {
-        private static final long serialVersionUID = 1;
+  private static class BluetoothGattServerSnippetException extends Exception {
+    private static final long serialVersionUID = 1;
 
-        public BluetoothGattServerSnippetException(String msg) {
-            super(msg);
-        }
+    public BluetoothGattServerSnippetException(String msg) {
+      super(msg);
     }
+  }
 
-    private final Context context;
-    private final BluetoothManager bluetoothManager;
-    private final DataHolder dataHolder;
-    private final EventCache eventCache;
+  private final Context context;
+  private final BluetoothManager bluetoothManager;
+  private final DataHolder dataHolder;
+  private final EventCache eventCache;
 
-    private BluetoothGattServer bluetoothGattServer;
+  private BluetoothGattServer bluetoothGattServer;
 
-    public BluetoothGattServerSnippet() {
-        context = InstrumentationRegistry.getInstrumentation().getContext();
-        bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
-        dataHolder = new DataHolder();
-        eventCache = EventCache.getInstance();
-    }
+  public BluetoothGattServerSnippet() {
+    context = InstrumentationRegistry.getInstrumentation().getContext();
+    bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+    dataHolder = new DataHolder();
+    eventCache = EventCache.getInstance();
+  }
 
-    @RpcMinSdk(VERSION_CODES.LOLLIPOP)
-    @AsyncRpc(description = "Start BLE server.")
-    public void bleStartServer(String callbackId, JSONArray services)
-            throws JSONException, DeadObjectException {
-        BluetoothGattServerCallback gattServerCallback =
-                new DefaultBluetoothGattServerCallback(callbackId);
-        bluetoothGattServer = bluetoothManager.openGattServer(context, gattServerCallback);
+  @RpcMinSdk(VERSION_CODES.LOLLIPOP)
+  @AsyncRpc(description = "Start BLE server.")
+  public void bleStartServer(String callbackId, JSONArray services)
+      throws JSONException, DeadObjectException {
+    BluetoothGattServerCallback gattServerCallback =
+        new DefaultBluetoothGattServerCallback(callbackId);
+    bluetoothGattServer = bluetoothManager.openGattServer(context, gattServerCallback);
+    addServiceToGattServer(services);
+  }
+
+  @RpcMinSdk(VERSION_CODES.LOLLIPOP)
+  @AsyncRpc(description = "Start BLE server with workaround.")
+  public void bleStartServerWithWorkaround(String callbackId, JSONArray services)
+      throws JSONException, DeadObjectException {
+    BluetoothGattServerCallback gattServerCallback =
+        new DefaultBluetoothGattServerCallback(callbackId);
+    boolean isGattServerStarted = false;
+    int count = 0;
+    while (!isGattServerStarted && count < 5) {
+      bluetoothGattServer = bluetoothManager.openGattServer(context, gattServerCallback);
+      if (bluetoothGattServer != null) {
         addServiceToGattServer(services);
+        isGattServerStarted = true;
+      } else {
+        SystemClock.sleep(1000);
+        count++;
+      }
     }
+  }
 
-    @RpcMinSdk(VERSION_CODES.LOLLIPOP)
-    @AsyncRpc(description = "Start BLE server with workaround.")
-    public void bleStartServerWithWorkaround(String callbackId, JSONArray services)
-            throws JSONException, DeadObjectException {
-        BluetoothGattServerCallback gattServerCallback =
-                new DefaultBluetoothGattServerCallback(callbackId);
-        boolean isGattServerStarted = false;
-        int count = 0;
-        while (!isGattServerStarted && count < 5) {
-            bluetoothGattServer = bluetoothManager.openGattServer(context, gattServerCallback);
-            if (bluetoothGattServer != null) {
-                addServiceToGattServer(services);
-                isGattServerStarted = true;
-            } else {
-                SystemClock.sleep(1000);
-                count++;
-            }
-        }
+  private void addServiceToGattServer(JSONArray services) throws JSONException {
+    for (int i = 0; i < services.length(); i++) {
+      JSONObject service = services.getJSONObject(i);
+      BluetoothGattService bluetoothGattService =
+          JsonDeserializer.jsonToBluetoothGattService(dataHolder, service);
+      bluetoothGattServer.addService(bluetoothGattService);
     }
+  }
 
-    private void addServiceToGattServer(JSONArray services) throws JSONException {
-        for (int i = 0; i < services.length(); i++) {
-            JSONObject service = services.getJSONObject(i);
-            BluetoothGattService bluetoothGattService =
-                    JsonDeserializer.jsonToBluetoothGattService(dataHolder, service);
-            bluetoothGattServer.addService(bluetoothGattService);
-        }
+  @RpcMinSdk(VERSION_CODES.LOLLIPOP)
+  @Rpc(description = "Stop BLE server.")
+  public void bleStopServer() throws BluetoothGattServerSnippetException {
+    if (bluetoothGattServer == null) {
+      throw new BluetoothGattServerSnippetException("BLE server is not initialized.");
     }
+    bluetoothGattServer.close();
+  }
 
-    @RpcMinSdk(VERSION_CODES.LOLLIPOP)
-    @Rpc(description = "Stop BLE server.")
-    public void bleStopServer() throws BluetoothGattServerSnippetException {
-        if (bluetoothGattServer == null) {
-            throw new BluetoothGattServerSnippetException("BLE server is not initialized.");
-        }
-        bluetoothGattServer.close();
-    }
+  private class DefaultBluetoothGattServerCallback extends BluetoothGattServerCallback {
+    private final String callbackId;
 
-    private class DefaultBluetoothGattServerCallback extends BluetoothGattServerCallback {
-        private final String callbackId;
-
-        DefaultBluetoothGattServerCallback(String callbackId) {
-            this.callbackId = callbackId;
-        }
-
-        @Override
-        public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
-            SnippetEvent event = new SnippetEvent(callbackId, "onConnectionStateChange");
-            event.getData().putBundle("device", JsonSerializer.serializeBluetoothDevice(device));
-            event.getData().putString("status", MbsEnums.BLE_STATUS_TYPE.getString(status));
-            event.getData().putString("newState", MbsEnums.BLE_CONNECT_STATUS.getString(newState));
-            eventCache.postEvent(event);
-        }
-
-        @Override
-        public void onServiceAdded(int status, BluetoothGattService service) {
-            Log.d("Bluetooth Gatt Server service added with status " + status);
-            SnippetEvent event = new SnippetEvent(callbackId, "onServiceAdded");
-            event.getData().putString("status", MbsEnums.BLE_STATUS_TYPE.getString(status));
-            event.getData()
-                    .putParcelable("Service",
-                                  JsonSerializer.serializeBluetoothGattService(service));
-            eventCache.postEvent(event);
-        }
-
-        @Override
-        public void onCharacteristicReadRequest(
-                BluetoothDevice device,
-                int requestId,
-                int offset,
-                BluetoothGattCharacteristic characteristic) {
-            Log.d("Bluetooth Gatt Server received a read request");
-            if (dataHolder.get(characteristic) != null) {
-                bluetoothGattServer.sendResponse(
-                        device,
-                        requestId,
-                        BluetoothGatt.GATT_SUCCESS,
-                        offset,
-                        Base64.decode(dataHolder.get(characteristic), Base64.NO_WRAP));
-            } else {
-                bluetoothGattServer.sendResponse(
-                        device, requestId, BluetoothGatt.GATT_SUCCESS, offset, null);
-            }
-        }
-
-        @Override
-        public void onCharacteristicWriteRequest(
-                BluetoothDevice device,
-                int requestId,
-                BluetoothGattCharacteristic characteristic,
-                boolean preparedWrite,
-                boolean responseNeeded,
-                int offset,
-                byte[] value) {
-            Log.d("Bluetooth Gatt Server received a write request");
-            bluetoothGattServer.sendResponse(
-                    device, requestId, BluetoothGatt.GATT_SUCCESS, offset, null);
-            SnippetEvent event = new SnippetEvent(callbackId, "onCharacteristicWriteRequest");
-            event.getData().putString("Data", Base64.encodeToString(value, Base64.NO_WRAP));
-            eventCache.postEvent(event);
-        }
-
-        @Override
-        public void onExecuteWrite(BluetoothDevice device, int requestId, boolean execute) {
-            Log.d("Bluetooth Gatt Server received an execute write request");
-            bluetoothGattServer.sendResponse(
-                    device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null);
-        }
-
-        @Override
-        public void onMtuChanged(BluetoothDevice device, int mtu) {
-            SnippetEvent event = new SnippetEvent(callbackId, "onMtuChanged");
-            event.getData().putInt("mtu", mtu);
-            event.getData().putBundle("device", JsonSerializer.serializeBluetoothDevice(device));
-            eventCache.postEvent(event);
-        }
+    DefaultBluetoothGattServerCallback(String callbackId) {
+      this.callbackId = callbackId;
     }
 
     @Override
-    public void shutdown() {}
+    public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
+      SnippetEvent event = new SnippetEvent(callbackId, "onConnectionStateChange");
+      event.getData().putBundle("device", JsonSerializer.serializeBluetoothDevice(device));
+      event.getData().putString("status", MbsEnums.BLE_STATUS_TYPE.getString(status));
+      event.getData().putString("newState", MbsEnums.BLE_CONNECT_STATUS.getString(newState));
+      eventCache.postEvent(event);
+    }
+
+    @Override
+    public void onServiceAdded(int status, BluetoothGattService service) {
+      Log.d("Bluetooth Gatt Server service added with status " + status);
+      SnippetEvent event = new SnippetEvent(callbackId, "onServiceAdded");
+      event.getData().putString("status", MbsEnums.BLE_STATUS_TYPE.getString(status));
+      event
+          .getData()
+          .putParcelable("Service", JsonSerializer.serializeBluetoothGattService(service));
+      eventCache.postEvent(event);
+    }
+
+    @Override
+    public void onCharacteristicReadRequest(
+        BluetoothDevice device,
+        int requestId,
+        int offset,
+        BluetoothGattCharacteristic characteristic) {
+      Log.d("Bluetooth Gatt Server received a read request");
+      if (dataHolder.get(characteristic) != null) {
+        bluetoothGattServer.sendResponse(
+            device,
+            requestId,
+            BluetoothGatt.GATT_SUCCESS,
+            offset,
+            Base64.decode(dataHolder.get(characteristic), Base64.NO_WRAP));
+      } else {
+        bluetoothGattServer.sendResponse(
+            device, requestId, BluetoothGatt.GATT_SUCCESS, offset, null);
+      }
+    }
+
+    @Override
+    public void onCharacteristicWriteRequest(
+        BluetoothDevice device,
+        int requestId,
+        BluetoothGattCharacteristic characteristic,
+        boolean preparedWrite,
+        boolean responseNeeded,
+        int offset,
+        byte[] value) {
+      Log.d("Bluetooth Gatt Server received a write request");
+      bluetoothGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, null);
+      SnippetEvent event = new SnippetEvent(callbackId, "onCharacteristicWriteRequest");
+      event.getData().putString("Data", Base64.encodeToString(value, Base64.NO_WRAP));
+      eventCache.postEvent(event);
+    }
+
+    @Override
+    public void onExecuteWrite(BluetoothDevice device, int requestId, boolean execute) {
+      Log.d("Bluetooth Gatt Server received an execute write request");
+      bluetoothGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null);
+    }
+
+    @Override
+    public void onMtuChanged(BluetoothDevice device, int mtu) {
+      SnippetEvent event = new SnippetEvent(callbackId, "onMtuChanged");
+      event.getData().putInt("mtu", mtu);
+      event.getData().putBundle("device", JsonSerializer.serializeBluetoothDevice(device));
+      eventCache.postEvent(event);
+    }
+  }
+
+  @Override
+  public void shutdown() {}
 }

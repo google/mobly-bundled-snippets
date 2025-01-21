@@ -44,208 +44,204 @@ import org.json.JSONObject;
 /** Snippet class for SMS RPCs. */
 public class SmsSnippet implements Snippet {
 
-    private static class SmsSnippetException extends Exception {
-        private static final long serialVersionUID = 1L;
+  private static class SmsSnippetException extends Exception {
+    private static final long serialVersionUID = 1L;
 
-        SmsSnippetException(String msg) {
-            super(msg);
-        }
+    SmsSnippetException(String msg) {
+      super(msg);
+    }
+  }
+
+  private static final int MAX_CHAR_COUNT_PER_SMS = 160;
+  private static final String SMS_SENT_ACTION = ".SMS_SENT";
+  private static final int DEFAULT_TIMEOUT_MILLISECOND = 60 * 1000;
+  private static final String SMS_RECEIVED_EVENT_NAME = "ReceivedSms";
+  private static final String SMS_SENT_EVENT_NAME = "SentSms";
+  private static final String SMS_CALLBACK_ID_PREFIX = "sendSms-";
+
+  private static int mCallbackCounter = 0;
+
+  private final Context mContext;
+  private final SmsManager mSmsManager;
+
+  public SmsSnippet() {
+    this.mContext = InstrumentationRegistry.getInstrumentation().getContext();
+    this.mSmsManager = SmsManager.getDefault();
+  }
+
+  /**
+   * Send SMS and return after waiting for send confirmation (with a timeout of 60 seconds).
+   *
+   * @param phoneNumber A String representing phone number with country code.
+   * @param message A String representing the message to send.
+   * @throws SmsSnippetException on SMS send error.
+   */
+  @Rpc(description = "Send SMS to a specified phone number.")
+  public void sendSms(String phoneNumber, String message) throws Throwable {
+    String callbackId = SMS_CALLBACK_ID_PREFIX + (++mCallbackCounter);
+    OutboundSmsReceiver receiver = new OutboundSmsReceiver(mContext, callbackId);
+
+    if (message.length() > MAX_CHAR_COUNT_PER_SMS) {
+      ArrayList<String> parts = mSmsManager.divideMessage(message);
+      receiver.setExpectedMessageCount(parts.size());
+      if (Build.VERSION.SDK_INT >= 33) {
+        mContext.registerReceiver(
+            receiver, new IntentFilter(SMS_SENT_ACTION), null, null, Context.RECEIVER_EXPORTED);
+      } else {
+        mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION));
+      }
+      mSmsManager.sendMultipartTextMessage(
+          /* destinationAddress= */ phoneNumber,
+          /* scAddress= */ null,
+          /* parts= */ parts,
+          /* sentIntents= */ IntStream.range(0, parts.size())
+              .mapToObj(
+                  i ->
+                      PendingIntent.getBroadcast(
+                          /* context= */ mContext,
+                          /* requestCode= */ 0,
+                          /* intent= */ new Intent(SMS_SENT_ACTION),
+                          /* flags= */ PendingIntent.FLAG_IMMUTABLE))
+              .collect(toCollection(ArrayList::new)),
+          /* deliveryIntents= */ null);
+    } else {
+      PendingIntent sentIntent =
+          PendingIntent.getBroadcast(
+              /* context= */ mContext,
+              /* requestCode= */ 0,
+              /* intent= */ new Intent(SMS_SENT_ACTION),
+              /* flags= */ PendingIntent.FLAG_IMMUTABLE);
+      receiver.setExpectedMessageCount(1);
+      if (Build.VERSION.SDK_INT >= 33) {
+        mContext.registerReceiver(
+            receiver, new IntentFilter(SMS_SENT_ACTION), null, null, Context.RECEIVER_EXPORTED);
+      } else {
+        mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION));
+      }
+      mSmsManager.sendTextMessage(
+          /* destinationAddress= */ phoneNumber,
+          /* scAddress= */ null,
+          /* text= */ message,
+          /* sentIntent= */ sentIntent,
+          /* deliveryIntent= */ null);
     }
 
-    private static final int MAX_CHAR_COUNT_PER_SMS = 160;
-    private static final String SMS_SENT_ACTION = ".SMS_SENT";
-    private static final int DEFAULT_TIMEOUT_MILLISECOND = 60 * 1000;
-    private static final String SMS_RECEIVED_EVENT_NAME = "ReceivedSms";
-    private static final String SMS_SENT_EVENT_NAME = "SentSms";
-    private static final String SMS_CALLBACK_ID_PREFIX = "sendSms-";
+    SnippetEvent result =
+        Utils.waitForSnippetEvent(callbackId, SMS_SENT_EVENT_NAME, DEFAULT_TIMEOUT_MILLISECOND);
 
-    private static int mCallbackCounter = 0;
+    if (result.getData().containsKey("error")) {
+      throw new SmsSnippetException(
+          "Failed to send SMS, error code: " + result.getData().getInt("error"));
+    }
+  }
 
-    private final Context mContext;
-    private final SmsManager mSmsManager;
+  @TargetApi(Build.VERSION_CODES.KITKAT)
+  @AsyncRpc(description = "Async wait for incoming SMS message.")
+  public void asyncWaitForSms(String callbackId) {
+    SmsReceiver receiver = new SmsReceiver(mContext, callbackId);
+    mContext.registerReceiver(receiver, new IntentFilter(Intents.SMS_RECEIVED_ACTION));
+  }
 
-    public SmsSnippet() {
-        this.mContext = InstrumentationRegistry.getInstrumentation().getContext();
-        this.mSmsManager = SmsManager.getDefault();
+  @TargetApi(Build.VERSION_CODES.KITKAT)
+  @Rpc(description = "Wait for incoming SMS message.")
+  public JSONObject waitForSms(int timeoutMillis) throws Throwable {
+    String callbackId = SMS_CALLBACK_ID_PREFIX + (++mCallbackCounter);
+    SmsReceiver receiver = new SmsReceiver(mContext, callbackId);
+    mContext.registerReceiver(receiver, new IntentFilter(Intents.SMS_RECEIVED_ACTION));
+    return Utils.waitForSnippetEvent(callbackId, SMS_RECEIVED_EVENT_NAME, timeoutMillis).toJson();
+  }
+
+  @Override
+  public void shutdown() {}
+
+  private static class OutboundSmsReceiver extends BroadcastReceiver {
+    private final String mCallbackId;
+    private Context mContext;
+    private final EventCache mEventCache;
+    private int mExpectedMessageCount;
+
+    public OutboundSmsReceiver(Context context, String callbackId) {
+      this.mCallbackId = callbackId;
+      this.mContext = context;
+      this.mEventCache = EventCache.getInstance();
+      mExpectedMessageCount = 0;
     }
 
-    /**
-     * Send SMS and return after waiting for send confirmation (with a timeout of 60 seconds).
-     *
-     * @param phoneNumber A String representing phone number with country code.
-     * @param message A String representing the message to send.
-     * @throws SmsSnippetException on SMS send error.
-     */
-    @Rpc(description = "Send SMS to a specified phone number.")
-    public void sendSms(String phoneNumber, String message) throws Throwable {
-        String callbackId = SMS_CALLBACK_ID_PREFIX + (++mCallbackCounter);
-        OutboundSmsReceiver receiver = new OutboundSmsReceiver(mContext, callbackId);
-
-        if (message.length() > MAX_CHAR_COUNT_PER_SMS) {
-            ArrayList<String> parts = mSmsManager.divideMessage(message);
-            receiver.setExpectedMessageCount(parts.size());
-            if (Build.VERSION.SDK_INT >= 33) {
-                mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION), null,
-                        null,
-                        Context.RECEIVER_EXPORTED);
-            } else {
-                mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION));
-            }
-            mSmsManager.sendMultipartTextMessage(
-                    /* destinationAddress= */ phoneNumber,
-                    /* scAddress= */ null,
-                    /* parts= */ parts,
-                    /* sentIntents= */ IntStream.range(0, parts.size())
-                            .mapToObj(
-                                i ->
-                                        PendingIntent.getBroadcast(
-                                                /* context= */ mContext,
-                                                /* requestCode= */ 0,
-                                                /* intent= */ new Intent(SMS_SENT_ACTION),
-                                                /* flags= */ PendingIntent.FLAG_IMMUTABLE))
-                            .collect(toCollection(ArrayList::new)),
-                    /* deliveryIntents= */ null);
-        } else {
-            PendingIntent sentIntent =
-                    PendingIntent.getBroadcast(
-                            /* context= */ mContext,
-                            /* requestCode= */ 0,
-                            /* intent= */ new Intent(SMS_SENT_ACTION),
-                            /* flags= */ PendingIntent.FLAG_IMMUTABLE);
-            receiver.setExpectedMessageCount(1);
-            if (Build.VERSION.SDK_INT >= 33) {
-                mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION), null,
-                    null,
-                    Context.RECEIVER_EXPORTED);
-            } else {
-                mContext.registerReceiver(receiver, new IntentFilter(SMS_SENT_ACTION));
-            }
-            mSmsManager.sendTextMessage(
-                    /* destinationAddress= */ phoneNumber,
-                    /* scAddress= */ null,
-                    /* text= */ message,
-                    /* sentIntent= */ sentIntent,
-                    /* deliveryIntent= */ null);
-        }
-
-        SnippetEvent result =
-                Utils.waitForSnippetEvent(
-                        callbackId, SMS_SENT_EVENT_NAME, DEFAULT_TIMEOUT_MILLISECOND);
-
-        if (result.getData().containsKey("error")) {
-            throw new SmsSnippetException(
-                    "Failed to send SMS, error code: " + result.getData().getInt("error"));
-        }
-    }
-
-    @TargetApi(Build.VERSION_CODES.KITKAT)
-    @AsyncRpc(description = "Async wait for incoming SMS message.")
-    public void asyncWaitForSms(String callbackId) {
-        SmsReceiver receiver = new SmsReceiver(mContext, callbackId);
-        mContext.registerReceiver(receiver, new IntentFilter(Intents.SMS_RECEIVED_ACTION));
-    }
-
-    @TargetApi(Build.VERSION_CODES.KITKAT)
-    @Rpc(description = "Wait for incoming SMS message.")
-    public JSONObject waitForSms(int timeoutMillis) throws Throwable {
-        String callbackId = SMS_CALLBACK_ID_PREFIX + (++mCallbackCounter);
-        SmsReceiver receiver = new SmsReceiver(mContext, callbackId);
-        mContext.registerReceiver(receiver, new IntentFilter(Intents.SMS_RECEIVED_ACTION));
-        return Utils.waitForSnippetEvent(callbackId, SMS_RECEIVED_EVENT_NAME, timeoutMillis)
-                .toJson();
+    public void setExpectedMessageCount(int count) {
+      mExpectedMessageCount = count;
     }
 
     @Override
-    public void shutdown() {}
+    public void onReceive(Context context, Intent intent) {
+      String action = intent.getAction();
 
-    private static class OutboundSmsReceiver extends BroadcastReceiver {
-        private final String mCallbackId;
-        private Context mContext;
-        private final EventCache mEventCache;
-        private int mExpectedMessageCount;
-
-        public OutboundSmsReceiver(Context context, String callbackId) {
-            this.mCallbackId = callbackId;
-            this.mContext = context;
-            this.mEventCache = EventCache.getInstance();
-            mExpectedMessageCount = 0;
-        }
-
-        public void setExpectedMessageCount(int count) {
-            mExpectedMessageCount = count;
-        }
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-
-            if (SMS_SENT_ACTION.equals(action)) {
-                SnippetEvent event = new SnippetEvent(mCallbackId, SMS_SENT_EVENT_NAME);
-                switch (getResultCode()) {
-                    case Activity.RESULT_OK:
-                        if (mExpectedMessageCount == 1) {
-                            event.getData().putBoolean("sent", true);
-                            mEventCache.postEvent(event);
-                            mContext.unregisterReceiver(this);
-                        }
-
-                        if (mExpectedMessageCount > 0) {
-                            mExpectedMessageCount--;
-                        }
-                        break;
-                    case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-                    case SmsManager.RESULT_ERROR_NO_SERVICE:
-                    case SmsManager.RESULT_ERROR_NULL_PDU:
-                    case SmsManager.RESULT_ERROR_RADIO_OFF:
-                        event.getData().putBoolean("sent", false);
-                        event.getData().putInt("error_code", getResultCode());
-                        mEventCache.postEvent(event);
-                        mContext.unregisterReceiver(this);
-                        break;
-                    default:
-                        event.getData().putBoolean("sent", false);
-                        event.getData().putInt("error_code", -1 /* Unknown */);
-                        mEventCache.postEvent(event);
-                        mContext.unregisterReceiver(this);
-                        break;
-                }
+      if (SMS_SENT_ACTION.equals(action)) {
+        SnippetEvent event = new SnippetEvent(mCallbackId, SMS_SENT_EVENT_NAME);
+        switch (getResultCode()) {
+          case Activity.RESULT_OK:
+            if (mExpectedMessageCount == 1) {
+              event.getData().putBoolean("sent", true);
+              mEventCache.postEvent(event);
+              mContext.unregisterReceiver(this);
             }
+
+            if (mExpectedMessageCount > 0) {
+              mExpectedMessageCount--;
+            }
+            break;
+          case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
+          case SmsManager.RESULT_ERROR_NO_SERVICE:
+          case SmsManager.RESULT_ERROR_NULL_PDU:
+          case SmsManager.RESULT_ERROR_RADIO_OFF:
+            event.getData().putBoolean("sent", false);
+            event.getData().putInt("error_code", getResultCode());
+            mEventCache.postEvent(event);
+            mContext.unregisterReceiver(this);
+            break;
+          default:
+            event.getData().putBoolean("sent", false);
+            event.getData().putInt("error_code", -1 /* Unknown */);
+            mEventCache.postEvent(event);
+            mContext.unregisterReceiver(this);
+            break;
         }
+      }
+    }
+  }
+
+  private static class SmsReceiver extends BroadcastReceiver {
+    private final String mCallbackId;
+    private Context mContext;
+    private final EventCache mEventCache;
+
+    public SmsReceiver(Context context, String callbackId) {
+      this.mCallbackId = callbackId;
+      this.mContext = context;
+      this.mEventCache = EventCache.getInstance();
     }
 
-    private static class SmsReceiver extends BroadcastReceiver {
-        private final String mCallbackId;
-        private Context mContext;
-        private final EventCache mEventCache;
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    @Override
+    public void onReceive(Context receivedContext, Intent intent) {
+      if (Intents.SMS_RECEIVED_ACTION.equals(intent.getAction())) {
+        SnippetEvent event = new SnippetEvent(mCallbackId, SMS_RECEIVED_EVENT_NAME);
+        Bundle extras = intent.getExtras();
+        if (extras != null) {
+          SmsMessage[] msgs = Intents.getMessagesFromIntent(intent);
+          StringBuilder smsMsg = new StringBuilder();
 
-        public SmsReceiver(Context context, String callbackId) {
-            this.mCallbackId = callbackId;
-            this.mContext = context;
-            this.mEventCache = EventCache.getInstance();
+          SmsMessage sms = msgs[0];
+          String sender = sms.getOriginatingAddress();
+          event.getData().putString("OriginatingAddress", sender);
+
+          for (SmsMessage msg : msgs) {
+            smsMsg.append(msg.getMessageBody());
+          }
+          event.getData().putString("MessageBody", smsMsg.toString());
+          mEventCache.postEvent(event);
+          mContext.unregisterReceiver(this);
         }
-
-        @TargetApi(Build.VERSION_CODES.KITKAT)
-        @Override
-        public void onReceive(Context receivedContext, Intent intent) {
-            if (Intents.SMS_RECEIVED_ACTION.equals(intent.getAction())) {
-                SnippetEvent event = new SnippetEvent(mCallbackId, SMS_RECEIVED_EVENT_NAME);
-                Bundle extras = intent.getExtras();
-                if (extras != null) {
-                    SmsMessage[] msgs = Intents.getMessagesFromIntent(intent);
-                    StringBuilder smsMsg = new StringBuilder();
-
-                    SmsMessage sms = msgs[0];
-                    String sender = sms.getOriginatingAddress();
-                    event.getData().putString("OriginatingAddress", sender);
-
-                    for (SmsMessage msg : msgs) {
-                        smsMsg.append(msg.getMessageBody());
-                    }
-                    event.getData().putString("MessageBody", smsMsg.toString());
-                    mEventCache.postEvent(event);
-                    mContext.unregisterReceiver(this);
-                }
-            }
-        }
+      }
     }
+  }
 }
