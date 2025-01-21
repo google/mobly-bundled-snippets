@@ -186,6 +186,14 @@ public class BluetoothGattServerSnippet implements Snippet {
             bluetoothGattServer.sendResponse(
                     device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null);
         }
+
+        @Override
+        public void onMtuChanged(BluetoothDevice device, int mtu) {
+            SnippetEvent event = new SnippetEvent(callbackId, "onMtuChanged");
+            event.getData().putInt("mtu", mtu);
+            event.getData().putBundle("device", JsonSerializer.serializeBluetoothDevice(device));
+            eventCache.postEvent(event);
+        }
     }
 
     @Override

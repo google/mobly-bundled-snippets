@@ -133,6 +133,12 @@ public class BluetoothGattClientSnippet implements Snippet {
         return result;
     }
 
+    @RpcMinSdk(VERSION_CODES.LOLLIPOP)
+    @Rpc(description = "Change MTU.")
+    public void bleRequestMtu(int mtu) {
+        bluetoothGattClient.requestMtu(mtu);
+    }
+
     private class DefaultBluetoothGattCallback extends BluetoothGattCallback {
         private final String callbackId;
 
@@ -204,6 +210,15 @@ public class BluetoothGattClientSnippet implements Snippet {
         public void onReliableWriteCompleted(BluetoothGatt gatt, int status) {
             SnippetEvent event = new SnippetEvent(callbackId, "onReliableWriteCompleted");
             event.getData().putString("status", MbsEnums.BLE_STATUS_TYPE.getString(status));
+            event.getData().putBundle("gatt", JsonSerializer.serializeBluetoothGatt(gatt));
+            eventCache.postEvent(event);
+        }
+
+        @Override
+        public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
+            SnippetEvent event = new SnippetEvent(callbackId, "onMtuChanged");
+            event.getData().putString("status", MbsEnums.BLE_STATUS_TYPE.getString(status));
+            event.getData().putInt("mtu", mtu);
             event.getData().putBundle("gatt", JsonSerializer.serializeBluetoothGatt(gatt));
             eventCache.postEvent(event);
         }
