@@ -23,6 +23,7 @@ import android.bluetooth.BluetoothGattServer;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.os.Build.VERSION_CODES;
 import android.os.DeadObjectException;
@@ -40,6 +41,7 @@ import com.google.android.mobly.snippet.rpc.AsyncRpc;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.rpc.RpcMinSdk;
 import com.google.android.mobly.snippet.util.Log;
+import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -114,6 +116,21 @@ public class BluetoothGattServerSnippet implements Snippet {
             throw new BluetoothGattServerSnippetException("BLE server is not initialized.");
         }
         bluetoothGattServer.close();
+    }
+
+    @RpcMinSdk(VERSION_CODES.LOLLIPOP)
+    @Rpc(description = "Disconnect a device from the server.")
+    public void bleCancelConnection(String address) throws BluetoothGattServerSnippetException {
+        if (bluetoothGattServer == null) {
+            throw new BluetoothGattServerSnippetException("BLE server is not initialized.");
+        }
+        List<BluetoothDevice> devices = bluetoothManager.getConnectedDevices(BluetoothProfile.GATT);
+        for (BluetoothDevice device : devices) {
+            if (device.getAddress().equals(address)) {
+                bluetoothGattServer.cancelConnection(device);
+                return;
+            }
+        }
     }
 
     private class DefaultBluetoothGattServerCallback extends BluetoothGattServerCallback {
