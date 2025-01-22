@@ -120,7 +120,7 @@ public class BluetoothGattServerSnippet implements Snippet {
 
     @RpcMinSdk(VERSION_CODES.LOLLIPOP)
     @Rpc(description = "Disconnect a device from the server.")
-    public void bleCancelConnection(String address) throws BluetoothGattServerSnippetException {
+    public void bleCancelConnectionByAddress(String address) throws BluetoothGattServerSnippetException {
         if (bluetoothGattServer == null) {
             throw new BluetoothGattServerSnippetException("BLE server is not initialized.");
         }
