@@ -130,8 +130,8 @@ public class JsonDeserializer {
         BluetoothGattCharacteristic characteristic =
                 new BluetoothGattCharacteristic(
                         UUID.fromString(jsonObject.getString("UUID")),
-                        MbsEnums.BLE_PROPERTY_TYPE.getInt(jsonObject.getString("Property")),
-                        MbsEnums.BLE_PERMISSION_TYPE.getInt(jsonObject.getString("Permission")));
+                        MbsEnums.BLE_PROPERTY_TYPE.getIntBitwiseOr(jsonObject.getString("Property")),
+                        MbsEnums.BLE_PERMISSION_TYPE.getIntBitwiseOr(jsonObject.getString("Permission")));
         if (jsonObject.has("Data")) {
               dataHolder.insertData(characteristic, jsonObject.getString("Data"));
         }
