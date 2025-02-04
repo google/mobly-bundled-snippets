@@ -16,6 +16,7 @@
 
 package com.google.android.mobly.snippet.bundled.utils;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 
@@ -44,6 +45,22 @@ public class RpcEnum {
         Integer result = enums.get(enumString);
         if (result == null) {
             throw new NoSuchFieldError("No int value found for: " + enumString);
+        }
+        return result;
+    }
+
+    /**
+     * Get the int value of an enum based on its String value. String value contains multiple enums
+     * separated by '|'. The int value is the bitwise OR of all the enums.
+     *
+     * @param enumString
+     * @return int value
+     */
+    public int getIntBitwiseOr(String enumString) {
+        Integer result = 0;
+        Iterable<String> enumList = Splitter.on('|').split(enumString);
+        for (String enumEntry : enumList) {
+            result |= getInt(enumEntry);
         }
         return result;
     }
