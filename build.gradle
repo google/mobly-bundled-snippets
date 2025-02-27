@@ -39,6 +39,7 @@ android {
         versionName "0.0.1"
         setProperty("archivesBaseName", "mobly-bundled-snippets")
         multiDexEnabled true
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -79,6 +80,7 @@ dependencies {
     implementation 'com.google.errorprone:error_prone_annotations:2.15.0'
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.10'
 
+    testImplementation 'org.robolectric:robolectric:4.14.1'
     testImplementation 'com.google.errorprone:error_prone_annotations:2.15.0'
     testImplementation 'com.google.guava:guava:31.0.1-jre'
     testImplementation 'com.google.truth:truth:1.1.2'

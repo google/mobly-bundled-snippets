@@ -40,7 +40,7 @@ public class MbsEnums {
     static final RpcEnum BLE_SERVICE_TYPE = buildServiceTypeEnum();
     public static final RpcEnum BLE_STATUS_TYPE = buildStatusTypeEnum();
     public static final RpcEnum BLE_CONNECT_STATUS = buildConnectStatusEnum();
-    static final RpcEnum BLE_PROPERTY_TYPE = buildPropertyTypeEnum();
+    public static final RpcEnum BLE_PROPERTY_TYPE = buildPropertyTypeEnum();
     static final RpcEnum BLE_PERMISSION_TYPE = buildPermissionTypeEnum();
     static final RpcEnum BLE_SCAN_MODE = buildBleScanModeEnum();
     public static final RpcEnum LOCAL_HOTSPOT_FAIL_REASON = buildLocalHotspotFailedReason();
