@@ -130,12 +130,8 @@ public class JsonDeserializer {
         BluetoothGattCharacteristic characteristic =
                 new BluetoothGattCharacteristic(
                         UUID.fromString(jsonObject.getString("UUID")),
-                        // A characteristic can have multiple properties (e.g. PROPERTY_READ and PROPERTY_WRITE).
-                        // Use the BitwiseOr to extract all the properties from the json string.
-                        MbsEnums.BLE_PROPERTY_TYPE.getIntBitwiseOr(jsonObject.getString("Properties")),
-                        // A characteristic can have multiple permissions (e.g. PERMISSION_READ and PERMISSION_WRITE).
-                        // Use the BitwiseOr to extract all the permissions from the json string.
-                        MbsEnums.BLE_PERMISSION_TYPE.getIntBitwiseOr(jsonObject.getString("Permissions")));
+                        MbsEnums.BLE_PROPERTY_TYPE.getInt(jsonObject.getString("Property")),
+                        MbsEnums.BLE_PERMISSION_TYPE.getInt(jsonObject.getString("Permission")));
         if (jsonObject.has("Data")) {
               dataHolder.insertData(characteristic, jsonObject.getString("Data"));
         }
