@@ -18,10 +18,12 @@ package com.google.android.mobly.snippet.bundled;
 
 import android.content.Context;
 import android.media.AudioManager;
+import android.media.AudioDeviceInfo;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 /* Snippet class to control audio */
 public class AudioSnippet implements Snippet {
@@ -149,6 +151,18 @@ public class AudioSnippet implements Snippet {
 
     @Rpc(description = "Mute alarm stream.")
     public void muteAlarm() { setAlarmVolume(0); }
+
+    @Rpc(
+            description =
+                    "Returns an array of AudioDeviceInfo objects corresponding to the audio devices"
+                            + " currently connected to the system.")
+    public ArrayList<Integer> getAudioDeviceTypes() {
+        ArrayList<Integer> audioDeviceTypes = new ArrayList<>();
+        for (AudioDeviceInfo device : mAudioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)) {
+            audioDeviceTypes.add(device.getType());
+        }
+        return audioDeviceTypes;
+    }
 
     @Override
     public void shutdown() {}
