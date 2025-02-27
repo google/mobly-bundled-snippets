@@ -18,6 +18,7 @@ package com.google.android.mobly.snippet.bundled.utils;
 
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
@@ -134,6 +135,12 @@ public class JsonDeserializer {
                         MbsEnums.BLE_PERMISSION_TYPE.getInt(jsonObject.getString("Permission")));
         if (jsonObject.has("Data")) {
               dataHolder.insertData(characteristic, jsonObject.getString("Data"));
+        }
+        if (jsonObject.has("CCCD") && jsonObject.getBoolean("CCCD")) {
+            characteristic.addDescriptor(
+                new BluetoothGattDescriptor(
+                    UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"),
+                    BluetoothGattDescriptor.PERMISSION_READ | BluetoothGattDescriptor.PERMISSION_WRITE));
         }
         return characteristic;
     }
