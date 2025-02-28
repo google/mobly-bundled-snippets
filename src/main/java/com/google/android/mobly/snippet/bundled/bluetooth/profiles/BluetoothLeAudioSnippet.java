@@ -62,7 +62,7 @@ public class BluetoothLeAudioSnippet implements Snippet {
                 mContext, new LeAudioServiceListener(), BluetoothProfile.LE_AUDIO);
         if (!isProxyConnectionStarted) {
             throw new BluetoothLeAudioSnippetException(
-                "Failed to start proxy connection for LE Audio profile.");
+                "Failed to start proxy connection for LE AUDIO profile.");
         }
         Utils.waitUntil(() -> sIsLeAudioProfileReady, 60);
     }

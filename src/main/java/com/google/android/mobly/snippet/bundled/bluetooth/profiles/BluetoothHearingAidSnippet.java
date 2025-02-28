@@ -44,7 +44,7 @@ public class BluetoothHearingAidSnippet implements Snippet {
                 context, new HearingAidServiceListener(), BluetoothProfile.HEARING_AID);
         if (!isProxyConnectionStarted) {
             throw new BluetoothHearingAidSnippetException(
-                "Failed to start proxy connection for HA profile.");
+                "Failed to start proxy connection for HEARING AID profile.");
         }
         Utils.waitUntil(() -> isHearingAidProfileReady, TIMEOUT_SEC);
     }
