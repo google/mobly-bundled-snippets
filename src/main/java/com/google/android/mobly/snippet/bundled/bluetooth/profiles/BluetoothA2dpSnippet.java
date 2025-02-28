@@ -20,7 +20,7 @@ import com.google.android.mobly.snippet.rpc.RpcMinSdk;
 import java.util.ArrayList;
 
 public class BluetoothA2dpSnippet implements Snippet {
-    private static class BluetoothA2dpSnippetException extends Exception {
+    public static class BluetoothA2dpSnippetException extends Exception {
         private static final long serialVersionUID = 1;
 
         BluetoothA2dpSnippetException(String msg) {
@@ -33,20 +33,26 @@ public class BluetoothA2dpSnippet implements Snippet {
     private static BluetoothA2dp sA2dpProfile;
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
 
-    public BluetoothA2dpSnippet() {
+    public BluetoothA2dpSnippet() throws BluetoothA2dpSnippetException {
         mContext = InstrumentationRegistry.getInstrumentation().getContext();
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        bluetoothAdapter.getProfileProxy(
+        boolean isProxyConnectionStarted = bluetoothAdapter.getProfileProxy(
                 mContext, new A2dpServiceListener(), BluetoothProfile.A2DP);
+        if (!isProxyConnectionStarted) {
+            throw new BluetoothA2dpSnippetException(
+                "Failed to start proxy connection for A2DP profile.");
+        }
         Utils.waitUntil(() -> sIsA2dpProfileReady, 60);
     }
 
     private static class A2dpServiceListener implements BluetoothProfile.ServiceListener {
+        @Override
         public void onServiceConnected(int var1, BluetoothProfile profile) {
             sA2dpProfile = (BluetoothA2dp) profile;
             sIsA2dpProfileReady = true;
         }
 
+        @Override
         public void onServiceDisconnected(int var1) {
             sIsA2dpProfileReady = false;
         }

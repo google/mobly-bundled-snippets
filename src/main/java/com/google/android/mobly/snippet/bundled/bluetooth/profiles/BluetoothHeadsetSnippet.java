@@ -47,7 +47,7 @@ public class BluetoothHeadsetSnippet implements Snippet {
     private static final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
     private final Context mContext = InstrumentationRegistry.getInstrumentation().getContext();
-    private static class BluetoothHeadsetSnippetException extends Exception {
+    public static class BluetoothHeadsetSnippetException extends Exception {
         private static final long serialVersionUID = 1;
 
         /**
@@ -81,7 +81,12 @@ public class BluetoothHeadsetSnippet implements Snippet {
     public BluetoothHeadsetSnippet() throws Throwable {
         IntentFilter filter = new IntentFilter(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED);
-        mBluetoothAdapter.getProfileProxy(mContext, mProfileListener, BluetoothProfile.HEADSET);
+        boolean isProxyConnectionStarted = mBluetoothAdapter.getProfileProxy(
+            mContext, mProfileListener, BluetoothProfile.HEADSET);
+        if (!isProxyConnectionStarted) {
+            throw new BluetoothHeadsetSnippetException(
+                "Failed to start proxy connection for HEADSET profile.");
+        }
         Utils.waitUntil(() -> mBluetoothHeadset != null, 60);
         mContext.registerReceiver(new PairingBroadcastReceiver(mContext), filter);
     }
