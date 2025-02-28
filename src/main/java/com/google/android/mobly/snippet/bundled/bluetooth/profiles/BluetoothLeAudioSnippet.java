@@ -37,7 +37,7 @@ import java.util.ArrayList;
 
 /** Snippet class exposing Bluetooth LE Audio profile. */
 public class BluetoothLeAudioSnippet implements Snippet {
-    private static class BluetoothLeAudioSnippetException extends Exception {
+    public static class BluetoothLeAudioSnippetException extends Exception {
         private static final long serialVersionUID = 1;
 
         /**
@@ -55,11 +55,15 @@ public class BluetoothLeAudioSnippet implements Snippet {
     private static BluetoothLeAudio sLeAudioProfile;
     private final JsonSerializer mJsonSerializer = new JsonSerializer();
 
-    public BluetoothLeAudioSnippet() {
+    public BluetoothLeAudioSnippet() throws BluetoothLeAudioSnippetException {
         mContext = InstrumentationRegistry.getInstrumentation().getContext();
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        bluetoothAdapter.getProfileProxy(
+        boolean isProxyConnectionStarted = bluetoothAdapter.getProfileProxy(
                 mContext, new LeAudioServiceListener(), BluetoothProfile.LE_AUDIO);
+        if (!isProxyConnectionStarted) {
+            throw new BluetoothLeAudioSnippetException(
+                "Failed to start proxy connection for LE Audio profile.");
+        }
         Utils.waitUntil(() -> sIsLeAudioProfileReady, 60);
     }
 

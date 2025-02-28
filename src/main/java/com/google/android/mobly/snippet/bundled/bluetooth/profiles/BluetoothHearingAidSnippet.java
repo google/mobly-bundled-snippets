@@ -21,7 +21,7 @@ import com.google.common.base.Ascii;
 import java.util.ArrayList;
 
 public class BluetoothHearingAidSnippet implements Snippet {
-    private static class BluetoothHearingAidSnippetException extends Exception {
+    public static class BluetoothHearingAidSnippetException extends Exception {
         private static final long serialVersionUID = 1;
 
         BluetoothHearingAidSnippetException(String msg) {
@@ -37,11 +37,15 @@ public class BluetoothHearingAidSnippet implements Snippet {
     private final JsonSerializer jsonSerializer = new JsonSerializer();
 
     @TargetApi(Build.VERSION_CODES.Q)
-    public BluetoothHearingAidSnippet() {
+    public BluetoothHearingAidSnippet() throws BluetoothHearingAidSnippetException {
         context = InstrumentationRegistry.getInstrumentation().getContext();
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        bluetoothAdapter.getProfileProxy(
+        boolean isProxyConnectionStarted = bluetoothAdapter.getProfileProxy(
                 context, new HearingAidServiceListener(), BluetoothProfile.HEARING_AID);
+        if (!isProxyConnectionStarted) {
+            throw new BluetoothHearingAidSnippetException(
+                "Failed to start proxy connection for HA profile.");
+        }
         Utils.waitUntil(() -> isHearingAidProfileReady, TIMEOUT_SEC);
     }
 
