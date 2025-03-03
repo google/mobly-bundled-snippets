@@ -30,6 +30,9 @@
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
@@ -51,6 +54,8 @@
                            com.google.android.mobly.snippet.bundled.bluetooth.BluetoothAdapterSnippet,
                            com.google.android.mobly.snippet.bundled.bluetooth.BluetoothGattClientSnippet,
                            com.google.android.mobly.snippet.bundled.bluetooth.BluetoothGattServerSnippet,
+                           com.google.android.mobly.snippet.bundled.bluetooth.BluetoothServerSocketSnippet,
+                           com.google.android.mobly.snippet.bundled.bluetooth.BluetoothSocketSnippet,
                            com.google.android.mobly.snippet.bundled.bluetooth.profiles.BluetoothA2dpSnippet,
                            com.google.android.mobly.snippet.bundled.bluetooth.profiles.BluetoothHearingAidSnippet,
                            com.google.android.mobly.snippet.bundled.bluetooth.profiles.BluetoothHeadsetSnippet,
