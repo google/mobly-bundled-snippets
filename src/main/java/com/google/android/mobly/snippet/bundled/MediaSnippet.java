@@ -16,11 +16,14 @@
 
 package com.google.android.mobly.snippet.bundled;
 
+import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.MediaRouter;
 import android.os.Build;
 import android.os.Build.VERSION_CODES;
+import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import java.io.IOException;
@@ -28,10 +31,14 @@ import java.io.IOException;
 /* Snippet class to control media playback. */
 public class MediaSnippet implements Snippet {
 
+    private final Context mContext;
     private final MediaPlayer mPlayer;
+    private final MediaRouter mMediaRouter;
 
     public MediaSnippet() {
+        mContext = InstrumentationRegistry.getInstrumentation().getContext();
         mPlayer = new MediaPlayer();
+        mMediaRouter = (MediaRouter) mContext.getSystemService(Context.MEDIA_ROUTER_SERVICE);
     }
 
     @Rpc(description = "Resets snippet media player to an idle state, regardless of current state.")
@@ -59,6 +66,18 @@ public class MediaSnippet implements Snippet {
     @Rpc(description = "Stops media playback.")
     public void mediaStop() throws IOException {
         mPlayer.stop();
+    }
+
+    @Rpc(
+            description =
+                    "Returns the type of the receiver device associated with the live audio route.")
+    public int mediaGetLiveAudioRouteType() {
+        return mMediaRouter.getSelectedRoute(MediaRouter.ROUTE_TYPE_LIVE_AUDIO).getDeviceType();
+    }
+
+    @Rpc(description = "Returns the user-visible name of the live audio route.")
+    public String mediaGetLiveAudioRouteName() {
+        return mMediaRouter.getSelectedRoute(MediaRouter.ROUTE_TYPE_LIVE_AUDIO).getName().toString();
     }
 
     @Override
