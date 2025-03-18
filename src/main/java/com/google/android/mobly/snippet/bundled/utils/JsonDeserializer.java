@@ -50,6 +50,9 @@ public class JsonDeserializer {
         } else {
             config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
         }
+        if (jsonObject.has("BSSID")) {
+            config.BSSID = jsonObject.getString("BSSID");
+        }
         return config;
     }
 
