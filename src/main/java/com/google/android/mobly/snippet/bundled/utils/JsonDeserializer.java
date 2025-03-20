@@ -130,15 +130,30 @@ public class JsonDeserializer {
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public static BluetoothGattCharacteristic jsonToBluetoothGattCharacteristic(
             DataHolder dataHolder, JSONObject jsonObject) throws JSONException {
+        // A characteristic can have multiple properties (e.g. PROPERTY_READ and PROPERTY_WRITE).
+        // Use the BitwiseOr to extract all the properties from the json string.
+        String properties = "";
+        if (jsonObject.has("Properties")) {
+            properties = jsonObject.getString("Properties");
+        } else if (jsonObject.has("Property")) {
+            // Previously the API expected `Property` not `Properties`
+            properties = jsonObject.getString("Property");
+        }
+
+        // A characteristic can have multiple permissions (e.g. PERMISSION_READ and PERMISSION_WRITE).
+        // Use the BitwiseOr to extract all the permissions from the json string.
+        String permissions = "";
+        if (jsonObject.has("Permissions")) {
+            permissions = jsonObject.getString("Permissions");
+        } else if (jsonObject.has("Permission")) {
+            // Previously the API expected `Permission` not `Permissions`
+            permissions = jsonObject.getString("Permission");
+        }
         BluetoothGattCharacteristic characteristic =
                 new BluetoothGattCharacteristic(
                         UUID.fromString(jsonObject.getString("UUID")),
-                        // A characteristic can have multiple properties (e.g. PROPERTY_READ and PROPERTY_WRITE).
-                        // Use the BitwiseOr to extract all the properties from the json string.
-                        MbsEnums.BLE_PROPERTY_TYPE.getIntBitwiseOr(jsonObject.getString("Properties")),
-                        // A characteristic can have multiple permissions (e.g. PERMISSION_READ and PERMISSION_WRITE).
-                        // Use the BitwiseOr to extract all the permissions from the json string.
-                        MbsEnums.BLE_PERMISSION_TYPE.getIntBitwiseOr(jsonObject.getString("Permissions")));
+                        MbsEnums.BLE_PROPERTY_TYPE.getIntBitwiseOr(properties),
+                        MbsEnums.BLE_PERMISSION_TYPE.getIntBitwiseOr(permissions));
         if (jsonObject.has("Data")) {
               dataHolder.insertData(characteristic, jsonObject.getString("Data"));
         }
