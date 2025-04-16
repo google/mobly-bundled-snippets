@@ -31,6 +31,9 @@ apply plugin: 'com.android.application'
 android {
     compileSdk 33
 
+    buildFeatures {
+        buildConfig = true
+    }
     defaultConfig {
         applicationId "com.google.android.mobly.snippet.bundled"
         minSdk 26
