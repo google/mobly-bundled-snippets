@@ -40,7 +40,6 @@ android {
         targetSdk 33
         versionCode 1
         versionName "0.0.1"
-        setProperty("archivesBaseName", "mobly-bundled-snippets")
         multiDexEnabled true
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
