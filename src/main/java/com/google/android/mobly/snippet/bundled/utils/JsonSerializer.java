@@ -134,8 +134,10 @@ public class JsonSerializer {
     public static Bundle serializeBluetoothDevice(BluetoothDevice data) {
         Bundle result = new Bundle();
         result.putString("Address", data.getAddress());
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+        if (Build.VERSION.SDK_INT >= 36) {
             result.putString("IdentityAddress", data.getIdentityAddressWithType().getAddress());
+        } else {
+            result.putString("IdentityAddress", null);
         }
         final String bondState =
                 MbsEnums.BLUETOOTH_DEVICE_BOND_STATE.getString(data.getBondState());
