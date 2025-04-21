@@ -137,7 +137,7 @@ public class JsonSerializer {
         if (Build.VERSION.SDK_INT >= 36) {
             result.putString("IdentityAddress", data.getIdentityAddressWithType().getAddress());
         } else {
-            result.putString("IdentityAddress", null);
+            result.putString("IdentityAddress", data.getAddress());
         }
         final String bondState =
                 MbsEnums.BLUETOOTH_DEVICE_BOND_STATE.getString(data.getBondState());
