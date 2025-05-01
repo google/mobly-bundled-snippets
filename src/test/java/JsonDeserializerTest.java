@@ -15,6 +15,8 @@
  */
 
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
+
 import com.google.android.mobly.snippet.bundled.utils.JsonDeserializer;
 import com.google.common.truth.Truth;
 import java.util.UUID;
@@ -55,5 +57,106 @@ public class JsonDeserializerTest {
     Truth.assertThat(characteristic.getUuid()).isEqualTo(UUID.fromString(uuid));
     Truth.assertThat(characteristic.getProperties()).isEqualTo(BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE);
     Truth.assertThat(characteristic.getPermissions()).isEqualTo(BluetoothGattCharacteristic.PERMISSION_READ |BluetoothGattCharacteristic.PERMISSION_WRITE);
+  }
+
+  @Test
+  public void testDescriptor() throws Throwable {
+    String jsonString =
+            "{" +
+            "  \"UUID\": \"ffffffff-ffff-ffff-ffff-ffffffffffff\"," +
+            "  \"Permissions\": \"PERMISSION_READ|PERMISSION_WRITE\"" +
+            "}";
+
+    BluetoothGattDescriptor descriptor = JsonDeserializer.jsonToBluetoothGattDescriptor(new JSONObject(jsonString));
+    Truth.assertThat(descriptor.getUuid()).isEqualTo(UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff"));
+    Truth.assertThat(descriptor.getPermissions()).isEqualTo(BluetoothGattDescriptor.PERMISSION_READ | BluetoothGattDescriptor.PERMISSION_WRITE);
+  }
+
+  @Test
+  public void testCharacteristicNoDescriptors() throws Throwable {
+    String jsonString =
+            "{" +
+            "  \"UUID\": \"ffffffff-ffff-ffff-ffff-ffffffffffff\"," +
+            "  \"Properties\":\"PROPERTY_READ|PROPERTY_WRITE\"," +
+            "  \"Permissions\": \"PERMISSION_READ|PERMISSION_WRITE\"" +
+            "}";
+
+    BluetoothGattCharacteristic characteristic = JsonDeserializer.jsonToBluetoothGattCharacteristic(null, new JSONObject(jsonString));
+    Truth.assertThat(characteristic.getUuid()).isEqualTo(UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff"));
+    Truth.assertThat(characteristic.getProperties()).isEqualTo(BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE);
+    Truth.assertThat(characteristic.getPermissions()).isEqualTo(BluetoothGattCharacteristic.PERMISSION_READ | BluetoothGattCharacteristic.PERMISSION_WRITE);
+    Truth.assertThat(characteristic.getDescriptors()).isEmpty();
+  }
+
+  @Test
+  public void testCharacteristicEmptyListDescriptors() throws Throwable {
+    String jsonString =
+            "{" +
+            "  \"UUID\": \"ffffffff-ffff-ffff-ffff-ffffffffffff\"," +
+            "  \"Properties\":\"PROPERTY_READ|PROPERTY_WRITE\"," +
+            "  \"Permissions\": \"PERMISSION_READ|PERMISSION_WRITE\"," +
+            "  \"Descriptors\": []" +
+            "}";
+
+    BluetoothGattCharacteristic characteristic = JsonDeserializer.jsonToBluetoothGattCharacteristic(null, new JSONObject(jsonString));
+    Truth.assertThat(characteristic.getUuid()).isEqualTo(UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff"));
+    Truth.assertThat(characteristic.getProperties()).isEqualTo(BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE);
+    Truth.assertThat(characteristic.getPermissions()).isEqualTo(BluetoothGattCharacteristic.PERMISSION_READ | BluetoothGattCharacteristic.PERMISSION_WRITE);
+    Truth.assertThat(characteristic.getDescriptors()).isEmpty();
+  }
+
+  @Test
+  public void testCharacteristic1Descriptor() throws Throwable {
+    String jsonString =
+            "{" +
+            "  \"UUID\": \"ffffffff-ffff-ffff-ffff-ffffffffffff\"," +
+            "  \"Properties\":\"PROPERTY_READ|PROPERTY_WRITE\"," +
+            "  \"Permissions\": \"PERMISSION_READ|PERMISSION_WRITE\"," +
+            "  \"Descriptors\":" +
+            "  [" +
+            "    {" +
+            "      \"UUID\": \"dddddddd-dddd-dddd-dddd-dddddddddddd\"," +
+            "      \"Permissions\": \"PERMISSION_READ|PERMISSION_WRITE\"" +
+            "    }" +
+            "  ]" +
+            "}";
+
+    BluetoothGattCharacteristic characteristic = JsonDeserializer.jsonToBluetoothGattCharacteristic(null, new JSONObject(jsonString));
+    Truth.assertThat(characteristic.getUuid()).isEqualTo(UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff"));
+    Truth.assertThat(characteristic.getProperties()).isEqualTo(BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE);
+    Truth.assertThat(characteristic.getPermissions()).isEqualTo(BluetoothGattCharacteristic.PERMISSION_READ | BluetoothGattCharacteristic.PERMISSION_WRITE);
+    Truth.assertThat(characteristic.getDescriptors().size()).isEqualTo(1);
+    Truth.assertThat(characteristic.getDescriptors().get(0).getUuid()).isEqualTo(UUID.fromString("dddddddd-dddd-dddd-dddd-dddddddddddd"));
+    Truth.assertThat(characteristic.getDescriptors().get(0).getPermissions()).isEqualTo(BluetoothGattDescriptor.PERMISSION_READ | BluetoothGattDescriptor.PERMISSION_WRITE);
+  }
+  @Test
+  public void testCharacteristic2Descriptors() throws Throwable {
+    String jsonString =
+            "{" +
+            "  \"UUID\": \"ffffffff-ffff-ffff-ffff-ffffffffffff\"," +
+            "  \"Properties\":\"PROPERTY_READ|PROPERTY_WRITE\"," +
+            "  \"Permissions\": \"PERMISSION_READ|PERMISSION_WRITE\"," +
+            "  \"Descriptors\":" +
+            "  [" +
+            "    {" +
+            "      \"UUID\": \"dddddddd-dddd-dddd-dddd-dddddddddddd\"," +
+            "      \"Permissions\": \"PERMISSION_READ|PERMISSION_WRITE\"" +
+            "    }," +
+            "    {" +
+            "      \"UUID\": \"eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee\"," +
+            "      \"Permissions\": \"PERMISSION_READ\"" +
+            "    }" +
+            "  ]" +
+            "}";
+
+    BluetoothGattCharacteristic characteristic = JsonDeserializer.jsonToBluetoothGattCharacteristic(null, new JSONObject(jsonString));
+    Truth.assertThat(characteristic.getUuid()).isEqualTo(UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff"));
+    Truth.assertThat(characteristic.getProperties()).isEqualTo(BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE);
+    Truth.assertThat(characteristic.getPermissions()).isEqualTo(BluetoothGattCharacteristic.PERMISSION_READ | BluetoothGattCharacteristic.PERMISSION_WRITE);
+    Truth.assertThat(characteristic.getDescriptors().size()).isEqualTo(2);
+    Truth.assertThat(characteristic.getDescriptors().get(0).getUuid()).isEqualTo(UUID.fromString("dddddddd-dddd-dddd-dddd-dddddddddddd"));
+    Truth.assertThat(characteristic.getDescriptors().get(0).getPermissions()).isEqualTo(BluetoothGattDescriptor.PERMISSION_READ | BluetoothGattDescriptor.PERMISSION_WRITE);
+    Truth.assertThat(characteristic.getDescriptors().get(1).getUuid()).isEqualTo(UUID.fromString("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"));
+    Truth.assertThat(characteristic.getDescriptors().get(1).getPermissions()).isEqualTo(BluetoothGattDescriptor.PERMISSION_READ);
   }
 }

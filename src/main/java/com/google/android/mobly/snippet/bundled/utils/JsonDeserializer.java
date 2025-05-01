@@ -18,6 +18,7 @@ package com.google.android.mobly.snippet.bundled.utils;
 
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
@@ -139,10 +140,30 @@ public class JsonDeserializer {
                         // A characteristic can have multiple permissions (e.g. PERMISSION_READ and PERMISSION_WRITE).
                         // Use the BitwiseOr to extract all the permissions from the json string.
                         MbsEnums.BLE_PERMISSION_TYPE.getIntBitwiseOr(jsonObject.getString("Permissions")));
+        JSONArray descriptors = jsonObject.optJSONArray("Descriptors");
+        if (descriptors != null) {
+            for (int i = 0; i < descriptors.length(); i++) {
+                BluetoothGattDescriptor descriptor =
+                        jsonToBluetoothGattDescriptor(descriptors.getJSONObject(i));
+                characteristic.addDescriptor(descriptor);
+            }
+        }
         if (jsonObject.has("Data")) {
               dataHolder.insertData(characteristic, jsonObject.getString("Data"));
         }
         return characteristic;
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static BluetoothGattDescriptor jsonToBluetoothGattDescriptor(
+            JSONObject jsonObject) throws JSONException {
+        BluetoothGattDescriptor descriptor =
+                new BluetoothGattDescriptor(
+                        UUID.fromString(jsonObject.getString("UUID")),
+                        // A descriptor can have multiple permissions (e.g. PERMISSION_READ and PERMISSION_WRITE).
+                        // Use the BitwiseOr to extract all the permissions from the json string.
+                        MbsEnums.BLE_PERMISSION_TYPE.getIntBitwiseOr(jsonObject.getString("Permissions")));
+        return descriptor;
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
