@@ -29,7 +29,7 @@ allprojects {
 apply plugin: 'com.android.application'
 
 android {
-    compileSdk 33
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.google.android.mobly.snippet.bundled"
