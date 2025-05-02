@@ -25,6 +25,8 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.ScanRecord;
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.net.DhcpInfo;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiConfiguration;
@@ -34,6 +36,7 @@ import android.os.Bundle;
 import android.os.ParcelUuid;
 import android.util.Base64;
 import android.util.SparseArray;
+import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.lang.reflect.Modifier;
@@ -48,6 +51,9 @@ import org.json.JSONObject;
  * A collection of methods used to serialize data types defined in Android API into JSON strings.
  */
 public class JsonSerializer {
+    private static final String BLUETOOTH_PRIVILEGED_PERMISSION =
+        "android.permission.BLUETOOTH_PRIVILEGED";
+
     private static final Gson gson =
         new GsonBuilder()
             .serializeNulls()
@@ -132,28 +138,30 @@ public class JsonSerializer {
     }
 
     public static Bundle serializeBluetoothDevice(BluetoothDevice data) {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
         Bundle result = new Bundle();
         result.putString("Address", data.getAddress());
-        if (Build.VERSION.SDK_INT >= 36) {
+        if (Build.VERSION.SDK_INT >= 36 &&
+                context.checkCallingOrSelfPermission(BLUETOOTH_PRIVILEGED_PERMISSION)
+                        == PackageManager.PERMISSION_GRANTED) {
             result.putString("IdentityAddress", data.getIdentityAddressWithType().getAddress());
         } else {
-            result.putString("IdentityAddress", data.getAddress());
+            result.putString("IdentityAddress", null);
         }
         final String bondState =
                 MbsEnums.BLUETOOTH_DEVICE_BOND_STATE.getString(data.getBondState());
         result.putString("BondState", bondState);
         result.putString("Name", data.getName());
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            String deviceType = MbsEnums.BLUETOOTH_DEVICE_TYPE.getString(data.getType());
-            result.putString("DeviceType", deviceType);
-            ParcelUuid[] parcelUuids = data.getUuids();
-            if (parcelUuids != null) {
-                ArrayList<String> uuidStrings = new ArrayList<>(parcelUuids.length);
-                for (ParcelUuid parcelUuid : parcelUuids) {
-                    uuidStrings.add(parcelUuid.getUuid().toString());
-                }
-                result.putStringArrayList("UUIDs", uuidStrings);
+
+        String deviceType = MbsEnums.BLUETOOTH_DEVICE_TYPE.getString(data.getType());
+        result.putString("DeviceType", deviceType);
+        ParcelUuid[] parcelUuids = data.getUuids();
+        if (parcelUuids != null) {
+            ArrayList<String> uuidStrings = new ArrayList<>(parcelUuids.length);
+            for (ParcelUuid parcelUuid : parcelUuids) {
+                uuidStrings.add(parcelUuid.getUuid().toString());
             }
+            result.putStringArrayList("UUIDs", uuidStrings);
         }
         return result;
     }
