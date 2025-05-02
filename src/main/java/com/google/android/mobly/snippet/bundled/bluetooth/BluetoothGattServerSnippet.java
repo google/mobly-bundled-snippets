@@ -45,6 +45,7 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import java.util.UUID;
 
 /** Snippet class exposing Android APIs in BluetoothGattServer. */
 public class BluetoothGattServerSnippet implements Snippet {
@@ -68,6 +69,16 @@ public class BluetoothGattServerSnippet implements Snippet {
         bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         dataHolder = new DataHolder();
         eventCache = EventCache.getInstance();
+    }
+
+    private BluetoothDevice getDeviceByAddress(String address) {
+        List<BluetoothDevice> devices = bluetoothManager.getConnectedDevices(BluetoothProfile.GATT);
+        for (BluetoothDevice device : devices) {
+            if (device.getAddress().equals(address)) {
+                return device;
+            }
+        }
+        return null;
     }
 
     @RpcMinSdk(VERSION_CODES.LOLLIPOP)
@@ -124,13 +135,42 @@ public class BluetoothGattServerSnippet implements Snippet {
         if (bluetoothGattServer == null) {
             throw new BluetoothGattServerSnippetException("BLE server is not initialized.");
         }
-        List<BluetoothDevice> devices = bluetoothManager.getConnectedDevices(BluetoothProfile.GATT);
-        for (BluetoothDevice device : devices) {
-            if (device.getAddress().equals(address)) {
-                bluetoothGattServer.cancelConnection(device);
-                return;
-            }
+        BluetoothDevice device = getDeviceByAddress(address);
+        if (device != null) {
+            bluetoothGattServer.cancelConnection(device);
         }
+    }
+
+    @RpcMinSdk(VERSION_CODES.TIRAMISU)
+    @Rpc(description = "Send a notification that a characteristic changed.")
+    public void bleNotifyCharacteristicChanged(
+            String address,
+            String serviceUuid,
+            String characteristicUuid,
+            boolean confirm,
+            String base64Value)
+            throws BluetoothGattServerSnippetException {
+        if (bluetoothGattServer == null) {
+            throw new BluetoothGattServerSnippetException("BLE server is not initialized.");
+        }
+
+        BluetoothDevice device = getDeviceByAddress(address);
+        if (device == null) {
+            throw new BluetoothGattServerSnippetException("Device not found: " + address);
+        }
+
+        BluetoothGattService service = bluetoothGattServer.getService(UUID.fromString(serviceUuid));
+        if (service == null) {
+            throw new BluetoothGattServerSnippetException("Service not found: " + serviceUuid);
+        }
+        BluetoothGattCharacteristic characteristic =
+                service.getCharacteristic(UUID.fromString(characteristicUuid));
+        if (characteristic == null) {
+            throw new BluetoothGattServerSnippetException(
+                    "Characteristic not found: " + characteristicUuid);
+        }
+        byte[] value = Base64.decode(base64Value, Base64.NO_WRAP);
+        bluetoothGattServer.notifyCharacteristicChanged(device, characteristic, confirm, value);
     }
 
     private class DefaultBluetoothGattServerCallback extends BluetoothGattServerCallback {
