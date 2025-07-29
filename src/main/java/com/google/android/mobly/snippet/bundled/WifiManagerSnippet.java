@@ -222,16 +222,21 @@ public class WifiManagerSnippet implements Snippet {
                             + "serialized WifiScanResult objects.")
     public JSONArray wifiScanAndGetResults()
             throws InterruptedException, JSONException, WifiManagerSnippetException {
+        WifiScanReceiver receiver = new WifiScanReceiver();
         mContext.registerReceiver(
-                new WifiScanReceiver(),
+                receiver,
                 new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-        wifiStartScan();
-        mIsScanResultAvailable = false;
-        if (!Utils.waitUntil(() -> mIsScanResultAvailable, 2 * 60)) {
-            throw new WifiManagerSnippetException(
-                    "Failed to get scan results after 2min, timeout!");
+        try{
+          mIsScanResultAvailable = false;
+          wifiStartScan();
+          if (!Utils.waitUntil(() -> mIsScanResultAvailable, 2 * 60)) {
+              throw new WifiManagerSnippetException(
+                      "Failed to get scan results after 2min, timeout!");
+          }
+          return wifiGetCachedScanResults();
+        } finally {
+          mContext.unregisterReceiver(receiver);
         }
-        return wifiGetCachedScanResults();
     }
 
   @Rpc(
@@ -460,9 +465,9 @@ public class WifiManagerSnippet implements Snippet {
         @Override
         public void onReceive(Context c, Intent intent) {
             String action = intent.getAction();
-            if (action.equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
-                mIsScanResultAvailable = true;
-            }
+            if (!action.equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) return;
+            if (!intent.getBooleanExtra(WifiManager.EXTRA_RESULTS_UPDATED, false)) return;
+            mIsScanResultAvailable = true;
         }
     }
 }
