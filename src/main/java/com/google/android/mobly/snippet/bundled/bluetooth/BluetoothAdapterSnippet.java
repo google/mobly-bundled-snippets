@@ -281,24 +281,17 @@ public class BluetoothAdapterSnippet implements Snippet {
                 uiDevice.wait(Until.findObject(allowButtonSelector), TIMEOUT_UI_UPDATE_MS);
                 uiDevice.findObject(allowButtonSelector).click();
             }
-        } else if (Build.VERSION.SDK_INT >= 30) {
-            if (!(boolean)
-                    Utils.invokeByReflection(
-                            mBluetoothAdapter,
-                            "setScanMode",
-                            BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE,
-                            (long) duration * 1000)) {
+        } else if (Build.VERSION.SDK_INT == 30) {
+            if (!(boolean) Utils.invokeByReflection(
+                    mBluetoothAdapter,
+                    "setScanMode",
+                    BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)) {
                 throw new BluetoothAdapterSnippetException("Failed to become discoverable.");
-            } else {
-                if (!(boolean)
-                        Utils.invokeByReflection(
-                                mBluetoothAdapter,
-                                "setScanMode",
-                                BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE,
-                                duration)) {
-                    throw new BluetoothAdapterSnippetException("Failed to become discoverable.");
-                }
             }
+        } else {
+            throw new UnsupportedOperationException(
+                    "Not support set device to be discoverable on SDK version:"
+                            + Build.VERSION.SDK_INT);
         }
     }
 
