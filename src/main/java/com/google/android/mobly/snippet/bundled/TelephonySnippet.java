@@ -25,6 +25,7 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.rpc.RpcDefault;
+import com.google.android.mobly.snippet.util.Log;
 
 /** Snippet class for telephony RPCs. */
 public class TelephonySnippet implements Snippet {
@@ -40,26 +41,56 @@ public class TelephonySnippet implements Snippet {
                         context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
     }
 
-    @Rpc(
-            description =
-                    "Gets the line 1 phone number, or optionally get phone number for the "
-                            + "simSlot (slot# start from 0, only valid for API level > 32)")
+    @Rpc(description = "Gets the phone number of a given SIM slot or the default subscription.")
     public String getLine1Number(@RpcDefault("0") Integer simSlot) {
-        String thisNumber = "";
-
-        if (Build.VERSION.SDK_INT < 33) {
-            thisNumber = mTelephonyManager.getLine1Number();
-        } else {
-            SubscriptionInfo mSubscriptionInfo =
-                    mSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(
-                            simSlot.intValue());
-            if (mSubscriptionInfo != null) {
-                thisNumber =
-                        mSubscriptionManager.getPhoneNumber(mSubscriptionInfo.getSubscriptionId());
+        String phoneNumber = "";
+        try {
+            // Get the phone number for the given sim slot.
+            SubscriptionInfo activeSubInfoForSlot = mSubscriptionManager
+                .getActiveSubscriptionInfoForSimSlotIndex(simSlot);
+            phoneNumber = getPhoneNumber(activeSubInfoForSlot);
+            if (isNullOrEmpty(phoneNumber)) {
+                // Fall back to the default subscription if the phone number is unavailable.
+                SubscriptionInfo defaultSubInfo = getDefaultSubscriptionInfo();
+                phoneNumber = getPhoneNumber(defaultSubInfo);
             }
+        } catch (IllegalStateException e) {
+            Log.w("Inappropriate state for getting the device phone number.", e);
+        } catch (SecurityException e) {
+            Log.w("Lacking permission for getting the device phone number.", e);
+        } catch (UnsupportedOperationException e) {
+            Log.w("Unsupported operation for getting the device phone number.", e);
         }
+        if (!isNullOrEmpty(phoneNumber)) {
+            Log.d("phoneNumber: " + phoneNumber + " for simSlot: " + simSlot);
+        } else {
+            Log.w("Failed to get the device phone number for simSlot: " + simSlot);
+        }
+        return phoneNumber;
+    }
 
-        return thisNumber;
+    private String getPhoneNumber(SubscriptionInfo subInfo) {
+        if (subInfo == null) {
+            return "";
+        }
+        if (Build.VERSION.SDK_INT < 33) {
+            return subInfo.getNumber();
+        } else {
+            return mSubscriptionManager.getPhoneNumber(subInfo.getSubscriptionId());
+        }
+    }
+
+    private SubscriptionInfo getDefaultSubscriptionInfo() {
+        int defaultSubId = SubscriptionManager.getDefaultSubscriptionId();
+        if (defaultSubId != SubscriptionManager.INVALID_SUBSCRIPTION_ID) {
+            return mSubscriptionManager.getActiveSubscriptionInfo(defaultSubId);
+        } else {
+            return null;
+        }
+    }
+
+    private boolean isNullOrEmpty(String string) {
+        return string == null || string.isEmpty();
     }
 
     @Rpc(description = "Returns the unique subscriber ID, for example, the IMSI for a GSM phone.")
@@ -109,8 +140,9 @@ public class TelephonySnippet implements Snippet {
                     "Returns a constant indicating the radio technology (network type) currently"
                             + "in use on the device for voice transmission.")
     public int getVoiceNetworkType() {
-      return mTelephonyManager.getVoiceNetworkType();
+        return mTelephonyManager.getVoiceNetworkType();
     }
+
     @Override
     public void shutdown() {}
 }
