@@ -21,16 +21,14 @@ import android.os.Build;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.google.android.mobly.snippet.Snippet;
 import com.google.android.mobly.snippet.rpc.Rpc;
 import com.google.android.mobly.snippet.rpc.RpcDefault;
+import com.google.android.mobly.snippet.util.Log;
 
 /** Snippet class for telephony RPCs. */
 public class TelephonySnippet implements Snippet {
-
-    private static final String LOG_TAG = "TelephonySnippet";
 
     private final TelephonyManager mTelephonyManager;
     private final SubscriptionManager mSubscriptionManager;
@@ -57,16 +55,16 @@ public class TelephonySnippet implements Snippet {
                 phoneNumber = getPhoneNumber(defaultSubInfo);
             }
         } catch (IllegalStateException e) {
-            Log.w(LOG_TAG, "Inappropriate state for getting the device phone number.", e);
+            Log.w("Inappropriate state for getting the device phone number.", e);
         } catch (SecurityException e) {
-            Log.w(LOG_TAG, "Lacking permission for getting the device phone number.", e);
+            Log.w("Lacking permission for getting the device phone number.", e);
         } catch (UnsupportedOperationException e) {
-            Log.w(LOG_TAG, "Unsupported operation for getting the device phone number.", e);
+            Log.w("Unsupported operation for getting the device phone number.", e);
         }
         if (!isNullOrEmpty(phoneNumber)) {
-            Log.d(LOG_TAG, "phoneNumber: " + phoneNumber + " for simSlot: " + simSlot);
+            Log.d("phoneNumber: " + phoneNumber + " for simSlot: " + simSlot);
         } else {
-            Log.w(LOG_TAG, "Failed to get the device phone number for simSlot: " + simSlot);
+            Log.w("Failed to get the device phone number for simSlot: " + simSlot);
         }
         return phoneNumber;
     }
@@ -75,7 +73,7 @@ public class TelephonySnippet implements Snippet {
         if (subInfo == null) {
             return "";
         }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) { // 33
+        if (Build.VERSION.SDK_INT < 33) {
             return subInfo.getNumber();
         } else {
             return mSubscriptionManager.getPhoneNumber(subInfo.getSubscriptionId());
