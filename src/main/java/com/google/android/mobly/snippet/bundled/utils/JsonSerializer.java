@@ -131,7 +131,9 @@ public class JsonSerializer {
         result.put("NetworkId", data.getNetworkId());
         result.put("StaFrequency", data.getFrequency());
         result.put("RSSI", data.getRssi());
-        result.put("MaxSupportedTxLinkSpeedMbps", data.getMaxSupportedTxLinkSpeedMbps());
+        if (Build.VERSION.SDK_INT > 29) {
+            result.put("MaxSupportedTxLinkSpeedMbps", data.getMaxSupportedTxLinkSpeedMbps());
+        }
         result.put("SSID", trimQuotationMarks(data.getSSID()));
         for (SupplicantState state : SupplicantState.values()) {
             if (data.getSupplicantState().equals(state)) {
