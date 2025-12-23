@@ -216,21 +216,78 @@ public final class Utils {
         return new String(hexChars);
     }
 
-   public static void adaptShellPermissionIfRequired(Context context) throws Throwable {
-      if (Build.VERSION.SDK_INT >= 29) {
-        Log.d("Elevating permission require to enable support for privileged operation in Android Q+");
-        UiAutomation uia = InstrumentationRegistry.getInstrumentation().getUiAutomation();
-        uia.adoptShellPermissionIdentity();
-        try {
-          Class<?> cls = Class.forName("android.app.UiAutomation");
-          Method destroyMethod = cls.getDeclaredMethod("destroy");
-          destroyMethod.invoke(uia);
-        } catch (NoSuchMethodException
-            | IllegalAccessException
-            | ClassNotFoundException
-            | InvocationTargetException e) {
-          throw new RuntimeException("Failed to cleaup Ui Automation", e);
+    public static void adaptShellPermissionIfRequired(Context context) throws Throwable {
+        if (Build.VERSION.SDK_INT >= 29) {
+            Log.d("Elevating permission require to enable support for privileged operation in Android Q+");
+            UiAutomation uia = InstrumentationRegistry.getInstrumentation().getUiAutomation();
+            uia.adoptShellPermissionIdentity();
+            try {
+                Class<?> cls = Class.forName("android.app.UiAutomation");
+                Method destroyMethod = cls.getDeclaredMethod("destroy");
+                destroyMethod.invoke(uia);
+            } catch (NoSuchMethodException
+                    | IllegalAccessException
+                    | ClassNotFoundException
+                    | InvocationTargetException e) {
+                throw new RuntimeException("Failed to cleaup Ui Automation", e);
+            }
         }
-      }
+    }
+
+    /** Drops the shell permission identity. */
+    public static void dropShellPermissionIdentity() {
+        if (Build.VERSION.SDK_INT >= 29) {
+            UiAutomation uiAutomation =
+                    InstrumentationRegistry.getInstrumentation().getUiAutomation();
+            uiAutomation.dropShellPermissionIdentity();
+            // Need to drop the UI Automation to allow other snippets to get access
+            // to global UI automation.
+            // Using reflection here since the method is not public.
+            try {
+                Class<?> cls = Class.forName("android.app.UiAutomation");
+                Method destroyMethod = cls.getDeclaredMethod("destroy");
+                destroyMethod.invoke(uiAutomation);
+            } catch (ReflectiveOperationException e) {
+                throw new IllegalStateException("Failed to cleaup Ui Automation", e);
+            }
+        }
+    }
+
+    /** Adopts shell permission identity (all permissions). */
+    public static void adoptShellPermissionIdentity() {
+        if (Build.VERSION.SDK_INT >= 29) {
+            UiAutomation uiAutomation =
+                    InstrumentationRegistry.getInstrumentation().getUiAutomation();
+            uiAutomation.adoptShellPermissionIdentity();
+            // Need to drop the UI Automation to allow other snippets to get access
+            // to global UI automation.
+            // Using reflection here since the method is not public.
+            try {
+                Class<?> cls = Class.forName("android.app.UiAutomation");
+                Method destroyMethod = cls.getDeclaredMethod("destroy");
+                destroyMethod.invoke(uiAutomation);
+            } catch (ReflectiveOperationException e) {
+                throw new IllegalStateException("Failed to cleaup Ui Automation", e);
+            }
+        }
+    }
+
+    /** Adopts shell permission identity (specific permissions). */
+    public static void adoptShellPermissionIdentity(String[] permissions) {
+        if (Build.VERSION.SDK_INT >= 29) {
+            UiAutomation uiAutomation =
+                    InstrumentationRegistry.getInstrumentation().getUiAutomation();
+            uiAutomation.adoptShellPermissionIdentity(permissions);
+            // Need to drop the UI Automation to allow other snippets to get access
+            // to global UI automation.
+            // Using reflection here since the method is not public.
+            try {
+                Class<?> cls = Class.forName("android.app.UiAutomation");
+                Method destroyMethod = cls.getDeclaredMethod("destroy");
+                destroyMethod.invoke(uiAutomation);
+            } catch (ReflectiveOperationException e) {
+                throw new IllegalStateException("Failed to cleaup Ui Automation", e);
+            }
+        }
     }
 }
