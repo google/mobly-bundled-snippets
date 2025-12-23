@@ -30,7 +30,7 @@ public class UtilitySnippet implements Snippet {
     @Rpc(description = "Adopts shell permission, with each invocation"
             + " overwriting preceding adoptions. If no permissions are"
             + " specified, all permissions will be granted.")
-    public void utilityAdoptShellPermission(@RpcOptional String[] permissions) {
+    public void utilityAdoptShellPermission(@RpcOptional String[] permissions) throws Throwable {
         Utils.adaptShellPermissionIfRequired(mContext, permissions);
     }
 
