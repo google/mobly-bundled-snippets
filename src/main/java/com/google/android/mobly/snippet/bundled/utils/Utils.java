@@ -28,6 +28,7 @@ import com.google.common.primitives.Primitives;
 import com.google.common.reflect.TypeToken;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
@@ -216,21 +217,60 @@ public final class Utils {
         return new String(hexChars);
     }
 
-   public static void adaptShellPermissionIfRequired(Context context) throws Throwable {
-      if (Build.VERSION.SDK_INT >= 29) {
-        Log.d("Elevating permission require to enable support for privileged operation in Android Q+");
-        UiAutomation uia = InstrumentationRegistry.getInstrumentation().getUiAutomation();
-        uia.adoptShellPermissionIdentity();
-        try {
-          Class<?> cls = Class.forName("android.app.UiAutomation");
-          Method destroyMethod = cls.getDeclaredMethod("destroy");
-          destroyMethod.invoke(uia);
-        } catch (NoSuchMethodException
-            | IllegalAccessException
-            | ClassNotFoundException
-            | InvocationTargetException e) {
-          throw new RuntimeException("Failed to cleaup Ui Automation", e);
+    /**
+     * Adapt shell permissions required to enable support for privileged operations.
+     *
+     * @param context The Context of this Instrumentation's package.
+     * @param permissions The permissions to grant (if empty all permissions will be granted).
+     */
+    public static void adaptShellPermissionIfRequired(
+            Context context, String... permissions) throws Throwable {
+        if (Build.VERSION.SDK_INT >= 29) {
+            Log.d("Elevating permission require to enable support for privileged operation in Android Q+");
+            UiAutomation uia = InstrumentationRegistry.getInstrumentation().getUiAutomation();
+            if (permissions.length == 0) {
+                Log.d("Adopting shell identity of the shell UID for all permissions.");
+                uia.adoptShellPermissionIdentity();
+            } else {
+                Log.d("Adopting shell identity of the shell UID for permissions: "
+                        + Arrays.toString(permissions));
+                uia.adoptShellPermissionIdentity(permissions);
+            }
+            // Need to drop the UI Automation to allow other snippets to get access
+            // to global UI automation.
+            // Using reflection here since the method is not public.
+            try {
+                Class<?> cls = Class.forName("android.app.UiAutomation");
+                Method destroyMethod = cls.getDeclaredMethod("destroy");
+                destroyMethod.invoke(uia);
+            } catch (NoSuchMethodException
+                    | IllegalAccessException
+                    | ClassNotFoundException
+                    | InvocationTargetException e) {
+                throw new RuntimeException("Failed to cleaup Ui Automation", e);
+            }
         }
-      }
+    }
+
+    /**
+     * Drop shell permissions required to enable support for privileged operations.
+     */
+    public static void dropShellPermissionIdentity() {
+        if (Build.VERSION.SDK_INT >= 29) {
+            Log.d("Dropping shell permissions.");
+            UiAutomation uiAutomation =
+                    InstrumentationRegistry.getInstrumentation().getUiAutomation();
+            uiAutomation.dropShellPermissionIdentity();
+            // Need to drop the UI Automation to allow other snippets to get access
+            // to global UI automation.
+            // Using reflection here since the method is not public.
+            try {
+                Class<?> cls = Class.forName("android.app.UiAutomation");
+                Method destroyMethod = cls.getDeclaredMethod("destroy");
+                destroyMethod.invoke(uiAutomation);
+            } catch (ReflectiveOperationException e) {
+                throw new IllegalStateException("Failed to cleaup Ui Automation", e);
+            }
+        }
     }
 }
