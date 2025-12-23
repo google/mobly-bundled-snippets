@@ -11,19 +11,23 @@ import com.google.android.mobly.snippet.util.Log;
  */
 public class UtilitySnippet implements Snippet {
 
-    @Rpc(description = "Drops the shell permission identity.")
+    private final Context mContext;
+
+    public UtilitySnippet() {
+        mContext = InstrumentationRegistry.getInstrumentation().getContext();
+    }
+
+    @Rpc(description = "Drops the shell permission. This is no-op if shell"
+            + " permission identity is not adopted.")
     public void utilityDropShellPermission() {
-        Log.d("MY_DEBUG_TAG: utilityDropShellPermission is invoked successfully!");
         Utils.dropShellPermissionIdentity();
     }
 
-    @Rpc(description = "Adopts shell permission identity (all permissions).")
+    @Rpc(description = "Adopts shell permission, with each invocation"
+            + " overwriting preceding adoptions. If no permissions are"
+            + " specified, all permissions will be granted.")
     public void utilityAdoptShellPermission(@RpcOptional String[] permissions) {
-        if (permissions == null || permissions.length == 0) {
-            Utils.adoptShellPermissionIdentity();
-        } else {
-            Utils.adoptShellPermissionIdentity(permissions);
-        }
+        Utils.adoptShellPermissionIdentity(mContext, permissions);
     }
 
     @Override
