@@ -31,7 +31,11 @@ public class UtilitySnippet implements Snippet {
             + " overwriting preceding adoptions. If no permissions are"
             + " specified, all permissions will be granted.")
     public void utilityAdoptShellPermission(@RpcOptional String[] permissions) throws Throwable {
-        Utils.adaptShellPermissionIfRequired(mContext, permissions);
+        if (permissions == null) {
+            Utils.adaptShellPermissionIfRequired(mContext);
+        } else {
+            Utils.adaptShellPermissionIfRequired(mContext, permissions);
+        }
     }
 
     @Override
