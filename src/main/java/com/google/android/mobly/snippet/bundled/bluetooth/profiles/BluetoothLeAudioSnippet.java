@@ -111,6 +111,7 @@ public class BluetoothLeAudioSnippet implements Snippet {
     /** Service Listener for {@link BluetoothLeAudio}. */
     private static class LeAudioServiceListener implements BluetoothProfile.ServiceListener {
 
+        @TargetApi(Build.VERSION_CODES.S)
         @Override
         public void onServiceConnected(int profileType, BluetoothProfile profile) {
             sLeAudioProfile = (BluetoothLeAudio) profile;
@@ -130,6 +131,7 @@ public class BluetoothLeAudioSnippet implements Snippet {
         return mJsonSerializer.serializeBluetoothDeviceList(sLeAudioProfile.getConnectedDevices());
     }
 
+    @TargetApi(Build.VERSION_CODES.TIRAMISU)
     private BluetoothDevice getConnectedBluetoothDevice(String deviceAddress)
         throws BluetoothLeAudioSnippetException {
         for (BluetoothDevice device : sLeAudioProfile.getConnectedDevices()) {

@@ -16,6 +16,7 @@
 
 package com.google.android.mobly.snippet.bundled.bluetooth;
 
+import android.annotation.TargetApi;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -141,6 +142,7 @@ public class BluetoothGattServerSnippet implements Snippet {
         }
     }
 
+    @TargetApi(VERSION_CODES.TIRAMISU)
     @RpcMinSdk(VERSION_CODES.TIRAMISU)
     @Rpc(description = "Send a notification that a characteristic changed.")
     public void bleNotifyCharacteristicChanged(
