@@ -41,7 +41,7 @@
     <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    <application android:allowBackup="false">
+    <application android:allowBackup="false" android:label="MoblyBundledSnippetsApp">
         <meta-data
             android:name="mobly-snippets"
             android:testOnly="true"
