@@ -236,19 +236,7 @@ public final class Utils {
                         + Arrays.toString(permissions));
                 uia.adoptShellPermissionIdentity(permissions);
             }
-            // Need to drop the UI Automation to allow other snippets to get access
-            // to global UI automation.
-            // Using reflection here since the method is not public.
-            try {
-                Class<?> cls = Class.forName("android.app.UiAutomation");
-                Method destroyMethod = cls.getDeclaredMethod("destroy");
-                destroyMethod.invoke(uia);
-            } catch (NoSuchMethodException
-                    | IllegalAccessException
-                    | ClassNotFoundException
-                    | InvocationTargetException e) {
-                throw new RuntimeException("Failed to cleaup Ui Automation", e);
-            }
+
         }
     }
 
