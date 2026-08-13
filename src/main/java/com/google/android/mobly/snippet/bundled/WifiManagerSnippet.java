@@ -96,6 +96,13 @@ public class WifiManagerSnippet implements Snippet {
             });
     }
 
+    @Rpc(description = "Disconnects from the currently connected Wi-Fi network.")
+    public void wifiDisconnect() throws WifiManagerSnippetException {
+        if (!mWifiManager.disconnect()) {
+            throw new WifiManagerSnippetException("Failed to disconnect from the Wi-Fi network.");
+        }
+    }
+
     @Rpc(description = "Checks if Wi-Fi is connected.")
     public boolean isWifiConnected() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
