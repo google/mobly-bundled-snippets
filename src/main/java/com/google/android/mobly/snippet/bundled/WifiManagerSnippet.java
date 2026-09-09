@@ -96,6 +96,28 @@ public class WifiManagerSnippet implements Snippet {
             });
     }
 
+    /**
+     * Disconnects from the currently connected Wi-Fi network.
+     *
+     * <p>{@link WifiManager#disconnect()} is a privileged API: on API 29+ it is a no-op that
+     * returns {@code false} unless the snippet process holds the required system permissions.
+     */
+    @Rpc(description = "Disconnects from the currently connected Wi-Fi network with a 30s timeout.")
+    public void wifiDisconnect() throws InterruptedException, WifiManagerSnippetException {
+        if (!isWifiConnected()) {
+            return;
+        }
+        if (!mWifiManager.disconnect()) {
+            throw new WifiManagerSnippetException("Failed to initiate Wi-Fi disconnection.");
+        }
+        if (!Utils.waitUntil(() -> !isWifiConnected(), TIMEOUT_TOGGLE_STATE)) {
+            throw new WifiManagerSnippetException(
+                    String.format(
+                            "Failed to disconnect from Wi-Fi after %ss, timeout!",
+                            TIMEOUT_TOGGLE_STATE));
+        }
+    }
+
     @Rpc(description = "Checks if Wi-Fi is connected.")
     public boolean isWifiConnected() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
