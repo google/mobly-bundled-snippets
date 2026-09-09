@@ -371,7 +371,8 @@ public class BluetoothAdapterSnippet implements Snippet {
     public void btUnpairDevice(String deviceAddress) throws Throwable {
         for (BluetoothDevice device : mBluetoothAdapter.getBondedDevices()) {
             if (device.getAddress().equalsIgnoreCase(deviceAddress)) {
-                if (!(boolean) Utils.invokeByReflection(device, "removeBond")) {
+                if (!(boolean) Utils.invokeByReflection(device, "removeBond")
+                        && device.getBondState() != BluetoothDevice.BOND_NONE) {
                     throw new BluetoothAdapterSnippetException(
                             "Failed to initiate the un-pairing process for device: "
                                     + deviceAddress);
