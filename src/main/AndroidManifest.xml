@@ -41,6 +41,14 @@
     <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <!-- VoIP / self-managed calls -->
+    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
+    <uses-permission android:name="android.permission.BIND_TELECOM_CONNECTION_SERVICE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
+
     <application android:allowBackup="false" android:label="MoblyBundledSnippetsApp">
         <meta-data
             android:name="mobly-snippets"
@@ -59,8 +67,10 @@
                            com.google.android.mobly.snippet.bundled.ContactSnippet,
                            com.google.android.mobly.snippet.bundled.LogSnippet,
                            com.google.android.mobly.snippet.bundled.MediaSnippet,
+                           com.google.android.mobly.snippet.bundled.LocalMediaSnippet,
                            com.google.android.mobly.snippet.bundled.NotificationSnippet,
                            com.google.android.mobly.snippet.bundled.TelephonySnippet,
+                           com.google.android.mobly.snippet.bundled.VoIpTelephonySnippet,
                            com.google.android.mobly.snippet.bundled.NetworkingSnippet,
                            com.google.android.mobly.snippet.bundled.FileSnippet,
                            com.google.android.mobly.snippet.bundled.SmsSnippet,
@@ -68,6 +78,16 @@
                            com.google.android.mobly.snippet.bundled.WifiManagerSnippet,
                            com.google.android.mobly.snippet.bundled.StorageSnippet,
                            com.google.android.mobly.snippet.bundled.UtilitySnippet" />
+
+        <!-- VoIP ConnectionService -->
+        <service
+            android:name=".VoIpTelephonySnippet$VoipConnectionService"
+            android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.telecom.ConnectionService" />
+            </intent-filter>
+        </service>
     </application>
 
     <instrumentation
